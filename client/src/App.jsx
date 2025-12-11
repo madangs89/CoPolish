@@ -1,11 +1,15 @@
-import React from 'react'
+import React from "react";
+import Hero from "./pages/Hero";
+import Cursor from "./components/Cursor";
 
 const App = () => {
   return (
-    <div className='w-full h-screen bg-red-500'>
+    <div className="w-full relative  min-h-screen overflow-x-hidden bg-red-500">
       
-    </div>
-  )
-}
+      <Hero />
 
-export default App
+    </div>
+  );
+};
+
+export default App;
