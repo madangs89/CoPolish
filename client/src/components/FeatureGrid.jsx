@@ -10,7 +10,7 @@ const centerImage =
 
 export default function FeatureGrid() {
   return (
-    <section className="max-w-5xl mx-auto px-4">
+    <section className="lg:max-w-5xl w-full mx-auto px-4">
       <div className="max-w-5xl mx-auto flex gap-5 h-[400px]">
         {/* LEFT COLUMN */}
         <div className="w-[22%] h-full flex flex-col items-center justify-center gap-[7%]">

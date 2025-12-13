@@ -1,16 +1,7 @@
 // src/components/Testimonials.jsx
+import Marquee from "react-fast-marquee";
 import React, { useState } from "react";
 
-/**
- * Testimonials
- * Props:
- *  - testimonials: optional array of { id, name, role, company, quote, avatarUrl }
- *
- * Usage:
- *  <Testimonials />
- *  OR
- *  <Testimonials testimonials={myTestimonials} />
- */
 
 const defaultTestimonials = [
   {
@@ -46,11 +37,6 @@ const defaultTestimonials = [
 ];
 
 export default function Testimonials({ testimonials = defaultTestimonials }) {
-  const [index, setIndex] = useState(0);
-
-  const prev = () =>
-    setIndex((i) => (i - 1 + testimonials.length) % testimonials.length);
-  const next = () => setIndex((i) => (i + 1) % testimonials.length);
 
   return (
     <section className="max-w-5xl mx-auto px-4 py-16">
@@ -64,12 +50,12 @@ export default function Testimonials({ testimonials = defaultTestimonials }) {
         </p>
       </div>
 
-      {/* Desktop grid */}
-      <div className="hidden md:grid grid-cols-3 gap-6">
+      <Marquee autoFill={true} gradient={true} gradientWidth={100} speed={40}
+      pauseOnClick={true}>
         {testimonials.map((t) => (
           <article
             key={t.id}
-            className="rounded-2xl p-6 bg-white/90 border border-slate-100 shadow-sm"
+            className="rounded-2xl mx-3 max-w-[400px] p-6 bg-white/90 border border-slate-100 shadow-sm"
             aria-label={`Testimonial from ${t.name}`}
           >
             <div className="flex items-start gap-4">
@@ -93,69 +79,7 @@ export default function Testimonials({ testimonials = defaultTestimonials }) {
             </blockquote>
           </article>
         ))}
-      </div>
-
-      {/* Mobile carousel */}
-      <div className="md:hidden relative">
-        <div className="rounded-2xl p-6 bg-white/90 border border-slate-100 shadow-sm">
-          <div className="flex items-start gap-4">
-            <img
-              src={testimonials[index].avatarUrl}
-              alt={`${testimonials[index].name} avatar`}
-              className="w-12 h-12 rounded-full object-cover shadow-sm"
-            />
-            <div>
-              <div className="text-sm font-semibold text-slate-900">
-                {testimonials[index].name}
-              </div>
-              <div className="text-xs text-slate-500">
-                {testimonials[index].role} — {testimonials[index].company}
-              </div>
-            </div>
-          </div>
-
-          <blockquote className="mt-4 text-slate-700 text-sm leading-relaxed">
-            “{testimonials[index].quote}”
-          </blockquote>
-        </div>
-
-        {/* Controls */}
-        <div className="absolute -left-3 top-1/2 transform -translate-y-1/2">
-          <button
-            onClick={prev}
-            className="w-9 h-9 rounded-full bg-white shadow inline-flex items-center justify-center text-slate-700 border border-slate-100"
-            aria-label="Previous testimonial"
-          >
-            ‹
-          </button>
-        </div>
-        <div className="absolute -right-3 top-1/2 transform -translate-y-1/2">
-          <button
-            onClick={next}
-            className="w-9 h-9 rounded-full bg-white shadow inline-flex items-center justify-center text-slate-700 border border-slate-100"
-            aria-label="Next testimonial"
-          >
-            ›
-          </button>
-        </div>
-
-        {/* Dots */}
-        <div className="mt-4 flex justify-center gap-2">
-          {testimonials.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setIndex(i)}
-              aria-label={`Show testimonial ${i + 1}`}
-              className={`w-2 h-2 rounded-full ${
-                i === index ? "bg-slate-800" : "bg-slate-300"
-              }`}
-            />
-          ))}
-        </div>
-      </div>
-
-   
-     
+      </Marquee>
     </section>
   );
 }
