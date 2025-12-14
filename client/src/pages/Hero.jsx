@@ -13,6 +13,7 @@ import FAQ from "../components/FAQ";
 import Footer from "../components/Footer";
 import FinalCTA from "../components/FinalCTA";
 import Cursor from "../components/Cursor";
+import OnboardingSource from "./OnboardingSource";
 const Hero = () => {
   const ref = useRef(null);
   const [width, setWidth] = useState(0);
@@ -133,7 +134,6 @@ const Hero = () => {
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
-
           <FeatureGrid />
           <HowItWorks />
           <WhyChoose />
