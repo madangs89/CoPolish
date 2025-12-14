@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import AuthOverlay from "./AuthOverlay";
+import { gsap } from "gsap";
 
 const Navbar = () => {
   const [authOpen, setAuthOpen] = useState(false);
@@ -15,6 +16,16 @@ const Navbar = () => {
       </div>
 
       <button
+        onMouseEnter={() => {
+          gsap.to("#cursor", {
+            scale: 1.5,
+            color: "white",
+            duration: 0.3,
+          });
+        }}
+        onMouseLeave={() => {
+          gsap.to("#cursor", { scale: 1, color: "white", duration: 0.3 });
+        }}
         onClick={() => setAuthOpen(true)}
         className="bg-black flex items-center justify-center text-[14px] px-4 py-1.5 rounded-full text-white"
       >
