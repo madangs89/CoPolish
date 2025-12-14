@@ -1,0 +1,134 @@
+import React, { useEffect, useState } from "react";
+import { X } from "lucide-react";
+import { gsap } from "gsap";
+
+const AuthOverlay = ({ open, onClose }) => {
+  const [mode, setMode] = useState("login");
+
+  useEffect(() => {
+    if (open) {
+      gsap.to("#cursor", {
+        opacity: 0,
+        scale: 0,
+        duration: 0.3,
+        ease: "power2.out",
+      });
+    } else {
+      gsap.to("#cursor", {
+        opacity: 1,
+        scale: 1,
+        duration: 0.3,
+        ease: "power2.out",
+      });
+    }
+
+    return () => {
+      gsap.to("#cursor", {
+        opacity: 1,
+        scale: 1,
+        duration: 0.2,
+      });
+    };
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center">
+      {/* Background */}
+      <div
+        onClick={onClose}
+        className="absolute inset-0 bg-black/40 backdrop-blur-md"
+      />
+
+      {/* Card */}
+      <div className="relative w-[420px] rounded-2xl bg-white shadow-[0_30px_90px_rgba(0,0,0,0.3)] p-8 z-10">
+        {/* Close */}
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 opacity-60 hover:opacity-100 transition"
+        >
+          <X size={18} />
+        </button>
+
+        {/* Header */}
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-[#1f2430]">
+            {mode === "login" ? "Welcome back" : "Create account"}
+          </h2>
+          <p className="text-sm text-[#6b6b6b] mt-1">
+            {mode === "login"
+              ? "Login to polish your resume & LinkedIn"
+              : "Start building a standout professional profile"}
+          </p>
+        </div>
+
+        {/* Form */}
+        <div className="flex flex-col gap-4">
+          {mode === "signup" && (
+            <input 
+              type="text" placeholder="Full name" className="auth-input" />
+          )}
+
+          <input
+  
+
+            type="email"
+            placeholder="Email address"
+            className="auth-input"
+          />
+
+          <input
+  
+
+            type="password"
+            placeholder="Password"
+            className="auth-input"
+          />
+        </div>
+
+        {/* Primary CTA */}
+        <button className="w-full mt-6 rounded-full bg-black text-white py-3 text-sm font-medium hover:scale-[1.02] transition">
+          {mode === "login" ? "Login" : "Create account"}
+        </button>
+
+        {/* Divider */}
+        <div className="flex items-center gap-4 my-6">
+          <div className="h-[1px] bg-[#e5e5e5] flex-1" />
+          <span className="text-xs text-[#6b6b6b]">OR</span>
+          <div className="h-[1px] bg-[#e5e5e5] flex-1" />
+        </div>
+
+        {/* OAuth */}
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={() => console.log("Google Auth")}
+            className="w-full rounded-full border py-3 text-sm font-medium hover:bg-[#f5f5f5] transition"
+          >
+            Continue with Google
+          </button>
+
+          <button
+            onClick={() => console.log("GitHub Auth")}
+            className="w-full rounded-full border py-3 text-sm font-medium hover:bg-[#f5f5f5] transition"
+          >
+            Continue with GitHub
+          </button>
+        </div>
+
+        {/* Switch */}
+        <p className="text-xs text-center text-[#6b6b6b] mt-6">
+          {mode === "login" ? "New here?" : "Already have an account?"}{" "}
+          <span
+            onClick={() => setMode(mode === "login" ? "signup" : "login")}
+            className="text-black font-medium cursor-pointer hover:underline"
+          >
+            {mode === "login" ? "Create account" : "Login"}
+          </span>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default AuthOverlay;

@@ -16,3 +16,8 @@ body{
     cursor: default;
     font-family: "Ruda", sans-serif;
 }
+
+.auth-input {
+  @apply w-full rounded-full border border-[#e2e2e2] px-4 py-3 text-sm outline-none 
+  focus:border-black transition bg-white;
+}
