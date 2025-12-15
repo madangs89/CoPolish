@@ -4,6 +4,7 @@ import Cursor from "./components/Cursor";
 import OnboardingSource from "./pages/OnboardingSource";
 import { Route, Routes } from "react-router-dom";
 import AprovePage from "./pages/AprovePage";
+import Dashboard from "./pages/Dashboard";
 
 const App = () => {
   const [auth, isAuth] = useState(true);
@@ -22,6 +23,7 @@ const App = () => {
         <Routes>
           <Route index element={<OnboardingSource />} />
           <Route path="/approve" element={<AprovePage />} />
+          <Route path="/Dashboard" element={<Dashboard />} />
         </Routes>
       </div>
     );
