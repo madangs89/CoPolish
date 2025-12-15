@@ -31,7 +31,7 @@ const CertificationsEditor = ({ data, onChange }) => {
   /* ---------- UI ---------- */
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 ">
       {data.map((cert, certIndex) => (
         <div
           key={certIndex}

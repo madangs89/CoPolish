@@ -6,7 +6,7 @@ import { Route, Routes } from "react-router-dom";
 import AprovePage from "./pages/AprovePage";
 
 const App = () => {
-  const [auth, isAuth] = useState(false);
+  const [auth, isAuth] = useState(true);
 
   if (!auth) {
     return (
