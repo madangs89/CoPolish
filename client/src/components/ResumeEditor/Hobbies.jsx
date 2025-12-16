@@ -1,0 +1,126 @@
+import { Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
+
+const Hobbies = ({ resumeData, setResumeData }) => {
+  const [input, setInput] = useState("");
+
+  /* ---------- ADD HOBBY ---------- */
+  const addHobby = () => {
+    const value = input.trim();
+    if (!value) return;
+
+    setResumeData((prev) => ({
+      ...prev,
+      hobbies: [...prev.hobbies, value],
+    }));
+
+    setInput("");
+  };
+
+  /* ---------- UPDATE HOBBY ---------- */
+  const updateHobby = (index, value) => {
+    const updated = [...resumeData.hobbies];
+    updated[index] = value;
+
+    setResumeData((prev) => ({
+      ...prev,
+      hobbies: updated,
+    }));
+  };
+
+  /* ---------- DELETE HOBBY ---------- */
+  const deleteHobby = (index) => {
+    const updated = resumeData.hobbies.filter((_, i) => i !== index);
+
+    setResumeData((prev) => ({
+      ...prev,
+      hobbies: updated,
+    }));
+  };
+
+  /* ---------- UI ---------- */
+  return (
+    <div className="space-y-5">
+      {/* HEADER */}
+      <div>
+        <h3 className="text-sm font-semibold text-[#1f2430]">Hobbies</h3>
+        <p className="text-xs text-[#6b6b6b] mt-1">
+          Add hobbies or interests that reflect your personality.
+        </p>
+      </div>
+
+      {/* EMPTY STATE */}
+      {resumeData.hobbies.length === 0 && (
+        <div
+          className="rounded-xl border border-dashed border-[#d1d5db]
+                     bg-[#fafafa] p-5 text-center space-y-3"
+        >
+          <p className="text-sm font-medium text-[#1f2430]">
+            No hobbies added yet
+          </p>
+          <p className="text-xs text-[#6b6b6b]">
+            Adding hobbies can make your profile more human
+          </p>
+        </div>
+      )}
+
+      {/* HOBBIES LIST */}
+      <div className="space-y-3">
+        {resumeData.hobbies.map((hobby, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <input
+              className="auth-input flex-1"
+              value={hobby}
+              onChange={(e) => updateHobby(index, e.target.value)}
+              placeholder={`Hobby ${index + 1}`}
+            />
+
+            <button
+              type="button"
+              onClick={() => deleteHobby(index)}
+              className="p-1.5 rounded hover:bg-red-50 transition"
+              title="Delete hobby"
+            >
+              <Trash2 size={14} className="text-red-400" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* ADD NEW HOBBY */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          className="auth-input flex-1"
+          placeholder="Add a new hobby (e.g. Photography)"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              addHobby();
+            }
+          }}
+        />
+
+        <button
+          type="button"
+          onClick={addHobby}
+          disabled={!input.trim()}
+          className={`h-10 px-4 rounded-lg text-sm font-medium
+            flex items-center gap-1 transition
+            ${
+              input.trim()
+                ? "bg-[#025149] text-white hover:opacity-90"
+                : "bg-[#e5e7eb] text-[#9aa0aa] cursor-not-allowed"
+            }`}
+        >
+          <Plus size={14} />
+          Add
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Hobbies;

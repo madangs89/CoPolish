@@ -2,7 +2,7 @@ import React from "react";
 
 const EditorScoreBox = ({progress = 40}) => {
   return (
-    <div className="h-full overflow-y-auto pt-5 px-4 w-[20%] flex flex-col gap-6 bg-[#f8f9fb] border-r">
+    <div className="h-full scrollbar-minimal overflow-y-auto pt-5 px-4 w-[20%] flex flex-col gap-6 bg-[#f8f9fb] border-r">
       {/* ================= SCORE ================= */}
       <div className="flex flex-col items-center">
         <div

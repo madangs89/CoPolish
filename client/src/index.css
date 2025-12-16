@@ -11,13 +11,25 @@
   font-style: normal;
 }
 
-
-body{
-    cursor: default;
-    font-family: "Ruda", sans-serif;
+body {
+  cursor: default;
+  font-family: "Ruda", sans-serif;
 }
 
 .auth-input {
   @apply w-full rounded-full border border-[#e2e2e2] px-4 py-3 text-sm outline-none 
   focus:border-black transition bg-white;
+}
+
+.scrollbar-minimal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-minimal::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+}
+
+.scrollbar-minimal::-webkit-scrollbar-track {
+  background: transparent;
 }
