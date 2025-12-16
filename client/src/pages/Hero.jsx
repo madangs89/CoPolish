@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import Navbar from "../components/Navbar";
+
 import { gsap } from "gsap";
 import linkedInImage from "../../public/linkedIn.png";
 
@@ -14,6 +14,7 @@ import Footer from "../components/Footer";
 import FinalCTA from "../components/FinalCTA";
 import Cursor from "../components/Cursor";
 import OnboardingSource from "./OnboardingSource";
+import Navbar from "../components/Navbars/Navbar";
 const Hero = () => {
   const ref = useRef(null);
   const [width, setWidth] = useState(0);

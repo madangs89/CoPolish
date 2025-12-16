@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import AuthOverlay from "./AuthOverlay";
+import AuthOverlay from "../AuthOverlay"
 import { gsap } from "gsap";
 
 const Navbar = () => {
