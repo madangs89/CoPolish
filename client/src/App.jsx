@@ -5,6 +5,7 @@ import OnboardingSource from "./pages/OnboardingSource";
 import { Route, Routes } from "react-router-dom";
 import AprovePage from "./pages/AprovePage";
 import Dashboard from "./pages/Dashboard";
+import ResumeEditor from "./pages/ResumeEditor";
 
 const App = () => {
   const [auth, isAuth] = useState(true);
@@ -24,6 +25,7 @@ const App = () => {
           <Route index element={<OnboardingSource />} />
           <Route path="/approve" element={<AprovePage />} />
           <Route path="/Dashboard" element={<Dashboard />} />
+          <Route path="/editor/resume/:id" element={<ResumeEditor />} />
         </Routes>
       </div>
     );
