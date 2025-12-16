@@ -22,9 +22,14 @@ const sectionTitles = {
   extracurricular: "Extracurricular",
 };
 
-const Editor = ({ resumeData, setResumeData }) => {
+const Editor = ({
+  resumeData,
+  setResumeData,
+  checkedFields,
+  setCheckedFields,
+}) => {
   const [editorState, setEditorState] = useState("editor");
-  const [selectedSection, setSelectedSection] = useState("personal");
+  const [selectedSection, setSelectedSection] = useState([]);
   return (
     <div className="h-full w-[30%] flex scrollbar-minimal flex-col bg-white border-l pt-3 overflow-y-auto">
       {/* ================= TOOL SWITCHER ================= */}
@@ -36,10 +41,10 @@ const Editor = ({ resumeData, setResumeData }) => {
       {/* ================= EDITOR ================= */}
       {editorState === "editor" && (
         <>
-          <div className="flex w-full px-3 flex-col gap-4">
+          {/* <div className="flex w-full px-3 flex-col gap-4">
             <p className="text-lg text-[#6b6b6b]">Select a section to edit</p>
 
-            {/* ================= SECTIONS ================= */}
+           
             <div className="w-full flex flex-wrap gap-2">
               {Object.entries(sectionTitles).map(([key, label]) => (
                 <button
@@ -56,28 +61,35 @@ const Editor = ({ resumeData, setResumeData }) => {
                 </button>
               ))}
             </div>
-          </div>
-          <div className="flex w-full px-3 my-4 flex-col gap-5">
+          </div> */}
+          <div className="flex w-full px-3 my-4 flex-col gap-3">
             {/* Section Header */}
-            <div>
+            {/* <div>
               <p className="text-lg font-medium text-[#6b6b6b]">
                 Fill {sectionTitles[selectedSection]}
               </p>
               <p className="text-[11px] text-[#9aa0aa]">
                 Update your basic personal information
               </p>
-            </div>
+            </div> */}
 
-            {selectedSection === "personal" && (
-              <Personal resumeData={resumeData} setResumeData={setResumeData} />
-            )}
+            <Personal
+              resumeData={resumeData}
+              setResumeData={setResumeData}
+              selectedSection={selectedSection}
+              setSelectedSection={setSelectedSection}
+              checkedFields={checkedFields}
+              setCheckedFields={setCheckedFields}
+            />
 
-            {selectedSection === "education" && (
-              <Education
-                resumeData={resumeData}
-                setResumeData={setResumeData}
-              />
-            )}
+            <Education
+              resumeData={resumeData}
+              setResumeData={setResumeData}
+              selectedSection={selectedSection}
+              setSelectedSection={setSelectedSection}
+              checkedFields={checkedFields}
+              setCheckedFields={setCheckedFields}
+            />
 
             {selectedSection === "experience" && (
               <Experience

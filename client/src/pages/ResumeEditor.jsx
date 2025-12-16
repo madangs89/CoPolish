@@ -61,19 +61,28 @@ const ResumeEditor = () => {
     ],
   });
 
+  const [checkedFields, setCheckedFields] = useState([]);
+
   return (
     <div className="w-full overflow-hidden flex md:flex-row flex-col items-center justify-center gap-3 h-screen p-6 md:p-4 bg-white">
       <EditorScoreBox />
 
       {/* Next Section */}
-      <div className="h-full scrollbar-minimal w-[50%] overflow-y-scroll ">
-        <div className="flex justify-between items-center w-[100%] ">
+      <div className="h-full  scrollbar-minimal px-3 w-[50%] overflow-y-scroll ">
+        <div className="flex mb-4 justify-between items-center w-[100%] ">
           <h2>Resume</h2>
-          <button>Enhance With Ai</button>
         </div>
-        <ResumeClassicV1></ResumeClassicV1>
+        <div className="shadow-xl relative bg-white">
+          <h2 className="absolute top-[-9px] left-3  bg-green-300 px-2 py-1 text-sm rounded-md">Recommended</h2>
+          <ResumeClassicV1></ResumeClassicV1>
+        </div>
       </div>
-      <Editor resumeData={resumeData} setResumeData={setResumeData} />
+      <Editor
+        resumeData={resumeData}
+        setResumeData={setResumeData}
+        checkedFields={checkedFields}
+        setCheckedFields={setCheckedFields}
+      />
     </div>
   );
 };

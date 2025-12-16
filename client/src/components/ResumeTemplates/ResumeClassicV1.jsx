@@ -12,7 +12,7 @@ const ResumeClassicV1 = () => {
         fontFamily: "Calibri, Arial, sans-serif",
       }}
 
-      className="w-[100%] h-full mx-auto border"
+      className="w-[100%] h-full bg-white rounded-lg mx-auto border"
     >
       {/* ================= HEADER ================= */}
       <div style={{ marginBottom: "20px" }}>
