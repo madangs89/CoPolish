@@ -98,7 +98,6 @@ function renderSection(section, resumeData, setResumeData) {
       return (
         <ExtracurricularEditor
           data={resumeData.extracurricular}
-
           onChange={(data) =>
             setResumeData((p) => ({ ...p, extracurricular: data }))
           }
