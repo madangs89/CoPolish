@@ -15,7 +15,7 @@ const EditorScoreBox = ({ progress = 40 }) => {
   ];
 
   return (
-    <aside className="h-full w-[20%] min-w-[260px] bg-[#f8f9fb] border-r flex flex-col">
+    <aside className="h-full w-full bg-[#f8f9fb] border-r flex flex-col">
       {/* ================= TOP (FIXED) ================= */}
       <div className="px-4 pt-6 pb-4 flex flex-col gap-5">
         {/* Score */}

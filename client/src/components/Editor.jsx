@@ -31,7 +31,7 @@ const Editor = ({
   const [editorState, setEditorState] = useState("editor");
   const [selectedSection, setSelectedSection] = useState([]);
   return (
-    <div className="h-full w-[30%] flex scrollbar-minimal flex-col bg-white border-l pt-3 overflow-y-auto">
+    <div className="h-full w-full flex scrollbar-minimal flex-col bg-white border-l pt-3 overflow-y-auto">
       {/* ================= TOOL SWITCHER ================= */}
       <EditorToolSwitcher
         editorState={editorState}
@@ -91,40 +91,68 @@ const Editor = ({
               setCheckedFields={setCheckedFields}
             />
 
-            {selectedSection === "experience" && (
-              <Experience
-                resumeData={resumeData}
-                setResumeData={setResumeData}
-              />
-            )}
-            {selectedSection === "skills" && (
-              <Skill resumeData={resumeData} setResumeData={setResumeData} />
-            )}
+            <Experience
+              resumeData={resumeData}
+              setResumeData={setResumeData}
+              selectedSection={selectedSection}
+              setSelectedSection={setSelectedSection}
+              checkedFields={checkedFields}
+              setCheckedFields={setCheckedFields}
+            />
 
-            {selectedSection === "projects" && (
-              <Project resumeData={resumeData} setResumeData={setResumeData} />
-            )}
-            {selectedSection === "certifications" && (
-              <Certification
-                resumeData={resumeData}
-                setResumeData={setResumeData}
-              />
-            )}
-            {selectedSection === "achievements" && (
-              <Achievement
-                resumeData={resumeData}
-                setResumeData={setResumeData}
-              />
-            )}
-            {selectedSection === "hobbies" && (
-              <Hobbies resumeData={resumeData} setResumeData={setResumeData} />
-            )}
-            {selectedSection === "extracurricular" && (
-              <Extracurricular
-                resumeData={resumeData}
-                setResumeData={setResumeData}
-              />
-            )}
+            <Skill
+              resumeData={resumeData}
+              setResumeData={setResumeData}
+              selectedSection={selectedSection}
+              setSelectedSection={setSelectedSection}
+              checkedFields={checkedFields}
+              setCheckedFields={setCheckedFields}
+            />
+
+            <Project
+              resumeData={resumeData}
+              setResumeData={setResumeData}
+              selectedSection={selectedSection}
+              setSelectedSection={setSelectedSection}
+              checkedFields={checkedFields}
+              setCheckedFields={setCheckedFields}
+            />
+
+            <Certification
+              resumeData={resumeData}
+              setResumeData={setResumeData}
+              selectedSection={selectedSection}
+              setSelectedSection={setSelectedSection}
+              checkedFields={checkedFields}
+              setCheckedFields={setCheckedFields}
+            />
+
+            <Achievement
+              resumeData={resumeData}
+              setResumeData={setResumeData}
+              selectedSection={selectedSection}
+              setSelectedSection={setSelectedSection}
+              checkedFields={checkedFields}
+              setCheckedFields={setCheckedFields}
+            />
+
+            <Hobbies
+              resumeData={resumeData}
+              setResumeData={setResumeData}
+              selectedSection={selectedSection}
+              setSelectedSection={setSelectedSection}
+              checkedFields={checkedFields}
+              setCheckedFields={setCheckedFields}
+            />
+
+            <Extracurricular
+              resumeData={resumeData}
+              setResumeData={setResumeData}
+              selectedSection={selectedSection}
+              setSelectedSection={setSelectedSection}
+              checkedFields={checkedFields}
+              setCheckedFields={setCheckedFields}
+            />
           </div>
         </>
       )}

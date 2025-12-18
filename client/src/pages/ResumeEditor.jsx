@@ -65,24 +65,33 @@ const ResumeEditor = () => {
 
   return (
     <div className="w-full overflow-hidden flex md:flex-row flex-col items-center justify-center gap-3 h-screen p-6 md:p-4 bg-white">
-      <EditorScoreBox />
+      {/* <EditorScoreBox /> */}
+
+      <div className="w-[20%] min-w-[260px] hidden md:flex h-full">
+        <EditorScoreBox />
+      </div>
 
       {/* Next Section */}
-      <div className="h-full  scrollbar-minimal px-3 w-[50%] overflow-y-scroll ">
+      <div className="h-full  scrollbar-minimal px-3 md:w-[50%] w-full overflow-y-scroll ">
         <div className="flex mb-4 justify-between items-center w-[100%] ">
           <h2>Resume</h2>
         </div>
         <div className="shadow-xl relative bg-white">
-          <h2 className="absolute top-[-9px] left-3  bg-green-300 px-2 py-1 text-sm rounded-md">Recommended</h2>
+          <h2 className="absolute top-[-9px] left-3  bg-green-300 px-2 py-1 text-sm rounded-md">
+            Recommended
+          </h2>
           <ResumeClassicV1></ResumeClassicV1>
         </div>
       </div>
-      <Editor
-        resumeData={resumeData}
-        setResumeData={setResumeData}
-        checkedFields={checkedFields}
-        setCheckedFields={setCheckedFields}
-      />
+
+      <div className="h-full w-[30%] hidden md:flex ">
+        <Editor
+          resumeData={resumeData}
+          setResumeData={setResumeData}
+          checkedFields={checkedFields}
+          setCheckedFields={setCheckedFields}
+        />
+      </div>
     </div>
   );
 };
