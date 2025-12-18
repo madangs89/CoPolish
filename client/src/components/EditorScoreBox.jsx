@@ -1,6 +1,11 @@
+import { ArrowRight } from "lucide-react";
 import React from "react";
 
-const EditorScoreBox = ({ progress = 40 }) => {
+const EditorScoreBox = ({
+  progress = 40,
+  mobileModalState,
+  setMobileModalState,
+}) => {
   const issuesData = [
     { label: "Resume Structure", issues: 5, color: "#ef4444" },
     { label: "Content Clarity", issues: 2, color: "#f59e0b" },
@@ -15,7 +20,15 @@ const EditorScoreBox = ({ progress = 40 }) => {
   ];
 
   return (
-    <aside className="h-full w-full bg-[#f8f9fb] border-r flex flex-col">
+    <aside className="h-full w-full bg-[#f8f9fb] relative border-r flex flex-col">
+      {mobileModalState == "score" && (
+        <div
+          onClick={() => setMobileModalState("")}
+          className="absolute md:hidden flex items-center justify-center top-2 left-3 p-2 rounded-full bg-gray-300 active:bg-black transition-all duration-150 hover:bg-black  z-10"
+        >
+          <ArrowRight className="w-5 h-5 text-white" />
+        </div>
+      )}
       {/* ================= TOP (FIXED) ================= */}
       <div className="px-4 pt-6 pb-4 flex flex-col gap-5">
         {/* Score */}

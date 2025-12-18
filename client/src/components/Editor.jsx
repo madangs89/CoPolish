@@ -9,6 +9,7 @@ import Certification from "./ResumeEditor/Certification";
 import Achievement from "./ResumeEditor/Achievement";
 import Hobbies from "./ResumeEditor/Hobbies";
 import Extracurricular from "./ResumeEditor/Extracurricular";
+import { ArrowRight } from "lucide-react";
 
 const sectionTitles = {
   personal: "Personal Details",
@@ -27,11 +28,22 @@ const Editor = ({
   setResumeData,
   checkedFields,
   setCheckedFields,
+  setMobileModalState,
+  mobileModalState,
 }) => {
   const [editorState, setEditorState] = useState("editor");
   const [selectedSection, setSelectedSection] = useState([]);
   return (
-    <div className="h-full w-full flex scrollbar-minimal flex-col bg-white border-l pt-3 overflow-y-auto">
+    <div className="h-full w-full relative flex scrollbar-minimal flex-col bg-white border-l md:pt-3 pt-1.5 overflow-y-auto">
+      {mobileModalState == "editor" && (
+        <div
+          onClick={() => setMobileModalState("")}
+          className="absolute md:hidden flex items-center justify-center top-2 left-0 p-2 rounded-full bg-gray-300 active:bg-black transition-all duration-150 hover:bg-black  z-10"
+        >
+          <ArrowRight className="w-3 h-3 text-white" />
+        </div>
+      )}
+
       {/* ================= TOOL SWITCHER ================= */}
       <EditorToolSwitcher
         editorState={editorState}
@@ -41,38 +53,9 @@ const Editor = ({
       {/* ================= EDITOR ================= */}
       {editorState === "editor" && (
         <>
-          {/* <div className="flex w-full px-3 flex-col gap-4">
-            <p className="text-lg text-[#6b6b6b]">Select a section to edit</p>
-
-           
-            <div className="w-full flex flex-wrap gap-2">
-              {Object.entries(sectionTitles).map(([key, label]) => (
-                <button
-                  key={key}
-                  onClick={() => setSelectedSection(key)}
-                  className={`px-3 py-1 text-xs rounded-full border transition-all duration-200
-              ${
-                selectedSection === key
-                  ? "bg-[#e8f2f2] border-[#025149] text-[#025149]"
-                  : "bg-white border-[#e5e7eb] text-[#4e5566] hover:bg-[#f8f9fb]"
-              }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div> */}
-          <div className="flex w-full px-3 my-4 flex-col gap-3">
-            {/* Section Header */}
-            {/* <div>
-              <p className="text-lg font-medium text-[#6b6b6b]">
-                Fill {sectionTitles[selectedSection]}
-              </p>
-              <p className="text-[11px] text-[#9aa0aa]">
-                Update your basic personal information
-              </p>
-            </div> */}
-
+   
+          <div className="flex w-full px-3 md:my-4 my-1 flex-col gap-3">
+        
             <Personal
               resumeData={resumeData}
               setResumeData={setResumeData}

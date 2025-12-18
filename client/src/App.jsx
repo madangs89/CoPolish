@@ -22,7 +22,7 @@ const App = () => {
   } else {
     return (
       <div className="w-full relative  min-h-screen overflow-x-hidden bg-red-500">
-        <MainNavbar />
+        {/* <MainNavbar /> */}
         <Routes>
           <Route index element={<OnboardingSource />} />
           <Route path="/approve" element={<AprovePage />} />

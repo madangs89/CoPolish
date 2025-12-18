@@ -1,119 +1,135 @@
 import React from "react";
 
-const ResumeClassicV1 = () => {
+const ResumeClassicV1 = ({ data, settings }) => {
+  const {
+    fontFamily,
+    textColor,
+    headingColor,
+    baseFontSize,
+    headingFontSize,
+    nameFontSize,
+    margin,
+  } = settings;
+
   return (
     <div
-      id="resume-a4"
       style={{
+        width: "794px",
+        height: "1123px",
         background: "#ffffff",
-        color: "#000000",
-        padding: "40px",
+        color: textColor,
+        padding: `${margin.top}px ${margin.right}px ${margin.bottom}px ${margin.left}px`,
         boxSizing: "border-box",
-        fontFamily: "Calibri, Arial, sans-serif",
+        fontFamily,
       }}
-
-      className="w-[100%] h-full bg-white rounded-lg mx-auto border"
+      className="border bg-white"
     >
-      {/* ================= HEADER ================= */}
-      <div style={{ marginBottom: "20px" }}>
-        <h1 style={{ fontSize: "24px", margin: "0 0 6px 0" }}>
-          Rahul Sharma
+      {/* ===== HEADER ===== */}
+      <div style={{ marginBottom: 20 }}>
+        <h1 style={{ fontSize: nameFontSize, margin: "0 0 4px 0" }}>
+          {data.personal.name}
         </h1>
-        <p style={{ margin: 0, fontSize: "12px" }}>
-          Software Engineer
+
+        <p style={{ fontSize: baseFontSize + 1, margin: 0 }}>
+          {data.personal.title}
         </p>
-        <p style={{ margin: "6px 0 0 0", fontSize: "11px" }}>
-          rahul.sharma@email.com | +91 98765 43210 | Bengaluru, India
+
+        <p style={{ fontSize: baseFontSize, margin: "6px 0 0 0" }}>
+          {data.personal.email} | {data.personal.phone} |{" "}
+          {data.personal.address}
         </p>
-        <p style={{ margin: "2px 0 0 0", fontSize: "11px" }}>
-          LinkedIn: linkedin.com/in/rahulsharma | GitHub: github.com/rahulsharma
+
+        <p style={{ fontSize: baseFontSize, margin: "2px 0 0 0" }}>
+          LinkedIn: {data.personal.linkedin} | GitHub: {data.personal.github}
         </p>
       </div>
 
-      {/* ================= SUMMARY ================= */}
-      <div style={{ marginBottom: "18px" }}>
-        <h2 style={{ fontSize: "14px", marginBottom: "6px" }}>
+      {/* ===== SUMMARY ===== */}
+      <section style={{ marginBottom: 18 }}>
+        <h2 style={{ fontSize: headingFontSize, color: headingColor }}>
           Professional Summary
         </h2>
-        <p style={{ fontSize: "11px", margin: 0 }}>
-          Results-driven Software Engineer with 3+ years of experience in
-          building scalable web applications using React, Node.js, and MongoDB.
-          Strong problem-solving skills with a focus on performance,
-          maintainability, and clean architecture.
+        <p style={{ fontSize: baseFontSize, margin: 0 }}>
+          {data.personal.summary}
         </p>
-      </div>
+      </section>
 
-      {/* ================= EXPERIENCE ================= */}
-      <div style={{ marginBottom: "18px" }}>
-        <h2 style={{ fontSize: "14px", marginBottom: "6px" }}>
+      {/* ===== EXPERIENCE ===== */}
+      <section style={{ marginBottom: 18 }}>
+        <h2 style={{ fontSize: headingFontSize, color: headingColor }}>
           Work Experience
         </h2>
 
-        <p style={{ fontSize: "11px", fontWeight: "bold", margin: 0 }}>
-          Software Engineer – TechNova Solutions
-        </p>
-        <p style={{ fontSize: "10.5px", margin: "2px 0 6px 0" }}>
-          July 2021 – Present | Bengaluru, India
-        </p>
-        <ul style={{ fontSize: "11px", paddingLeft: "18px", margin: 0 }}>
-          <li>
-            Developed and maintained scalable REST APIs using Node.js and
-            Express.
-          </li>
-          <li>
-            Improved application performance by 30% by optimizing database
-            queries.
-          </li>
-          <li>
-            Collaborated with cross-functional teams to deliver features on
-            time.
-          </li>
-        </ul>
-      </div>
+        {data.experience.map((exp, idx) => (
+          <div key={idx} style={{ marginBottom: 10 }}>
+            <p
+              style={{ fontSize: baseFontSize, fontWeight: "bold", margin: 0 }}
+            >
+              {exp.role} – {exp.company}
+            </p>
 
-      {/* ================= PROJECTS ================= */}
-      <div style={{ marginBottom: "18px" }}>
-        <h2 style={{ fontSize: "14px", marginBottom: "6px" }}>
+            <p style={{ fontSize: baseFontSize - 0.5, margin: "2px 0 6px 0" }}>
+              {exp.duration}
+            </p>
+
+            <ul style={{ paddingLeft: 18, margin: 0 }}>
+              {exp.description.map((point, i) => (
+                <li key={i} style={{ fontSize: baseFontSize }}>
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </section>
+
+      {/* ===== PROJECTS ===== */}
+      <section style={{ marginBottom: 18 }}>
+        <h2 style={{ fontSize: headingFontSize, color: headingColor }}>
           Projects
         </h2>
 
-        <p style={{ fontSize: "11px", fontWeight: "bold", margin: 0 }}>
-          Resume Optimization Platform
-        </p>
-        <ul style={{ fontSize: "11px", paddingLeft: "18px", margin: 0 }}>
-          <li>
-            Built a MERN stack application that analyzes resumes for ATS
-            compatibility.
-          </li>
-          <li>
-            Integrated AI-based keyword matching to improve recruiter visibility.
-          </li>
-        </ul>
-      </div>
+        {data.projects.map((proj, idx) => (
+          <div key={idx}>
+            <p
+              style={{ fontSize: baseFontSize, fontWeight: "bold", margin: 0 }}
+            >
+              {proj.title}
+            </p>
+            <ul style={{ paddingLeft: 18, margin: 0 }}>
+              {proj.description.map((point, i) => (
+                <li key={i} style={{ fontSize: baseFontSize }}>
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </section>
 
-      {/* ================= SKILLS ================= */}
-      <div style={{ marginBottom: "18px" }}>
-        <h2 style={{ fontSize: "14px", marginBottom: "6px" }}>
+      {/* ===== SKILLS ===== */}
+      <section style={{ marginBottom: 18 }}>
+        <h2 style={{ fontSize: headingFontSize, color: headingColor }}>
           Skills
         </h2>
-        <p style={{ fontSize: "11px", margin: 0 }}>
-          JavaScript, TypeScript, React, Node.js, Express, MongoDB, REST APIs,
-          HTML, CSS, Git, Docker
-        </p>
-      </div>
+        <p style={{ fontSize: baseFontSize }}>{data.skills.join(", ")}</p>
+      </section>
 
-      {/* ================= EDUCATION ================= */}
-      <div>
-        <h2 style={{ fontSize: "14px", marginBottom: "6px" }}>
+      {/* ===== EDUCATION ===== */}
+      <section>
+        <h2 style={{ fontSize: headingFontSize, color: headingColor }}>
           Education
         </h2>
-        <p style={{ fontSize: "11px", margin: 0 }}>
-          Bachelor of Engineering in Computer Science
-        </p>
-        <p style={{ fontSize: "10.5px", margin: "2px 0 0 0" }}>
-          ABC Institute of Technology | 2017 – 2021
-        </p>
-      </div>
+
+        {data.education.map((edu, idx) => (
+          <div key={idx}>
+            <p style={{ fontSize: baseFontSize, margin: 0 }}>{edu.degree}</p>
+            <p style={{ fontSize: baseFontSize - 0.5, margin: "2px 0 0 0" }}>
+              {edu.institute} | {edu.from} – {edu.to}
+            </p>
+          </div>
+        ))}
+      </section>
     </div>
   );
 };

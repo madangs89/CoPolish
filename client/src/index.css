@@ -33,3 +33,8 @@ body {
 .scrollbar-minimal::-webkit-scrollbar-track {
   background: transparent;
 }
+
+.resume-scale-wrapper {
+  transform: scale(0.6); /* adjust dynamically later */
+  transform-origin: top center;
+}

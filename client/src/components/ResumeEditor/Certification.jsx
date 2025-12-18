@@ -117,7 +117,7 @@ const Certification = ({
     transition-all duration-300 ease-in-out
     ${
       selectedSection.includes("certifications")
-        ? "max-h-[600px] p-4  opacity-100"
+        ? "md:max-h-[600px] h-fit p-4  opacity-100"
         : "max-h-0 opacity-0"
     }`}
       >
