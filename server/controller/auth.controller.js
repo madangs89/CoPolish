@@ -174,3 +174,32 @@ export const googleAuth = async (req, res) => {
       .json({ message: "Something went wrong", success: false });
   }
 };
+
+export const isAuth = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user?._id) {
+      return res
+        .status(401)
+        .json({ message: "Not Authorized", success: false });
+    }
+
+    let newUser = await User.findById(user._id).select("-password");
+
+    if (!newUser) {
+      return res
+        .status(401)
+        .json({ message: "Not Authorized", success: false });
+    }
+    return res.status(200).json({
+      message: "User Authenticated",
+      user: newUser,
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Something went wrong", success: false });
+  }
+};

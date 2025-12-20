@@ -11,12 +11,21 @@ export const authSlice = createSlice({
   initialState,
   reducers: {
     setAuthTrue: (state, actions) => {
-      state.isAuth = actions.payload;
+      state.isAuth = true;
+    },
+    setAuthFalse: (state, actions) => {
+      state.isAuth = false;
+    },
+    setUser: (state, actions) => {
+      state.isAuth = true;
+      localStorage.getItem("user", JSON.stringify(actions.payload.user));
+
+      state.user = actions.payload.user;
     },
   },
 });
 
-export const { setAuthTrue } = authSlice.actions;
+export const { setAuthTrue, setUser, setAuthFalse } = authSlice.actions;
 const authReducer = authSlice.reducer;
 
 export default authReducer;
