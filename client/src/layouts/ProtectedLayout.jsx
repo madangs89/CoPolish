@@ -1,5 +1,6 @@
 import { useSelector } from "react-redux";
 import { Outlet, Navigate } from "react-router-dom";
+import MainNavbar from "../components/Navbars/MainNavbar";
 
 const ProtectedLayout = () => {
   const auth = useSelector((state) => state.auth.isAuth);
@@ -9,7 +10,7 @@ const ProtectedLayout = () => {
   }
 
   return (
-    <div className="min-h-screen overflow-hidden">
+    <div className="h-screen overflow-scroll">
       {/* <MainNavbar /> */}
       <Outlet />
     </div>

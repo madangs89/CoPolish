@@ -4,10 +4,16 @@ import { gsap } from "gsap";
 import ManualForm from "../components/ManualForm";
 import UploadBox from "../components/UploadBox";
 import Card from "../components/Card";
-
+import { useSelector } from "react-redux";
+import { Navigate } from "react-router-dom";
 
 const OnboardingSource = () => {
   const [view, setView] = useState("choose");
+  const auth = useSelector((state) => state.auth);
+
+  if (auth?.user?.currentResumeId.length > 0) {
+    return <Navigate to={"/dashboard"} replace />;
+  }
 
   const handleHover = (scale) => {
     gsap.to("#cursor", {
@@ -20,7 +26,6 @@ const OnboardingSource = () => {
   return (
     <div className="min-h-screen relative w-full bg-[#f8f9fb] flex items-center justify-center">
       <div className="max-w-5xl w-full px-6">
-
         {/* BACK BUTTON */}
         {view !== "choose" && (
           <button

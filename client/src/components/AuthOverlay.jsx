@@ -5,8 +5,9 @@ import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
-import { setAuthTrue } from "../redux/slice/authSlice";
+import { setAuthTrue, setUser } from "../redux/slice/authSlice";
 import { useNavigate } from "react-router-dom";
+import ButtonLoader from "./Loaders/ButtonLoader";
 const AuthOverlay = ({ open, onClose }) => {
   const [mode, setMode] = useState("login");
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -52,10 +53,18 @@ const AuthOverlay = ({ open, onClose }) => {
       console.log(data);
       if (data.success) {
         dispatch(setAuthTrue(true));
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
+        dispatch(setUser(data));
         toast.success("Login Success");
-        navigate("/onboarding");
+        console.log(data.user);
+
+        if (
+          data.user.currentResumeId == "" ||
+          data.user.currentResumeId == undefined
+        ) {
+          navigate("/onboarding");
+        } else {
+          navigate("/dashboard");
+        }
       }
     } catch (error) {
       console.log(error);
@@ -137,9 +146,13 @@ const AuthOverlay = ({ open, onClose }) => {
         <div className="flex flex-col gap-3">
           <button
             onClick={() => googleLogin()}
-            className="w-full rounded-full border py-3 text-sm font-medium hover:bg-[#f5f5f5] transition"
+            className="w-full rounded-full border py-3 text-sm flex items-center justify-center font-medium hover:bg-[#f5f5f5] transition"
           >
-            Continue with Google
+            {isGoogleLoading ? (
+              <ButtonLoader color="black" />
+            ) : (
+              <p>Continue with Google</p>
+            )}
           </button>
 
           <button

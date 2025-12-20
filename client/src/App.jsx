@@ -50,6 +50,7 @@ const App = () => {
         console.log(error);
         let data = {
           user: {},
+          isAuth: false,
         };
         dispatch(setAuthFalse(false));
         dispatch(setUser(data));
