@@ -3,9 +3,15 @@ import { X } from "lucide-react";
 import { gsap } from "gsap";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
+import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { setAuthTrue } from "../redux/slice/authSlice";
+import { useNavigate } from "react-router-dom";
 const AuthOverlay = ({ open, onClose }) => {
   const [mode, setMode] = useState("login");
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (open) {
@@ -36,15 +42,21 @@ const AuthOverlay = ({ open, onClose }) => {
   const handleGoogleLogin = async (obj) => {
     try {
       setIsGoogleLoading(true);
-      const data = await axios.post(
+      const { data } = await axios.post(
         `http://localhost:3000/api/auth/v1/google/login`,
         { code: obj.code },
         {
           withCredentials: true,
         }
       );
-
       console.log(data);
+      if (data.success) {
+        dispatch(setAuthTrue(true));
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        toast.success("Login Success");
+        navigate("/onboarding");
+      }
     } catch (error) {
       console.log(error);
     } finally {
@@ -56,7 +68,6 @@ const AuthOverlay = ({ open, onClose }) => {
     onSuccess: handleGoogleLogin,
     onError: handleGoogleLogin,
     flow: "auth-code",
-    // redirect_uri: "http://localhost:5173/auth/google/callback",
   });
 
   if (!open) return null;

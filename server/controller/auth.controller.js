@@ -20,9 +20,9 @@ const createToken = (user) => {
 const createCookie = (token, res) => {
   res.cookie("token", token, {
     httpOnly: true,
-    secure: false,
-    sameSite: "none",
-    maxAge: 1000 * 60 * 60 * 24 * 7,
+    secure: process.env.NODE_ENV === "production", // use https in prod
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // works for localhost
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 };
 export const register = async (req, res) => {
@@ -58,6 +58,7 @@ export const register = async (req, res) => {
       success: true,
       message: "User created successfully",
       token,
+      user,
     });
   } catch (error) {
     console.log(error);
@@ -101,6 +102,8 @@ export const login = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Login successfully",
+      token,
+      user: isUserExits,
     });
   } catch (error) {
     console.log(error);
@@ -161,6 +164,8 @@ export const googleAuth = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Login successfully",
+      token,
+      user,
     });
   } catch (error) {
     console.log(error);

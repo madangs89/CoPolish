@@ -22,9 +22,11 @@ const userSchema = new mongoose.Schema(
     },
     currentResumeId: {
       type: String,
+      default:""
     },
     currentLinkedInId: {
       type: String,
+      default:""
     },
     totalCredits: {
       type: Number,

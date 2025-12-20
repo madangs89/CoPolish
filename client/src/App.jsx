@@ -7,31 +7,32 @@ import AprovePage from "./pages/AprovePage";
 import Dashboard from "./pages/Dashboard";
 import ResumeEditor from "./pages/ResumeEditor";
 import MainNavbar from "./components/Navbars/MainNavbar";
+import { useSelector } from "react-redux";
+import PublicLayout from "./layouts/PublicLayout";
+import ProtectedLayout from "./layouts/ProtectedLayout";
+import ApprovePage from "./pages/AprovePage";
 
 const App = () => {
-  const [auth, isAuth] = useState(false);
+  const auth = useSelector((state) => state.auth.isAuth);
 
-  if (!auth) {
-    return (
-      <div className="w-full relative  min-h-screen overflow-x-hidden bg-red-500">
-        <Routes>
+  return (
+    <div className="w-full relative min-h-screen">
+      <Routes>
+        {/* Public */}
+        <Route element={<PublicLayout />}>
           <Route index element={<Hero />} />
-        </Routes>
-      </div>
-    );
-  } else {
-    return (
-      <div className="w-full relative  min-h-screen overflow-x-hidden bg-red-500">
-        {/* <MainNavbar /> */}
-        <Routes>
-          <Route index element={<OnboardingSource />} />
-          <Route path="/approve" element={<AprovePage />} />
-          <Route path="/Dashboard" element={<Dashboard />} />
+        </Route>
+
+        {/* Protected */}
+        <Route element={<ProtectedLayout />}>
+          <Route path="/onboarding" element={<OnboardingSource />} />
+          <Route path="/approve" element={<ApprovePage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/editor/resume/:id" element={<ResumeEditor />} />
-        </Routes>
-      </div>
-    );
-  }
+        </Route>
+      </Routes>
+    </div>
+  );
 };
 
 export default App;

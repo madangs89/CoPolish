@@ -148,7 +148,7 @@ const ApprovePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] py-12">
+    <div className="h-screen overflow-scroll bg-[#f8f9fb] py-12">
       <div className="max-w-5xl mx-auto px-6">
         {/* HEADER */}
         <div className="mb-10">
@@ -161,7 +161,7 @@ const ApprovePage = () => {
         </div>
 
         {/* SECTION CONTAINER */}
-        <div className="bg-white rounded-3xl border p-8 shadow-sm">
+        <div className="bg-white rounded-3xl  border p-8 shadow-sm">
           <h2 className="text-xl font-semibold mb-6">
             {sectionTitles[activeSection]}
           </h2>
