@@ -176,7 +176,6 @@ const ResumePreview = () => {
             <div
               className="
           relative
-       
           shadow-2xl
           mx-auto
           my-4

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { gsap } from "gsap";
-
+import { useGoogleLogin } from "@react-oauth/google";
+import axios from "axios";
 const AuthOverlay = ({ open, onClose }) => {
   const [mode, setMode] = useState("login");
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -30,6 +32,32 @@ const AuthOverlay = ({ open, onClose }) => {
       });
     };
   }, [open]);
+
+  const handleGoogleLogin = async (obj) => {
+    try {
+      setIsGoogleLoading(true);
+      const data = await axios.post(
+        `http://localhost:3000/api/auth/v1/google/login`,
+        { code: obj.code },
+        {
+          withCredentials: true,
+        }
+      );
+
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: handleGoogleLogin,
+    onError: handleGoogleLogin,
+    flow: "auth-code",
+    // redirect_uri: "http://localhost:5173/auth/google/callback",
+  });
 
   if (!open) return null;
 
@@ -66,21 +94,16 @@ const AuthOverlay = ({ open, onClose }) => {
         {/* Form */}
         <div className="flex flex-col gap-4">
           {mode === "signup" && (
-            <input 
-              type="text" placeholder="Full name" className="auth-input" />
+            <input type="text" placeholder="Full name" className="auth-input" />
           )}
 
           <input
-  
-
             type="email"
             placeholder="Email address"
             className="auth-input"
           />
 
           <input
-  
-
             type="password"
             placeholder="Password"
             className="auth-input"
@@ -102,7 +125,7 @@ const AuthOverlay = ({ open, onClose }) => {
         {/* OAuth */}
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => console.log("Google Auth")}
+            onClick={() => googleLogin()}
             className="w-full rounded-full border py-3 text-sm font-medium hover:bg-[#f5f5f5] transition"
           >
             Continue with Google

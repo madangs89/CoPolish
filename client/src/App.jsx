@@ -9,7 +9,7 @@ import ResumeEditor from "./pages/ResumeEditor";
 import MainNavbar from "./components/Navbars/MainNavbar";
 
 const App = () => {
-  const [auth, isAuth] = useState(true);
+  const [auth, isAuth] = useState(false);
 
   if (!auth) {
     return (

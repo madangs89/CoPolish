@@ -87,7 +87,7 @@ const Dashboard = () => {
               {"View full resume"}
             </h3>
           </div>
-          <ResumeClassicV1 />
+          {/* <ResumeClassicV1 /> */}
         </div>
 
         {/* LinkedIn */}
