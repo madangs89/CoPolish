@@ -14,7 +14,6 @@ const ResumePreview = () => {
       const containerWidth = entry.contentRect.width;
       const resumeWidth = 794; // A4 width
 
-      
       const newScale = Math.min(containerWidth / resumeWidth, 1);
       setScale(newScale);
     });
@@ -146,7 +145,7 @@ const ResumePreview = () => {
       />
 
       {/* SCROLL CONTAINER (NOT SCALED) */}
-      <div className="w-full h-full overflow-auto scrollbar-minimal pr-5 flex justify-center">
+      <div className="w-full h-full overflow-x-hidden overflow-y-auto scrollbar-minimal pr-5 flex justify-center">
         {/* SCALE WRAPPER (NO SCROLL HERE) */}
         <div
           style={{

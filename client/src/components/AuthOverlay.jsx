@@ -44,7 +44,7 @@ const AuthOverlay = ({ open, onClose }) => {
     try {
       setIsGoogleLoading(true);
       const { data } = await axios.post(
-        `http://localhost:3000/api/auth/v1/google/login`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/v1/google/login`,
         { code: obj.code },
         {
           withCredentials: true,
@@ -53,6 +53,7 @@ const AuthOverlay = ({ open, onClose }) => {
       console.log(data);
       if (data.success) {
         dispatch(setAuthTrue(true));
+        data.isAuth = true;
         dispatch(setUser(data));
         toast.success("Login Success");
         console.log(data.user);

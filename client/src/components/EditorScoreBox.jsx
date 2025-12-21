@@ -37,24 +37,24 @@ const EditorScoreBox = ({
             className="w-28 h-28 p-1 rounded-full flex items-center justify-center"
             style={{
               background: `conic-gradient(
-                #025149 ${progress * 3.6}deg,
-                #e5e7eb 0deg
+                #3B82F6 ${progress * 3.6}deg,
+                #E5E7EB 0deg
               )`,
             }}
           >
             <div className="w-20 h-20 rounded-full bg-white flex flex-col items-center justify-center shadow-sm">
-              <p className="text-xl font-semibold text-[#1f2430]">
+              <p className="text-xl font-semibold text-[#111111]">
                 {progress}%
               </p>
-              <p className="text-[11px] text-[#6b6b6b]">Overall Score</p>
+              <p className="text-[11px] text-[#6B7280]">Overall Score</p>
             </div>
           </div>
 
           <div className="text-center">
-            <p className="text-sm font-medium text-[#1f2430]">
+            <p className="text-sm font-medium text-[#374151]">
               8 improvement areas
             </p>
-            <p className="text-xs text-[#6b6b6b]">
+            <p className="text-xs text-[#6B7280]">
               Focus on these to boost your score
             </p>
           </div>
@@ -65,16 +65,19 @@ const EditorScoreBox = ({
           {issuesData.map((item, idx) => (
             <div key={idx} className="flex flex-col gap-1.5">
               <div className="flex justify-between text-xs">
-                <span className="text-[#1f2430]">{item.label}</span>
-                <span className="text-[#6b6b6b]">{item.issues}</span>
+                {/* Label */}
+                <span className="text-[#111111]">{item.label}</span>
+
+                {/* Count (can later color by severity if you want) */}
+                <span className="text-[#6B7280]">{item.issues}</span>
               </div>
 
-              <div className="w-full h-1 rounded-full bg-[#e5e7eb] overflow-hidden">
+              {/* Progress bar (NEUTRAL ONLY) */}
+              <div className="w-full h-1 rounded-full bg-[#E5E7EB] overflow-hidden">
                 <div
-                  className="h-full rounded-full"
+                  className="h-full rounded-full bg-[#D1D5DB]"
                   style={{
                     width: `${item.issues * 20}%`,
-                    backgroundColor: item.color,
                   }}
                 />
               </div>
@@ -84,13 +87,14 @@ const EditorScoreBox = ({
       </div>
 
       {/* ================= MIDDLE (SCROLLABLE) ================= */}
+      {/* ================= MIDDLE (SCROLLABLE) ================= */}
       <div className="flex-1 px-4 pb-4 overflow-y-auto scrollbar-minimal">
         <div className="flex flex-col gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-[#1f2430]">
+            <h3 className="text-sm font-semibold text-[#111111]">
               AI Suggestions
             </h3>
-            <p className="text-xs text-[#6b6b6b]">
+            <p className="text-xs text-[#6B7280]">
               Targeted improvements based on your resume
             </p>
           </div>
@@ -99,17 +103,19 @@ const EditorScoreBox = ({
             {aiSuggestions.map((item, idx) => (
               <div
                 key={idx}
-                className="flex items-center justify-between rounded-lg bg-white px-3 py-2 border border-[#e6e6e6]"
+                className="flex items-center justify-between rounded-lg bg-white px-3 py-2 border border-[#E5E7EB]"
               >
-                <span className="text-xs text-[#1f2430]">{item.title}</span>
+                {/* Suggestion title */}
+                <span className="text-xs text-[#111111]">{item.title}</span>
 
+                {/* Impact pill — ONLY place with color */}
                 <span
                   className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
                     item.impact === "High"
-                      ? "bg-red-50 text-red-600"
+                      ? "bg-[#FEE2E2] text-[#991B1B]"
                       : item.impact === "Medium"
-                      ? "bg-amber-50 text-amber-600"
-                      : "bg-gray-100 text-gray-600"
+                      ? "bg-[#FEF3C7] text-[#92400E]"
+                      : "bg-[#EFF6FF] text-[#1D4ED8]"
                   }`}
                 >
                   {item.impact}
@@ -121,11 +127,15 @@ const EditorScoreBox = ({
       </div>
 
       {/* ================= FOOTER (FIXED CTA) ================= */}
-      <div className="px-4 py-4 border-t bg-gray-100">
-        <p className="text-[11px] mt-2 text-center text-[#6b6b6b]">
+      <div className="px-4 py-4 flex flex-col items-center justify-center border-t bg-gray-100">
+        <p className="text-[11px] mt-2 text-center text-[#6B7280]">
           Uses 5 credits • Creates a new version
         </p>
-        <button className="w-full mt-2 py-2.5 rounded-lg text-sm font-medium bg-[#025149] text-white hover:opacity-90 transition">
+        <button
+          className="px-3 mx-auto mt-2 py-2.5 rounded-lg text-sm font-medium 
+bg-black text-white hover:bg-zinc-900 
+transition-all duration-200 ease-linear"
+        >
           Improve Resume with AI
         </button>
       </div>

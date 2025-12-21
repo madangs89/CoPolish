@@ -54,7 +54,7 @@ const Editor = ({
       {editorState === "editor" && (
         <>
    
-          <div className="flex w-full px-3 md:my-4 my-1 flex-col gap-3">
+          <div className="flex w-full px-3 md:my-2 flex-col gap-3">
         
             <Personal
               resumeData={resumeData}

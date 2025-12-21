@@ -35,7 +35,7 @@ const App = () => {
 
         if (data.success) {
           console.log("calling setUser");
-
+          data.isAuth = true;
           dispatch(setUser(data));
           if (
             data?.user?.currentResumeId == "" ||

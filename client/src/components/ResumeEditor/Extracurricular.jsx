@@ -56,10 +56,10 @@ const Extracurricular = ({
         className={` px-3 py-3 flex justify-between items-center 
     ${
       selectedSection.includes("extracurricular")
-        ? "bg-green-50 border border-green-200 rounded-t-xl"
+        ? "bg-white border  rounded-t-xl"
         : "bg-white border border-gray-200 rounded-xl"
     }
-    hover:bg-green-50 transition`}
+    hover:bg-zinc-100 transition`}
       >
         {/* Left */}
         <div className="flex items-center gap-2">
@@ -75,7 +75,7 @@ const Extracurricular = ({
                 );
               }
             }}
-            className="w-3.5 h-3.5 accent-green-600 "
+            className="w-3.5 h-3.5 accent-[#374151] "
           />
 
           <h2
@@ -103,7 +103,7 @@ const Extracurricular = ({
           }}
           className="flex gap-1 items-center cursor-pointer"
         >
-          <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+          <span className="text-xs font-medium text-[#374151] bg-[#F3F4F6] px-2 py-0.5 rounded-full">
             Completed
           </span>
           {selectedSection.includes("extracurricular") ? (

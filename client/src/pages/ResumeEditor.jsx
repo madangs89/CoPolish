@@ -89,7 +89,7 @@ const ResumeEditor = () => {
 
       {/* Next Section */}
       <div className="h-full   px-3 md:w-[50%] w-full overflow-hidden ">
-        <div className="flex mb-4 justify-between items-center w-[100%] ">
+        {/* <div className="flex mb-4 justify-between items-center w-[100%] ">
           <h2 className="text-xl">Resume</h2>
           <div className="flex md:hidden justify-center items-center gap-4">
             <div
@@ -116,8 +116,7 @@ const ResumeEditor = () => {
               Improve with AI
             </button>
           </div>
-        </div>
-
+        </div> */}
         <div className="shadow-xl h-[80%] flex items-center justify-center md:h-full bg-white relative overflow-hidden">
           <ResumePreview />
         </div>

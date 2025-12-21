@@ -14,7 +14,7 @@ const EditorToolSwitcher = ({ editorState, setEditorState }) => {
           className={`flex-1 py-1.5 text-sm rounded-lg font-medium transition-all duration-200
           ${
             editorState === item.key
-              ? "bg-[#215049] text-white shadow-sm"
+              ? "bg-black text-white shadow-sm"
               : "text-[#6b6b6b] hover:bg-white/70"
           }`}
         >

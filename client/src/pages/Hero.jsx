@@ -28,7 +28,6 @@ const Hero = () => {
     if (!el) {
       return;
     }
-
     let compute = () => {
       let w = el.clientWidth;
       let h = el.clientHeight;
