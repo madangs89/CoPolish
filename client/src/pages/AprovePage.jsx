@@ -148,7 +148,7 @@ const ApprovePage = () => {
   };
 
   return (
-    <div className="h-screen overflow-scroll bg-[#f8f9fb] py-12">
+    <div className="h-screen overflow-scroll bg-[#f8f9fb] mt-4 py-12">
       <div className="max-w-5xl mx-auto px-6">
         {/* HEADER */}
         <div className="mb-10">

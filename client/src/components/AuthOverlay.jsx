@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Eye, EyeClosed, EyeOffIcon, X } from "lucide-react";
 import { gsap } from "gsap";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
@@ -13,7 +13,14 @@ const AuthOverlay = ({ open, onClose }) => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [normalAuthLoader, setNormalAuthLoader] = useState(false);
+  const [passwordShow, setPasswordShow] = useState(false);
 
+  const [data, setData] = useState({
+    email: "",
+    password: "",
+    userName: "",
+  });
   useEffect(() => {
     if (open) {
       gsap.to("#cursor", {
@@ -80,6 +87,66 @@ const AuthOverlay = ({ open, onClose }) => {
     flow: "auth-code",
   });
 
+  const handleAuth = async (e) => {
+    try {
+      e.preventDefault();
+
+      setNormalAuthLoader(true);
+      if (mode === "login") {
+        const loginData = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/api/auth/v1/login`,
+          data,
+          {
+            withCredentials: true,
+          }
+        );
+        console.log(loginData?.data);
+        if (loginData?.data.success) {
+          dispatch(setAuthTrue(true));
+          loginData.data.isAuth = true;
+          dispatch(setUser(loginData?.data));
+          toast.success("Login Success");
+          if (
+            loginData?.data.user.currentResumeId == "" ||
+            loginData?.data.user.currentResumeId == undefined
+          ) {
+            navigate("/onboarding");
+          } else {
+            navigate("/dashboard");
+          }
+        }
+      } else {
+        // Register
+        const registerData = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/api/auth/v1/register`,
+          data,
+          {
+            withCredentials: true,
+          }
+        );
+        console.log(registerData);
+        if (registerData.data.success) {
+          dispatch(setAuthTrue(true));
+          registerData.data.isAuth = true;
+          dispatch(setUser(registerData.data));
+          toast.success("Register Success");
+          if (
+            registerData.data.user.currentResumeId == "" ||
+            registerData.data.user.currentResumeId == undefined
+          ) {
+            navigate("/onboarding");
+          } else {
+            navigate("/dashboard");
+          }
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    } finally {
+      setNormalAuthLoader(false);
+    }
+  };
   if (!open) return null;
 
   return (
@@ -113,28 +180,96 @@ const AuthOverlay = ({ open, onClose }) => {
         </div>
 
         {/* Form */}
-        <div className="flex flex-col gap-4">
-          {mode === "signup" && (
-            <input type="text" placeholder="Full name" className="auth-input" />
-          )}
+        <form onSubmit={handleAuth} action="">
+          <div className="flex flex-col gap-4">
+            {mode === "signup" && (
+              <input
+                type="text"
+                value={data.userName}
+                onChange={(e) => {
+                  setData((prev) => {
+                    return {
+                      ...prev,
+                      [e.target.name]: e.target.value,
+                    };
+                  });
+                }}
+                name="userName"
+                placeholder="Full name"
+                className="auth-input"
+                required={true}
+              />
+            )}
 
-          <input
-            type="email"
-            placeholder="Email address"
-            className="auth-input"
-          />
+            <input
+              type="email"
+              value={data.email}
+              required={true}
+              onChange={(e) => {
+                setData((prev) => {
+                  return {
+                    ...prev,
+                    [e.target.name]: e.target.value,
+                  };
+                });
+              }}
+              name="email"
+              placeholder="Email address"
+              className="auth-input"
+            />
 
-          <input
-            type="password"
-            placeholder="Password"
-            className="auth-input"
-          />
-        </div>
+            <div className="relative ">
+              <input
+                value={data.password}
+                required={true}
+                onChange={(e) => {
+                  setData((prev) => {
+                    return {
+                      ...prev,
+                      [e.target.name]: e.target.value,
+                    };
+                  });
+                }}
+                name="password"
+                type={passwordShow ? "text" : "password"}
+                placeholder="Password"
+                className="auth-input"
+              />
+              {passwordShow == false && (
+                <Eye
+                  onClick={() => {
+                    setPasswordShow(true);
+                  }}
+                  className="cursor-pointer absolute top-1/4 w-5 h-5 font-light opacity-60  right-2"
+                />
+              )}
+              {passwordShow == true && (
+                <EyeOffIcon
+                  onClick={() => {
+                    setPasswordShow(false);
+                  }}
+                  className="cursor-pointer absolute top-1/4 w-5 h-5 font-light opacity-60  right-2"
+                />
+              )}
+            </div>
+          </div>
 
-        {/* Primary CTA */}
-        <button className="w-full mt-6 rounded-full bg-black text-white py-3 text-sm font-medium hover:scale-[1.02] transition">
-          {mode === "login" ? "Login" : "Create account"}
-        </button>
+          {/* Primary CTA */}
+          <button
+            type="submit"
+            className="w-full mt-6 rounded-full bg-black text-white py-3 text-sm flex items-center justify-center font-medium hover:scale-[1.02] transition"
+          >
+            {normalAuthLoader ? (
+              <span className="ml-2">
+                <ButtonLoader color="white" />
+              </span>
+            ) : mode === "login" ? (
+              "Login"
+            ) : (
+              "Create account"
+            )}
+          </button>
+        </form>
 
         {/* Divider */}
         <div className="flex items-center gap-4 my-6">

@@ -84,16 +84,15 @@ export const login = async (req, res) => {
         .status(400)
         .json({ message: "User Not Found", success: false });
     }
-
-    const isPasswordCorrect = await bcrypt.compare(
-      password,
-      isUserExits.password
-    );
+    let isPasswordCorrect = false;
+    if (isUserExits.password) {
+      isPasswordCorrect = await bcrypt.compare(password, isUserExits.password);
+    }
 
     if (!isPasswordCorrect) {
       return res
         .status(400)
-        .json({ message: "Password is incorrect", success: false });
+        .json({ message: "This combination is not valid", success: false });
     }
 
     const token = createToken(isUserExits);
@@ -102,7 +101,6 @@ export const login = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Login successfully",
-      token,
       user: isUserExits,
     });
   } catch (error) {

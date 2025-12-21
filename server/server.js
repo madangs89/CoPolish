@@ -5,6 +5,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { connectDB } from "./config/connectDB.js";
 import authRouter from "./routes/auth.routes.js";
+import parseRouter from "./routes/parse.routes.js";
 
 const app = express();
 
@@ -23,7 +24,12 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
   res.send("Hello, World!");
 });
+
+//Auth
 app.use("/api/auth/v1", authRouter);
+
+//Parse
+app.use("/api/parse/v1", parseRouter);
 
 app.listen(3000, async () => {
   await connectDB();
