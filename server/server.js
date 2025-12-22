@@ -9,12 +9,13 @@ import parseRouter from "./routes/parse.routes.js";
 import { createServer } from "http";
 import { connectRedis } from "./config/redis.js";
 import { initSocket } from "./config/socket.js";
+import { resumeParserQueue } from "./bull/jobs/bullJobs.js";
 
 const app = express();
 const httpServer = createServer(app);
 
-await connectRedis(); 
-initSocket(httpServer); 
+await connectRedis();
+initSocket(httpServer);
 
 app.use(
   cors({
@@ -40,5 +41,10 @@ app.use("/api/parse/v1", parseRouter);
 
 httpServer.listen(3000, async () => {
   await connectDB();
+
+  await resumeParserQueue.add("resume-parser", {
+    filePath: "path/to/resume.pdf",
+    fileType: "pdf",
+  });
   console.log("Server is running on port 3000");
 });
