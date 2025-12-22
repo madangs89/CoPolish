@@ -12,7 +12,6 @@ export const parseData = async (req, res) => {
 
     const { mimetype, buffer, size } = req.file;
 
-    // ---- basic validation ----
     if (size > 5 * 1024 * 1024) {
       return res.status(400).json({
         success: false,
@@ -22,7 +21,6 @@ export const parseData = async (req, res) => {
 
     let text = "";
 
-    // ---- PDF ----
     if (mimetype === "application/pdf") {
       const uint8Array = new Uint8Array(buffer);
       const parser = new PDFParse(uint8Array);
@@ -31,7 +29,6 @@ export const parseData = async (req, res) => {
       text = result.text;
     }
 
-    // ---- DOCX ----
     else if (
       mimetype ===
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"

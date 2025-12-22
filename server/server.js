@@ -6,8 +6,15 @@ import cookieParser from "cookie-parser";
 import { connectDB } from "./config/connectDB.js";
 import authRouter from "./routes/auth.routes.js";
 import parseRouter from "./routes/parse.routes.js";
+import { createServer } from "http";
+import { connectRedis } from "./config/redis.js";
+import { initSocket } from "./config/socket.js";
 
 const app = express();
+const httpServer = createServer(app);
+
+await connectRedis(); 
+initSocket(httpServer); 
 
 app.use(
   cors({
@@ -31,7 +38,7 @@ app.use("/api/auth/v1", authRouter);
 //Parse
 app.use("/api/parse/v1", parseRouter);
 
-app.listen(3000, async () => {
+httpServer.listen(3000, async () => {
   await connectDB();
   console.log("Server is running on port 3000");
 });
