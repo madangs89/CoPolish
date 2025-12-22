@@ -41,10 +41,5 @@ app.use("/api/parse/v1", parseRouter);
 
 httpServer.listen(3000, async () => {
   await connectDB();
-
-  await resumeParserQueue.add("resume-parser", {
-    filePath: "path/to/resume.pdf",
-    fileType: "pdf",
-  });
   console.log("Server is running on port 3000");
 });

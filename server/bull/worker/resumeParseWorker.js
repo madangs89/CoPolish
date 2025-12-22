@@ -1,5 +1,7 @@
 import { Worker } from "bullmq";
-
+import fs from "fs";
+import { PDFParse } from "pdf-parse";
+import mammoth from "mammoth";
 import { getIO } from "../../config/socket.js";
 import { bullClient } from "../../config/redis.js";
 
@@ -9,16 +11,31 @@ export const resumeParserWorker = new Worker(
     console.log("Processing job:", job.id);
     console.log(job.data);
 
-    // job.id; // '8a122454-9ccb-4777-9e4b-efdae12c18b3'
+    const { filePath, fileType: mimetype, userId } = job.data;
 
-    // job.name; // 'transcode'
-    // job.data; // { input: '...', output: '...' }
+    let text = "";
 
-    // job.opts; // {} (options passed during add())
+    try {
+      if (mimetype === "application/pdf") {
+        const buffer = fs.readFileSync(filePath);
+        const u8Buffer = new Uint8Array(buffer);
+        const parser = new PDFParse(u8Buffer);
+        const result = await parser.getText();
+        text = result.text;
+      } else if (
+        mimetype ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ) {
+        const result = await mammoth.extractRawText({ path: filePath });
+        text = result.value;
+      }
+    } catch (error) {
+      console.error("Error parsing file:", error);
+    }
+    fs.unlinkSync(filePath);
+    console.log(text);
     return {
       jobId: job.id,
-      //   length: text.length,
-      //   preview: text.slice(0, 200),
     };
   },
   {
@@ -28,16 +45,19 @@ export const resumeParserWorker = new Worker(
 );
 // All Events
 
-// resumeParserWorker.on("active", ({ jobId }) => {
-//   getIO().emit("job:active", { jobId });
-// });
+resumeParserWorker.on("active", (job) => {
+  // getIO().emit("job:active", { jobId });
+  console.log("active" , job);
+  
+});
 
-// resumeParserWorker.on("completed", ({ jobId, returnvalue }) => {
-//   getIO().emit("job:completed", {
-//     jobId,
-//     result: returnvalue,
-//   });
-// });
+resumeParserWorker.on("completed", (job) => {
+  // getIO().emit("job:completed", {
+  //   jobId,
+  //   result: returnvalue,
+  // });
+  console.log("completed" , job);
+});
 
 // resumeParserWorker.on("failed", ({ jobId, failedReason }) => {
 //   getIO().emit("job:failed", {
