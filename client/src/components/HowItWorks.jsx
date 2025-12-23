@@ -1,5 +1,6 @@
 // src/components/HowItWorks.jsx
-import React from "react";
+import React, { useRef } from "react";
+import { motion, useInView } from "framer-motion";
 
 /**
  * HowItWorks
@@ -48,8 +49,19 @@ const defaultSteps = [
 ];
 
 export default function HowItWorks({ steps = defaultSteps }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, {
+    once: true,
+    amount: 0.10, // 1% visibility
+  });
   return (
-    <section className="max-w-5xl mx-auto px-4 py-16">
+    <motion.section
+      ref={ref}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.7 }}
+      className="max-w-6xl mx-auto px-4 py-16"
+    >
       <div className="text-center mb-10">
         <h2 className="text-2xl md:text-3xl font-semibold text-slate-900">
           How It Works
@@ -60,11 +72,11 @@ export default function HowItWorks({ steps = defaultSteps }) {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid w-full  grid-cols-1 md:grid-cols-4 gap-6">
         {steps.map((step, idx) => (
           <div
             key={step.id}
-            className="relative rounded-2xl p-6 bg-white/90 backdrop-blur-sm border border-slate-100 shadow-sm flex flex-col h-full"
+            className="relative rounded-2xl p-6 bg-white/90 backdrop-blur-sm border border-slate-100 shadow-sm flex lg:w-[260px] w-full flex-col h-full"
             aria-labelledby={`how-step-${step.id}`}
           >
             <div className="flex items-center gap-4">
@@ -88,8 +100,19 @@ export default function HowItWorks({ steps = defaultSteps }) {
             <div className="mt-4">
               {/* Contextual badge / microcopy per step */}
               <span className="inline-flex items-center gap-2 text-xs font-medium text-slate-700 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
-                <svg className="w-3 h-3 text-slate-500" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.2" />
+                <svg
+                  className="w-3 h-3 text-slate-500"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="4"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                  />
                 </svg>
                 {step.badge}
               </span>
@@ -98,18 +121,7 @@ export default function HowItWorks({ steps = defaultSteps }) {
         ))}
       </div>
 
-      {/* <div className="mt-10 text-center">
-        <a
-          href="#signup"
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-black text-white text-sm font-medium shadow hover:opacity-95"
-        >
-          Get Started — It's Free
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </a>
-      </div> */}
-    </section>
+    </motion.section>
   );
 }
 

@@ -1,19 +1,19 @@
-import React, { useState } from "react";
-import Hero from "./pages/Hero";
-import Cursor from "./components/Cursor";
-import OnboardingSource from "./pages/OnboardingSource";
+import React, { useState, Suspense, lazy } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
-import AprovePage from "./pages/AprovePage";
-import Dashboard from "./pages/Dashboard";
-import ResumeEditor from "./pages/ResumeEditor";
-import MainNavbar from "./components/Navbars/MainNavbar";
 import { useDispatch, useSelector } from "react-redux";
-import PublicLayout from "./layouts/PublicLayout";
-import ProtectedLayout from "./layouts/ProtectedLayout";
-import ApprovePage from "./pages/AprovePage";
 import { useEffect } from "react";
 import axios from "axios";
 import { setAuthFalse, setUser } from "./redux/slice/authSlice";
+
+const Hero = lazy(() => import("./pages/Hero"));
+const Cursor = lazy(() => import("./components/Cursor"));
+const OnboardingSource = lazy(() => import("./pages/OnboardingSource"));
+const ApprovePage = lazy(() => import("./pages/AprovePage"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const ResumeEditor = lazy(() => import("./pages/ResumeEditor"));
+const MainNavbar = lazy(() => import("./components/Navbars/MainNavbar"));
+const PublicLayout = lazy(() => import("./layouts/PublicLayout"));
+const ProtectedLayout = lazy(() => import("./layouts/ProtectedLayout"));
 
 const App = () => {
   const auth = useSelector((state) => state.auth.isAuth);
@@ -62,20 +62,22 @@ const App = () => {
 
   return (
     <div className="w-full relative min-h-screen">
-      <Routes>
-        {/* Public */}
-        <Route element={<PublicLayout />}>
-          <Route index element={<Hero />} />
-        </Route>
+      <Suspense fallback={<div>Loading...</div>}>
+        <Routes>
+          {/* Public */}
+          <Route element={<PublicLayout />}>
+            <Route index element={<Hero />} />
+          </Route>
 
-        {/* Protected */}
-        <Route element={<ProtectedLayout />}>
-          <Route path="/onboarding" element={<OnboardingSource />} />
-          <Route path="/approve" element={<ApprovePage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/editor/resume/:id" element={<ResumeEditor />} />
-        </Route>
-      </Routes>
+          {/* Protected */}
+          <Route element={<ProtectedLayout />}>
+            <Route path="/onboarding" element={<OnboardingSource />} />
+            <Route path="/approve" element={<ApprovePage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/editor/resume/:id" element={<ResumeEditor />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </div>
   );
 };

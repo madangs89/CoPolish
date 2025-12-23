@@ -4,6 +4,7 @@ const initialState = {
   isAuth: false,
   loading: false,
   user: null,
+  authOpen: false,
 };
 
 export const authSlice = createSlice({
@@ -16,6 +17,9 @@ export const authSlice = createSlice({
     setAuthFalse: (state, actions) => {
       state.isAuth = false;
     },
+    setAuthOpen: (state, actions) => {
+      state.authOpen = actions.payload;
+    },
     setUser: (state, actions) => {
       state.isAuth = actions.payload.isAuth;
       state.user = actions.payload.user;
@@ -23,7 +27,8 @@ export const authSlice = createSlice({
   },
 });
 
-export const { setAuthTrue, setUser, setAuthFalse } = authSlice.actions;
+export const { setAuthTrue, setUser, setAuthFalse, setAuthOpen } =
+  authSlice.actions;
 const authReducer = authSlice.reducer;
 
 export default authReducer;

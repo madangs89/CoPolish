@@ -34,21 +34,21 @@ const defaultMetrics = [
 
 export default function WhyChoose({ metrics = defaultMetrics }) {
   return (
-    <section className="max-w-5xl mx-auto px-6 py-16">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+    <section className="max-w-6xl mx-auto px-6 lg:py-5">
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-12 items-center">
         {/* Left: Headline + description */}
-        <div className="order-2 lg:order-1">
-          <h2 className="text-3xl md:text-4xl font-semibold text-slate-900">
+        <div className="order-1 flex flex-col items-center justify-center lg:order-1">
+          <h2 className="text-3xl md:text-4xl text-center font-semibold text-slate-900">
             Why Choose CoPolish
           </h2>
-          <p className="mt-4 text-sm md:text-base text-slate-600 max-w-xl">
+          <p className="mt-4 text-sm md:text-base text-center text-slate-600 max-w-xl">
             Unleash the power of AI to turn your experience into recruiter-ready
             content. From precise resume rewrites to optimized LinkedIn profiles
             and ready-to-post templates — CoPolish saves time and increases
             visibility while keeping you in control.
           </p>
 
-          <div className="mt-6 flex gap-3">
+          {/* <div className="mt-6 flex gap-3">
             <a
               href="#features"
               className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-black text-white text-sm shadow-sm hover:opacity-95"
@@ -61,16 +61,16 @@ export default function WhyChoose({ metrics = defaultMetrics }) {
             >
               Pricing
             </a>
-          </div>
+          </div> */}
         </div>
 
         {/* Right: Metrics grid */}
-        <div className="order-1 lg:order-2">
+        <div className="order-2 lg:order-2">
           <div className="grid grid-cols-2 gap-4">
             {metrics.map((m, i) => (
               <div
                 key={m.id}
-                className={`relative rounded-2xl p-6 shadow-sm bg-white/80 backdrop-blur-sm border border-slate-100 min-h-[110px] flex flex-col justify-between`}
+                className={`relative rounded-2xl p-6 shadow-md bg-white/80 backdrop-blur-sm border border-slate-100 min-h-[110px] flex flex-col justify-between`}
                 role="region"
                 aria-labelledby={`metric-${m.id}`}
               >

@@ -158,7 +158,7 @@ const AuthOverlay = ({ open, onClose }) => {
       />
 
       {/* Card */}
-      <div className="relative w-[420px] rounded-2xl bg-white shadow-[0_30px_90px_rgba(0,0,0,0.3)] p-8 z-10">
+      <div className="relative lg:w-[30%] w-[90%] rounded-2xl bg-white shadow-[0_30px_90px_rgba(0,0,0,0.3)] p-8 z-10">
         {/* Close */}
         <button
           onClick={onClose}

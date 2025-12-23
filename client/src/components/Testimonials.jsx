@@ -39,8 +39,8 @@ const defaultTestimonials = [
 export default function Testimonials({ testimonials = defaultTestimonials }) {
 
   return (
-    <section className="max-w-5xl mx-auto px-4 py-16">
-      <div className="text-center mb-8">
+    <section className="max-w-5xl mx-auto px-4 lg:py-5 mt-12 lg:mt-0 ">
+      <div className="text-center mb-10">
         <h2 className="text-2xl md:text-3xl font-semibold text-slate-900">
           What People Are Saying
         </h2>

@@ -15,14 +15,22 @@ import FinalCTA from "../components/FinalCTA";
 import Cursor from "../components/Cursor";
 import OnboardingSource from "./OnboardingSource";
 import Navbar from "../components/Navbars/Navbar";
+import { setAuthOpen } from "../redux/slice/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import AuthOverlay from "../components/AuthOverlay";
 const Hero = () => {
   const ref = useRef(null);
   const [width, setWidth] = useState(0);
 
   const [boxes, setBoxes] = useState({ cols: 0, rows: 0 });
-  let tilesWidth = 80; // 16 * 4 (including margin)
-  let tilesHeight = 80; // 16 * 4 (including margin)
+  let tilesWidth = 80; 
+  let tilesHeight = 80; 
   let gap = 12;
+
+
+
+  const authOpen = useSelector((state) => state.auth.authOpen);
+  const dispatch = useDispatch();
   useEffect(() => {
     let el = ref.current;
     if (!el) {
@@ -55,8 +63,32 @@ const Hero = () => {
     };
   }, []);
 
+  useEffect(() => {
+    gsap.from(".hero-heading", {
+      y: 90,
+      opacity: 0,
+      duration: 1.1,
+      stagger: 0.08,
+      ease: "power4.out",
+    });
+    gsap.from(".hero-sub", {
+      y: 90,
+      opacity: 0,
+      duration: 1.1,
+      stagger: 0.08,
+      ease: "power4.out",
+    });
+    gsap.from(".hero-btn", {
+      y: 90,
+      opacity: 0,
+      duration: 1.1,
+      stagger: 0.08,
+      ease: "power4.out",
+    });
+  }, []);
+
   return (
-    <div className="w-full relative min-h-screen h-screen overflow-x-hidden  bg-white">
+    <div className="w-full  relative min-h-screen h-screen overflow-x-hidden  bg-white">
       <Cursor />
       <div
         ref={ref}
@@ -87,9 +119,9 @@ const Hero = () => {
         {/* background fade only */}
         <div className="absolute inset-0 bg-white opacity-45 pointer-events-none"></div>
 
-        <div className="relative  w-full h-full  z-10">
+        <div className="relative max-w-6xl mx-auto  w-full h-full  z-10">
           <Navbar />
-          <div className="w-full mx-auto flex-col gap-6  flex items-center justify-center h-[65%]">
+          <div className="w-full mx-auto flex-col gap-6 lg:mt-3  flex items-center  justify-center h-[65%]">
             <h1
               onMouseEnter={() => {
                 gsap.to("#cursor", {
@@ -101,18 +133,18 @@ const Hero = () => {
               onMouseLeave={() => {
                 gsap.to("#cursor", { scale: 1, color: "white", duration: 0.3 });
               }}
-              className="font-bold tracking-wide text-6xl text-[#2A2C42] leading-[1.1]  w-[65%] text-center"
+              className="font-bold hero-heading tracking-wide  xl:text-7xl  md:text-6xl  text-5xl text-[#2A2C42] leading-[1.1]  w-[90%] md:w-[75%] text-center"
             >
               AI That Makes Your Resume And LinkedIn Shine
             </h1>
 
-            <h3 className="font-bold tracking-wide text-sm text-[#414565] leading-[1.1]  w-[43%] text-center">
+            <h3 className="font-bold hero-sub tracking-wide text-base xl:text-sm text-[#414565] leading-[1.1]  w-[80%] md:w-[60%] text-center">
               Coploish.ai rewrites your resume, enhances your LinkedIn profile,
               and generates high-performing posts — all with the precision of an
               expert career coach.
             </h3>
 
-            <button className="bg-black  shadow-white  flex items-center justify-center gap-1 rounded-full px-4 py-2.5 text-white text-[16px]">
+            <button className="bg-black hero-btn  shadow-white  flex items-center justify-center gap-1 rounded-full px-4 py-2.5 text-white text-[16px]">
               <p
                 onMouseEnter={() => {
                   gsap.to("#cursor", {
@@ -145,6 +177,11 @@ const Hero = () => {
           {/* <div className="h-20 w-full"></div> */}
         </div>
       </div>
+
+      <AuthOverlay
+        open={authOpen}
+        onClose={() => dispatch(setAuthOpen(false))}
+      />
     </div>
   );
 };
