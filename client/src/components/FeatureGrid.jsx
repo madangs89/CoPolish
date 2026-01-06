@@ -12,15 +12,15 @@ const centerImage =
   "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=0b1c5b6d2b0b9a9d9b5f3a6d8f8f1a1a";
 
 export default function FeatureGrid() {
-  useEffect(() => {
-    gsap.from(".f-grid", {
-      y: 90,
-      opacity: 0,
-      duration: 1.1,
-      stagger: 0.08,
-      ease: "power4.out",
-    });
-  }, []);
+  // useEffect(() => {
+  //   gsap.from(".f-grid", {
+  //     y: 90,
+  //     opacity: 0,
+  //     duration: 1.1,
+  //     stagger: 0.08,
+  //     ease: "power4.out",
+  //   });
+  // }, []);
   return (
     <div className="w-full f-grid max-w-6xl mx-auto px-4 py-8">
       <div className="flex flex-col lg:flex-row gap-6">

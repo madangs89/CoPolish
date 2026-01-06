@@ -2,16 +2,6 @@
 import React, { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
-/**
- * HowItWorks
- * Props:
- *  - steps: optional array of { id, title, description, icon, badge } to override defaults
- *
- * Usage:
- *  <HowItWorks />
- *  OR
- *  <HowItWorks steps={customSteps} />
- */
 
 const defaultSteps = [
   {
@@ -52,7 +42,7 @@ export default function HowItWorks({ steps = defaultSteps }) {
   const ref = useRef(null);
   const isInView = useInView(ref, {
     once: true,
-    amount: 0.10, // 1% visibility
+    amount: 0.10, 
   });
   return (
     <motion.section

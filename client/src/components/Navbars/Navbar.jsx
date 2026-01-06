@@ -30,16 +30,32 @@ const Navbar = () => {
       </h1>
 
       <div className="gap-7 lg:flex hidden items-center justify-center">
-        <h1 className=" cursor-pointer hover:underline text-[14px] font-thin">
+        <h1
+          onMouseEnter={() => gsap.to("#cursor", { scale: 2.5, duration: 0.3 })}
+          onMouseLeave={() => gsap.to("#cursor", { scale: 1, duration: 0.3 })}
+          className=" cursor-pointer hover:underline text-[14px] font-thin"
+        >
           Features
         </h1>
-        <h1 className=" cursor-pointer hover:underline text-[14px] font-thin">
+        <h1
+          onMouseEnter={() => gsap.to("#cursor", { scale: 2.5, duration: 0.3 })}
+          onMouseLeave={() => gsap.to("#cursor", { scale: 1, duration: 0.3 })}
+          className=" cursor-pointer hover:underline text-[14px] font-thin"
+        >
           How It Works
         </h1>
-        <h1 className=" cursor-pointer hover:underline text-[14px] font-thin">
+        <h1
+          onMouseEnter={() => gsap.to("#cursor", { scale: 2.5, duration: 0.3 })}
+          onMouseLeave={() => gsap.to("#cursor", { scale: 1, duration: 0.3 })}
+          className=" cursor-pointer hover:underline text-[14px] font-thin"
+        >
           Pricing
         </h1>
-        <h1 className=" cursor-pointer hover:underline text-[14px] font-thin">
+        <h1
+          onMouseEnter={() => gsap.to("#cursor", { scale: 2.5, duration: 0.3 })}
+          onMouseLeave={() => gsap.to("#cursor", { scale: 1, duration: 0.3 })}
+          className=" cursor-pointer hover:underline text-[14px] font-thin"
+        >
           FAQ
         </h1>
       </div>
