@@ -6,6 +6,7 @@ import { CircleUser } from "lucide-react";
 const MainNavbar = () => {
   const [authOpen, setAuthOpen] = useState(false);
   const location = useLocation();
+
   useEffect(() => {
     gsap.fromTo(
       ".sc",
@@ -35,20 +36,22 @@ const MainNavbar = () => {
         <h1 className="text-black text-[22px] font-medium">CoPolish</h1>
 
         {/* Links */}
-        <div className="hidden md:flex gap-7 items-center">
-          <span className="text-[14px] hover:underline font-light cursor-pointer">
-            Resume
-          </span>
-          <span className="text-[14px] hover:underline font-light cursor-pointer">
-            LinkedIn
-          </span>
-          <span className="text-[14px] font-light hover:underline cursor-pointer">
-            Post
-          </span>
-          <span className="text-[14px] font-light hover:underline cursor-pointer">
-            ATS Match
-          </span>
-        </div>
+        {!location.pathname.includes("onboarding") && (
+          <div className="hidden md:flex gap-7 items-center">
+            <span className="text-[14px] hover:underline font-light cursor-pointer">
+              Resume
+            </span>
+            <span className="text-[14px] hover:underline font-light cursor-pointer">
+              LinkedIn
+            </span>
+            <span className="text-[14px] font-light hover:underline cursor-pointer">
+              Post
+            </span>
+            <span className="text-[14px] font-light hover:underline cursor-pointer">
+              ATS Match
+            </span>
+          </div>
+        )}
 
         {/* CTA */}
         <div className="flex gap-2">
