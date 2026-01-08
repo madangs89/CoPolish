@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const UploadBox = ({ title, subtitle }) => {
+const UploadBox = ({ title, subtitle, status, setIsStatusTrue }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const navigate = useNavigate();
 
@@ -13,7 +13,8 @@ const UploadBox = ({ title, subtitle }) => {
   };
 
   const handleOnClick = () => {
-    navigate("/approve");
+    setIsStatusTrue(true);
+    // navigate("/approve");
   };
   return (
     <div className="max-w-xl mx-auto bg-white rounded-2xl border border-[#e6e6e6] p-8 shadow-sm">

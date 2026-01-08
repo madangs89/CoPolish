@@ -7,4 +7,16 @@ export const store = configureStore({
     auth: authReducer,
     socket: socketReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredPaths: ["socket.socket"],
+        ignoredActions: [
+          "socket/setSocket",
+          "socket/clearSocket",
+          "socket/socket",
+          "socket/setSocket",
+        ],
+      },
+    }),
 });

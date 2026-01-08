@@ -6,10 +6,13 @@ import UploadBox from "../components/UploadBox";
 import Card from "../components/Card";
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
+import ResumeProgress from "../components/StatusShower/ResumeProgress";
 
 const OnboardingSource = () => {
   const [view, setView] = useState("choose");
   const auth = useSelector((state) => state.auth);
+  const [status, setstatus] = useState(["uploaded", "parsed", ""]);
+  const [isStatusTrue, setIsStatusTrue] = useState(false);
 
   if (auth?.user?.currentResumeId.length > 0) {
     return <Navigate to={"/dashboard"} replace />;
@@ -89,6 +92,8 @@ const OnboardingSource = () => {
         {/* ===================== RESUME UPLOAD ===================== */}
         {view === "resume" && (
           <UploadBox
+            setIsStatusTrue={setIsStatusTrue}
+            status={status}
             title="Upload your resume"
             subtitle="Supported formats: PDF, DOCX"
           />
@@ -105,6 +110,12 @@ const OnboardingSource = () => {
         {/* ===================== MANUAL FORM ===================== */}
         {view === "manual" && <ManualForm />}
       </div>
+
+      {isStatusTrue && (
+        <div className="absolute z-[10000000000] inset-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
+          <ResumeProgress status={status} />
+        </div>
+      )}
     </div>
   );
 };

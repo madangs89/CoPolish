@@ -18,7 +18,6 @@ export const resumeParserQueue = new Queue("resume-parser", {
     },
     timeout: 2 * 60 * 1000, // 2 minutes
   },
-
   limiter: {
     max: 10, // max 10 jobs
     duration: 1000, // per second
