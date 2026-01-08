@@ -14,8 +14,18 @@ export function initSocket(httpServer, url = process.env.CLIENT_URL) {
 
   io.adapter(createAdapter(pubClient, subClient));
 
-  io.on("connection", (socket) => {
-    console.log("Socket connected:", socket.id);
+  io.on("connection", async (socket) => {
+    const id = socket.handshake.auth._id;
+    console.log("Authenticated user ID:", id, "on socket:", socket.id);
+    await pubClient.hset("online_users", id, socket.id);
+
+
+
+    //disconnect
+    socket.on("disconnect", async () => {
+      console.log("Socket disconnected:", socket.id);
+      await pubClient.hdel("online_users", id);
+    });
   });
 
   return io;

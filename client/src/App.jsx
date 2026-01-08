@@ -19,6 +19,7 @@ const ProtectedLayout = lazy(() => import("./layouts/ProtectedLayout"));
 
 const App = () => {
   const auth = useSelector((state) => state.auth.isAuth);
+  const authSlice = useSelector((state) => state.auth);
   const socket = useSelector((state) => state.socket.socket);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -65,16 +66,23 @@ const App = () => {
 
   useEffect(() => {
     console.log("Connecting to socket");
-    if (socket) return;
-    const socketConnection = io("http://localhost:3000");
+    if (socket || !auth) return;
+    const socketConnection = io(import.meta.env.VITE_BACKEND_URL, {
+      auth: {
+        _id: authSlice?.user?._id,
+      },
+    });
     socketConnection.on("connect", () => {
       console.log("Connected to socket server with ID:", socketConnection.id);
       dispatch(setSocket(socketConnection));
     });
     return () => {
-      socket.disconnect();
+      if (socket) {
+        socket.disconnect();
+        console.log("Socket disconnected");
+      }
     };
-  }, []);
+  }, [auth, socket]);
 
   return (
     <div className="w-full relative min-h-screen">
