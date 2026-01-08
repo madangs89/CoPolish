@@ -36,7 +36,7 @@ const MainNavbar = () => {
         <h1 className="text-black text-[22px] font-medium">CoPolish</h1>
 
         {/* Links */}
-        {!location.pathname.includes("onboarding") && (
+        {(!location.pathname.includes("onboarding") && !location.pathname.includes("approve"))&& (
           <div className="hidden md:flex gap-7 items-center">
             <span className="text-[14px] hover:underline font-light cursor-pointer">
               Resume

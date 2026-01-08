@@ -2,12 +2,12 @@ import { Server } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { pubClient, subClient } from "./redis.js";
 
-let io; 
+let io;
 
-export function initSocket(httpServer) {
+export function initSocket(httpServer, url = process.env.CLIENT_URL) {
   io = new Server(httpServer, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: url,
       credentials: true,
     },
   });

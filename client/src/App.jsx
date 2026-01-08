@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import axios from "axios";
 import { setAuthFalse, setUser } from "./redux/slice/authSlice";
+import { io } from "socket.io-client";
+import { setSocket } from "./redux/slice/socketSlice";
 
 const Hero = lazy(() => import("./pages/Hero"));
 const Cursor = lazy(() => import("./components/Cursor"));
@@ -17,6 +19,7 @@ const ProtectedLayout = lazy(() => import("./layouts/ProtectedLayout"));
 
 const App = () => {
   const auth = useSelector((state) => state.auth.isAuth);
+  const socket = useSelector((state) => state.socket.socket);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -58,6 +61,19 @@ const App = () => {
         setLoading(false);
       }
     })();
+  }, []);
+
+  useEffect(() => {
+    console.log("Connecting to socket");
+    if (socket) return;
+    const socketConnection = io("http://localhost:3000");
+    socketConnection.on("connect", () => {
+      console.log("Connected to socket server with ID:", socketConnection.id);
+      dispatch(setSocket(socketConnection));
+    });
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   return (
