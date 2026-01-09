@@ -2,8 +2,7 @@ import { Worker } from "bullmq";
 import fs from "fs";
 import { PDFParse } from "pdf-parse";
 import mammoth from "mammoth";
-import { getIO } from "../../config/socket.js";
-import { bullClient } from "../../config/redis.js";
+import { bullClient, pubClient } from "../../config/redis.js";
 
 export const resumeParserWorker = new Worker(
   "resume-parser",
@@ -12,9 +11,7 @@ export const resumeParserWorker = new Worker(
     console.log(job.data);
 
     const { filePath, fileType: mimetype, userId } = job.data;
-
     let text = "";
-
     try {
       if (mimetype === "application/pdf") {
         const buffer = fs.readFileSync(filePath);
@@ -31,9 +28,14 @@ export const resumeParserWorker = new Worker(
       }
     } catch (error) {
       console.error("Error parsing file:", error);
+      throw error;
+    } finally {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
     }
-    fs.unlinkSync(filePath);
-    console.log(text);
+    // console.log(text);
+
     return {
       jobId: job.id,
     };
@@ -43,25 +45,32 @@ export const resumeParserWorker = new Worker(
     concurrency: 2, // run 2 jobs in parallel
   }
 );
-// All Events
+// // All Events
 
-resumeParserWorker.on("active", (job) => {
-  // getIO().emit("job:active", { jobId });
-  console.log("active" , job);
-  
+// resumeParserWorker.on("active", (job) => {
+//   // getIO().emit("job:active", { jobId });
+//   console.log("active", job);
+// });
+
+resumeParserWorker.on("completed", async (job) => {
+  const { data } = job;
+
+  await pubClient.publish(
+    "resume:events",
+    JSON.stringify({
+      event: "RESUME_PARSE_COMPLETED",
+      jobId: job.id,
+      userId: data.userId,
+    })
+  );
+  console.log("completed", data);
 });
 
-resumeParserWorker.on("completed", (job) => {
-  // getIO().emit("job:completed", {
-  //   jobId,
-  //   result: returnvalue,
-  // });
-  console.log("completed" , job);
-});
+// resumeParserWorker.on("failed", (job) => {
+//   // getIO().emit("job:failed", {
+//   //   jobId,
+//   //   reason: failedReason,
+//   // });
 
-// resumeParserWorker.on("failed", ({ jobId, failedReason }) => {
-//   getIO().emit("job:failed", {
-//     jobId,
-//     reason: failedReason,
-//   });
+//   console.log("failed", job);
 // });

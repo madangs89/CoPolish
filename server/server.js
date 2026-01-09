@@ -10,6 +10,7 @@ import { createServer } from "http";
 import { connectRedis } from "./config/redis.js";
 import { initSocket } from "./config/socket.js";
 import { resumeParserQueue } from "./bull/jobs/bullJobs.js";
+import { initSubscribers } from "./pubsub/subcribe.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -18,6 +19,7 @@ await connectRedis();
 console.log("Call for socket");
 
 initSocket(httpServer, process.env.CLIENT_URL);
+await initSubscribers();
 
 app.use(
   cors({

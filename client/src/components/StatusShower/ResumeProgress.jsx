@@ -1,10 +1,37 @@
-import { Check, Loader2 } from "lucide-react";
+import { Check } from "lucide-react";
 import BlackLoader from "../Loaders/BlackLoader";
+import { useSelector } from "react-redux";
+import { useEffect } from "react";
 
-export default function ResumeProgress({ status }) {
+export default function ResumeProgress({ status, setstatus }) {
   const isUploaded = status.includes("uploaded");
   const isParsed = status.includes("parsed");
   const isAnalyzing = status.includes("analysis");
+
+  const socket = useSelector((state) => state.socket.socket);
+  const user = useSelector((state) => state.auth.user);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("resume:parsed", (data) => {
+      console.log("Resume parsed event received for job:", data);
+      const { userId, event } = JSON.parse(data);
+      if (
+        event === "RESUME_PARSE_COMPLETED" &&
+        !status.includes("parsed") &&
+        userId === user._id
+      ) {
+        setstatus((prev) => {
+          const newStatus = [...prev];
+          newStatus.push("parsed");
+          return newStatus;
+        });
+      }
+    });
+
+    return () => socket.off("resume:parsed");
+  }, [socket]);
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center px-4">
@@ -98,8 +125,6 @@ export default function ResumeProgress({ status }) {
             <p className="text-gray-600 text-sm mb-3">
               Analyzing your resume with AI...
             </p>
-
-          
           </div>
         </div>
 

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import axios from "axios";
 
-const UploadBox = ({ title, subtitle, status, setIsStatusTrue }) => {
+const UploadBox = ({ title, subtitle, status, setIsStatusTrue, setstatus }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const navigate = useNavigate();
 
@@ -9,22 +11,61 @@ const UploadBox = ({ title, subtitle, status, setIsStatusTrue }) => {
     console.log(e.target.files);
 
     const file = e.target.files[0];
+
+    const { size } = file;
+    if (size > 5 * 1024 * 1024) {
+      toast.error("File size exceeds 5MB limit");
+      return;
+    }
     setSelectedFile(file);
   };
 
-  const handleOnClick = () => {
+  const handleOnClick = async () => {
+    if (!selectedFile) return;
+    const formdata = new FormData();
+    formdata.append("resume", selectedFile);
+
     setIsStatusTrue(true);
-    // navigate("/approve");
+    try {
+      const uploadData = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/parse/v1/parse-resume`,
+        formdata,
+        {
+          withCredentials: true,
+        }
+      );
+      console.log(uploadData);
+
+      if (uploadData?.data?.success) {
+        toast.success("File uploaded successfully");
+        setstatus((prev) => {
+          const newStatus = [...prev];
+          newStatus.push("uploaded");
+          return newStatus;
+        });
+      }
+    } catch (error) {
+      setIsStatusTrue(false);
+      console.log("Error while uploading file:", error);
+      toast.error(
+        error?.response?.data?.message ||
+          "Something went wrong while uploading file"
+      );
+      return;
+    }
   };
   return (
-    <div className="max-w-xl mx-auto bg-white rounded-2xl border border-[#e6e6e6] p-8 shadow-sm">
+    <div className="max-w-xl mx-auto bg-white rounded-2xl border border-[#e6e6e6] mt-3 p-8 shadow-sm">
       {selectedFile ? (
         <>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col  my-2 gap-2">
             <h2 className="text-2xl font-bold text-[#1f2430]">
               {selectedFile?.name}
             </h2>
             <p className="text-sm text-[#6b6b6b] mt-2">{selectedFile?.type}</p>
+            <p className="text-sm text-[#6b6b6b] mt-2">
+              {(selectedFile?.size / (1024 * 1024)).toFixed(2)} MB
+            </p>
             <label className="mt-6 w-[30%] flex items-center justify-center px-2  my-2 rounded-full bg-[#6640EA] cursor-pointer text-white py-3 text-sm font-medium hover:scale-[1.02] transition">
               <input
                 onChange={handleSelectFile}
@@ -36,13 +77,13 @@ const UploadBox = ({ title, subtitle, status, setIsStatusTrue }) => {
             </label>
           </div>
 
-          {/* <div className="w-full h-[300px]">
+          <div className="w-full h-[200px]">
             <iframe
               src={URL.createObjectURL(selectedFile)}
               className="w-full h-full object-fit"
               title="PDF"
             />
-          </div> */}
+          </div>
         </>
       ) : (
         <>
@@ -71,8 +112,13 @@ const UploadBox = ({ title, subtitle, status, setIsStatusTrue }) => {
       )}
 
       <button
+        disabled={!selectedFile}
         onClick={handleOnClick}
-        className="mt-6 w-full rounded-full bg-black text-white py-3 text-sm font-medium hover:scale-[1.02] transition"
+        className={`mt-6 w-full rounded-full ${
+          selectedFile
+            ? "bg-black hover:scale-[1.02] cursor-pointer"
+            : "bg-gray-500"
+        } text-white py-3 text-sm font-medium  transition`}
       >
         Continue
       </button>

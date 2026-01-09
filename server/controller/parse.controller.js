@@ -3,7 +3,10 @@ import { resumeParserQueue } from "../bull/jobs/bullJobs.js";
 export const parseData = async (req, res) => {
   try {
     console.log("got request for file parsing");
+    const userId = req.user._id;
+    console.log(userId);
     
+
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -11,7 +14,7 @@ export const parseData = async (req, res) => {
       });
     }
 
-    const { mimetype, buffer, size , path } = req.file;
+    const { mimetype, buffer, size, path } = req.file;
 
     if (size > 5 * 1024 * 1024) {
       return res.status(400).json({
@@ -33,7 +36,7 @@ export const parseData = async (req, res) => {
     await resumeParserQueue.add("resume-parser", {
       filePath: path,
       fileType: mimetype,
-      userId: "req.user.id,",
+      userId,
     });
 
     return res.status(200).json({
