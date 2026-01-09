@@ -14,6 +14,6 @@ authRouter.post("/register", register);
 authRouter.post("/login", login);
 authRouter.post("/logout", logout);
 authRouter.post("/google/login", googleAuth);
-authRouter.get("/is-auth",authMiddelware, isAuth);
+authRouter.get("/is-auth", authMiddelware, isAuth);
 
 export default authRouter;

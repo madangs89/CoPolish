@@ -23,3 +23,27 @@ export const resumeParserQueue = new Queue("resume-parser", {
     duration: 1000, // per second
   },
 });
+
+
+export const resumeParseAIQueue = new Queue("resume-parse-ai", {
+  connection: bullClient,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 3000,
+    },
+    timeout: 5 * 60 * 1000,
+    removeOnComplete: {
+      age: 3600,
+      count: 1000,
+    },
+    removeOnFail: {
+      age: 24 * 3600,
+    },
+  },
+  limiter: {
+    max: 2,      // 🔥 SAFE for AI
+    duration: 1000,
+  },
+});

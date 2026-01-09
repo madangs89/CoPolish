@@ -97,3 +97,24 @@ const resumeTemplateSchema = new mongoose.Schema(
 
 const ResumeTemplate = mongoose.model("ResumeTemplate", resumeTemplateSchema);
 export default ResumeTemplate;
+
+
+
+// {
+//   "resumeId": "R1",
+//   "version": 4,
+//   "type": "JD_OPTIMIZATION", 
+//   "triggeredBy": "USER",
+//   "model": "gemini-3-flash",
+//   "timestamp": "2026-01-09T10:30",
+//   "changes": [
+//     {
+//       "section": "experience[0].description[1]",
+//       "before": "Worked on frontend using React",
+//       "after": "Developed responsive React components used by 10,000+ users",
+//       "reason": "Added measurable impact and ATS keyword 'responsive'"
+//     }
+//   ],
+//   "scoreBefore": 62,
+//   "scoreAfter": 78
+// }
