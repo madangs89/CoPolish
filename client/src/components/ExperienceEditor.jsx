@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Trash2, Plus } from "lucide-react";
 
 const ExperienceEditor = ({ data, onChange }) => {
@@ -60,7 +60,42 @@ const ExperienceEditor = ({ data, onChange }) => {
     setNewBullet((p) => ({ ...p, [expIndex]: "" }));
   };
 
+  /* 🆕 ADD EXPERIENCE */
+  const addExperience = () => {
+    onChange([
+      ...data,
+      {
+        role: "",
+        company: "",
+        from: "",
+        to: "",
+        duration: "",
+        description: [],
+      },
+    ]);
+  };
+
+  /* 🆕 DELETE EXPERIENCE */
+  const deleteExperience = (expIndex) => {
+    onChange(data.filter((_, i) => i !== expIndex));
+  };
+
   /* ---------------- UI ---------------- */
+
+  useEffect(() => {
+    if (data.length === 0) {
+      onChange([
+        {
+          role: "",
+          company: "",
+          from: "",
+          to: "",
+          duration: "",
+          description: [],
+        },
+      ]);
+    }
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -70,9 +105,21 @@ const ExperienceEditor = ({ data, onChange }) => {
           className="rounded-2xl border border-[#e6e6e6] p-6 bg-white space-y-5"
         >
           {/* ---------- HEADER ---------- */}
-          <h3 className="text-lg font-semibold text-[#1f2430]">
-            Experience {expIndex + 1}
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-[#1f2430]">
+              Experience {expIndex + 1}
+            </h3>
+
+            {/* 🆕 DELETE EXPERIENCE */}
+            <button
+              type="button"
+              onClick={() => deleteExperience(expIndex)}
+              className="text-red-500 hover:text-red-600"
+              title="Delete experience"
+            >
+              <Trash2 size={18} />
+            </button>
+          </div>
 
           {/* ---------- ROLE & COMPANY ---------- */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -81,7 +128,9 @@ const ExperienceEditor = ({ data, onChange }) => {
               <input
                 className="auth-input"
                 value={exp.role}
-                onChange={(e) => updateField(expIndex, "role", e.target.value)}
+                onChange={(e) =>
+                  updateField(expIndex, "role", e.target.value)
+                }
                 placeholder="Frontend Developer"
               />
             </div>
@@ -111,6 +160,7 @@ const ExperienceEditor = ({ data, onChange }) => {
               placeholder="2 years 3 months"
             />
           </div>
+
           <div className="flex gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-xs text-[#6b6b6b]">From</label>
@@ -118,17 +168,22 @@ const ExperienceEditor = ({ data, onChange }) => {
                 className="auth-input"
                 value={exp.from}
                 type="number"
-                onChange={(e) => updateField(expIndex, "from", e.target.value)}
+                onChange={(e) =>
+                  updateField(expIndex, "from", e.target.value)
+                }
                 placeholder="From"
               />
             </div>
+
             <div className="flex flex-col gap-1">
               <label className="text-xs text-[#6b6b6b]">To</label>
               <input
                 className="auth-input"
                 value={exp.to}
                 type="number"
-                onChange={(e) => updateField(expIndex, "to", e.target.value)}
+                onChange={(e) =>
+                  updateField(expIndex, "to", e.target.value)
+                }
                 placeholder="To"
               />
             </div>
@@ -146,14 +201,20 @@ const ExperienceEditor = ({ data, onChange }) => {
                   className="auth-input flex-1"
                   value={bullet}
                   onChange={(e) =>
-                    updateBullet(expIndex, bulletIndex, e.target.value)
+                    updateBullet(
+                      expIndex,
+                      bulletIndex,
+                      e.target.value
+                    )
                   }
                   placeholder={`Achievement ${bulletIndex + 1}`}
                 />
 
                 <button
                   type="button"
-                  onClick={() => deleteBullet(expIndex, bulletIndex)}
+                  onClick={() =>
+                    deleteBullet(expIndex, bulletIndex)
+                  }
                   className="p-2 rounded-md border hover:bg-red-50 text-red-500"
                   title="Delete bullet"
                 >
@@ -188,6 +249,16 @@ const ExperienceEditor = ({ data, onChange }) => {
           </div>
         </div>
       ))}
+
+      {/* 🆕 ADD EXPERIENCE */}
+      <button
+        type="button"
+        onClick={addExperience}
+        className="inline-flex items-center gap-2 rounded-full border px-5 py-2 text-sm hover:bg-gray-50"
+      >
+        <Plus size={16} />
+        Add Experience
+      </button>
     </div>
   );
 };

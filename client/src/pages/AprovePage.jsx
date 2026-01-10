@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ArrowLeft, CheckCircle, ChessKing } from "lucide-react";
 import renderSection from "../components/renderSection";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
 import BlackLoader from "../components/Loaders/BlackLoader";
@@ -46,9 +46,12 @@ const ApprovePage = () => {
   const [activeSection, setActiveSection] = useState("personal");
   const [approved, setApproved] = useState({});
   const [loading, setLoading] = useState(false);
+  const [buttonLoading, setButtonLoading] = useState(false);
   const dispatch = useDispatch();
   const params = useParams();
 
+  const sectionRef = useRef(null);
+  const navigate = useNavigate();
   const [resumeData, setResumeData] = useState(
     useSelector((state) => state.resume.currentResume)
   );
@@ -67,6 +70,26 @@ const ApprovePage = () => {
     const index = sectionsOrder.indexOf(activeSection);
     if (index >= 1) {
       setActiveSection(sectionsOrder[index - 1]);
+    }
+  };
+
+  const handleApproveAndUpdate = async () => {
+    try {
+      setButtonLoading(true);
+      const response = await axios.put(
+        `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/mark-approved`,
+        { resumeId: params.id, resumeData },
+        { withCredentials: true }
+      );
+      if (response.data.success) {
+        navigate("/dashboard");
+        toast.success("Resume approved. Redirecting to dashboard");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to approve resume.");
+    } finally {
+      setButtonLoading(false);
     }
   };
 
@@ -114,6 +137,15 @@ const ApprovePage = () => {
   }, [params.id]);
 
   useEffect(() => {
+    if (sectionRef.current) {
+      sectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [activeSection]);
+
+  useEffect(() => {
     if (resumeSliceData.isChanged === false) {
       dispatch(setIsChanged(true));
     }
@@ -121,7 +153,7 @@ const ApprovePage = () => {
   }, [resumeData, dispatch]);
 
   return (
-    <div className="h-screen overflow-scroll bg-[#f8f9fb] mt-4 py-12">
+    <div ref={sectionRef} className="h-screen header  bg-[#f8f9fb] mt-8 py-12">
       <div className="max-w-5xl mx-auto px-6">
         {/* HEADER */}
         <div className="mb-10">
@@ -181,8 +213,18 @@ const ApprovePage = () => {
                     <CheckCircle size={16} />
                     Approve & Continue
                   </button>
+                ) : buttonLoading ? (
+                  <button
+                    className=" inline-flex items-center gap-2 rounded-full
+                 bg-gradient-to-r bg-white
+                 text-white px-7 py-2.5 text-sm font-semibold
+                 shadow-md hover:shadow-lg transition"
+                  >
+                    <BlackLoader />
+                  </button>
                 ) : (
                   <button
+                    onClick={handleApproveAndUpdate}
                     className=" inline-flex items-center gap-2 rounded-full
                  bg-gradient-to-r from-indigo-600 to-violet-600
                  text-white px-7 py-2.5 text-sm font-semibold

@@ -25,8 +25,8 @@ createRoot(document.getElementById("root")).render(
         toasterId="default"
         toastOptions={{
           // Define default options
-          duration: 1000,
-          removeDelay: 1000,
+          duration: 5000,
+          removeDelay: 2000,
           style: {
             background: "white",
             color: "black",
