@@ -46,6 +46,11 @@ const App = () => {
             data?.user?.currentResumeId == undefined
           ) {
             navigate("/onboarding");
+          } else if (
+            data?.user?.currentResumeId.length > 0 &&
+            !data?.user?.isApproved
+          ) {
+            navigate(`/approve/${data?.user?.currentResumeId}`);
           } else {
             navigate("/dashboard");
           }
@@ -96,7 +101,7 @@ const App = () => {
           {/* Protected */}
           <Route element={<ProtectedLayout />}>
             <Route path="/onboarding" element={<OnboardingSource />} />
-            <Route path="/approve" element={<ApprovePage />} />
+            <Route path="/approve/:id" element={<ApprovePage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/editor/resume/:id" element={<ResumeEditor />} />
           </Route>

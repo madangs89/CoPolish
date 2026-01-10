@@ -58,7 +58,7 @@ const resumeParseAIWorker = new Worker(
 resumeParseAIWorker.on("completed", async (job) => {
   console.log(`Job ${job.id} has completed!`);
 
-  const { data } = job;
+  const data = job.returnvalue;
 
   await pubClient.publish(
     "resume:events",

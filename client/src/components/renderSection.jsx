@@ -19,7 +19,6 @@ function renderSection(section, resumeData, setResumeData) {
           onChange={(data) => setResumeData((p) => ({ ...p, personal: data }))}
         />
       );
-
     case "education":
       return (
         <EducationEditor

@@ -17,7 +17,7 @@ createRoot(document.getElementById("root")).render(
       </Provider>
       ,
       <Toaster
-        position="top-center"
+        position="right-bottom"
         reverseOrder={false}
         gutter={8}
         containerClassName=""
@@ -25,8 +25,7 @@ createRoot(document.getElementById("root")).render(
         toasterId="default"
         toastOptions={{
           // Define default options
-          className: "",
-          duration: 5000,
+          duration: 1000,
           removeDelay: 1000,
           style: {
             background: "white",

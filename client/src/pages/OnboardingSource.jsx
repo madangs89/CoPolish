@@ -14,7 +14,7 @@ const OnboardingSource = () => {
   const [status, setstatus] = useState([]);
   const [isStatusTrue, setIsStatusTrue] = useState(false);
 
-  if (auth?.user?.currentResumeId.length > 0) {
+  if (auth?.user?.currentResumeId.length > 0 && auth?.user?.isApproved) {
     return <Navigate to={"/dashboard"} replace />;
   }
 

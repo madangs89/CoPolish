@@ -47,6 +47,8 @@ const resumeTemplateSchema = new mongoose.Schema(
         company: String,
         duration: String,
         description: [String],
+        from: String,
+        to: String,
       },
     ],
 

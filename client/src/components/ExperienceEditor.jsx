@@ -49,10 +49,7 @@ const ExperienceEditor = ({ data, onChange }) => {
     if (!value) return;
 
     const updated = [...data];
-    const bullets = [
-      ...updated[expIndex].description,
-      value,
-    ];
+    const bullets = [...updated[expIndex].description, value];
 
     updated[expIndex] = {
       ...updated[expIndex],
@@ -84,9 +81,7 @@ const ExperienceEditor = ({ data, onChange }) => {
               <input
                 className="auth-input"
                 value={exp.role}
-                onChange={(e) =>
-                  updateField(expIndex, "role", e.target.value)
-                }
+                onChange={(e) => updateField(expIndex, "role", e.target.value)}
                 placeholder="Frontend Developer"
               />
             </div>
@@ -113,8 +108,30 @@ const ExperienceEditor = ({ data, onChange }) => {
               onChange={(e) =>
                 updateField(expIndex, "duration", e.target.value)
               }
-              placeholder="Jan 2023 – Dec 2023"
+              placeholder="2 years 3 months"
             />
+          </div>
+          <div className="flex gap-4">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-[#6b6b6b]">From</label>
+              <input
+                className="auth-input"
+                value={exp.from}
+                type="number"
+                onChange={(e) => updateField(expIndex, "from", e.target.value)}
+                placeholder="From"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-[#6b6b6b]">To</label>
+              <input
+                className="auth-input"
+                value={exp.to}
+                type="number"
+                onChange={(e) => updateField(expIndex, "to", e.target.value)}
+                placeholder="To"
+              />
+            </div>
           </div>
 
           {/* ---------- DESCRIPTION BULLETS ---------- */}
@@ -124,28 +141,19 @@ const ExperienceEditor = ({ data, onChange }) => {
             </label>
 
             {exp.description.map((bullet, bulletIndex) => (
-              <div
-                key={bulletIndex}
-                className="flex items-center gap-2"
-              >
+              <div key={bulletIndex} className="flex items-center gap-2">
                 <input
                   className="auth-input flex-1"
                   value={bullet}
                   onChange={(e) =>
-                    updateBullet(
-                      expIndex,
-                      bulletIndex,
-                      e.target.value
-                    )
+                    updateBullet(expIndex, bulletIndex, e.target.value)
                   }
                   placeholder={`Achievement ${bulletIndex + 1}`}
                 />
 
                 <button
                   type="button"
-                  onClick={() =>
-                    deleteBullet(expIndex, bulletIndex)
-                  }
+                  onClick={() => deleteBullet(expIndex, bulletIndex)}
                   className="p-2 rounded-md border hover:bg-red-50 text-red-500"
                   title="Delete bullet"
                 >

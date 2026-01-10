@@ -24,6 +24,8 @@ const resumeSchema = {
       role: null,
       company: null,
       duration: null,
+      from: null,
+      to: null,
       description: [], // Array of strings
     },
   ],
@@ -80,6 +82,8 @@ STRICT RULES FOR EXTRACTION:
 - If sections are duplicated, merge them logically
 - Do NOT add explanations
 - Do NOT add extra fields
+- Do NOT include any fields outside the provided schema
+- Not assume projects as work experience
 - Output MUST match the schema EXACTLY
 - Output VALID JSON ONLY
 
@@ -102,12 +106,15 @@ SCORING GUIDELINES (use ATS best practices):
 - Presence of links (GitHub, LinkedIn, portfolio)
 - Avoidance of vague statements
 - Overall readability for automated screening
+- If any section is missing , you must remain skelton of that section in the output with nulls eg. experience: [ { role: null, company: null, from: null, to: null, duration: null, description: [] } ]
 
 IMPORTANT SCORING RULES:
 - Resume score MAY use general ATS knowledge
 - Resume score MUST be based on the extracted data
 - Do NOT assume experience that does not exist
+- If any section is missing, score should reflect that
 - Do NOT penalize missing data harshly if resume is clearly a fresher profile
+- Score must be strictly evaluated and don't show kindness for cutting scores
 
 Set:
 "resumeScore": <number between 0 and 100>

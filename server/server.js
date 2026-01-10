@@ -11,6 +11,7 @@ import { connectRedis } from "./config/redis.js";
 import { initSocket } from "./config/socket.js";
 import { resumeParserQueue } from "./bull/jobs/bullJobs.js";
 import { initSubscribers } from "./pubsub/subcribe.js";
+import resumeRouter from "./routes/resume.routes.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -42,6 +43,7 @@ app.use("/api/auth/v1", authRouter);
 
 //Parse
 app.use("/api/parse/v1", parseRouter);
+app.use("/api/resume/v1", resumeRouter);
 
 httpServer.listen(3000, async () => {
   await connectDB();

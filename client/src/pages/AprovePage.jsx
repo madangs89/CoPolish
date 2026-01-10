@@ -1,6 +1,16 @@
-import React, { useState } from "react";
-import { ArrowLeft, CheckCircle } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { ArrowLeft, CheckCircle, ChessKing } from "lucide-react";
 import renderSection from "../components/renderSection";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
+import toast from "react-hot-toast";
+import axios from "axios";
+import BlackLoader from "../components/Loaders/BlackLoader";
+import {
+  setCurrentResume,
+  setCurrentResumeId,
+  setIsChanged,
+} from "../redux/slice/resumeSlice";
 
 /* -------------------- CONFIG -------------------- */
 
@@ -35,102 +45,15 @@ const sectionTitles = {
 const ApprovePage = () => {
   const [activeSection, setActiveSection] = useState("personal");
   const [approved, setApproved] = useState({});
+  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const params = useParams();
 
-  const [resumeData, setResumeData] = useState({
-    personal: {
-      name: "John Doe",
-      title: "Frontend Developer",
-      email: "john@email.com",
-      phone: "+91 9876543210",
-      summary: "Frontend developer with experience in React and UI design.",
-      github: "https://github.com/johndoe",
-      linkedin: "https://linkedin.com/in/johndoe",
-      address: "123 Main St, Anytown, USA",
-    },
-    education: [
-      {
-        degree: "B.Tech Computer Science",
-        institute: "ABC University",
-        from: "2020",
-        to: "2024",
-      },
-      {
-        degree: "B.Tech Computer Science",
-        institute: "ABC University",
-        from: "2020",
-        to: "2024",
-      },
-      {
-        degree: "B.Tech Computer Science",
-        institute: "ABC University",
-        from: "2020 ",
-        to: "2024",
-      },
-    ],
-    experience: [
-      {
-        role: "Frontend Intern",
-        company: "XYZ Corp",
-        duration: "2023",
-        description: [
-          "Worked on UI components using React.",
-          "Worked on UI components using React.",
-        ],
-      },
-      {
-        role: "Frontend Intern",
-        company: "XYZ Corp",
-        duration: "2023",
-        description: [
-          "Worked on UI components using React.",
-          "Worked on UI components using React.",
-        ],
-      },
-      {
-        role: "Frontend Intern",
-        company: "XYZ Corp",
-        duration: "2023",
-        description: [
-          "Worked on UI components using React.",
-          "Worked on UI components using React.",
-        ],
-      },
-    ],
-    skills: ["React", "JavaScript", "Tailwind CSS"],
-    projects: [
-      {
-        title: "Resume Analyzer",
-        description: [
-          "Built AI-powered resume parser using MERN stack",
-          "Improved ATS match score by 30%",
-        ],
-        technologies: ["React", "Node.js", "MongoDB"],
-        link: "https://github.com/username/project",
-      },
-    ],
-    certifications: [
-      {
-        name: "AWS Certified Cloud Practitioner",
-        issuer: "Amazon Web Services",
-        year: "2023",
-        credentialUrl: "https://...",
-      },
-    ],
-    achievements: [
-      "Top 5% in LeetCode contests",
-      "Winner – Hackathon XYZ 2023",
-    ],
-    hobbies: ["Reading", "Open-source contribution", "Public speaking"],
-    extracurricular: [
-      {
-        role: "Technical Lead",
-        activity: "College Coding Club",
-        year: "2022 – 2023",
-        description: "Organized weekly coding sessions and hackathons",
-      },
-    ],
-  });
+  const [resumeData, setResumeData] = useState(
+    useSelector((state) => state.resume.currentResume)
+  );
 
+  const resumeSliceData = useSelector((state) => state.resume);
   const handleApprove = () => {
     setApproved((prev) => ({ ...prev, [activeSection]: true }));
 
@@ -147,6 +70,56 @@ const ApprovePage = () => {
     }
   };
 
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchResume = async () => {
+      if (!params?.id || params.id === "default") {
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        console.log("Fetching resume data for id:", params.id);
+
+        const resumeInfo = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/${params.id}`,
+          { withCredentials: true }
+        );
+
+        if (!mounted) return;
+
+        if (resumeInfo.data.success) {
+          toast.success("Resume data loaded successfully.");
+          setResumeData(resumeInfo.data.resume);
+          dispatch(setCurrentResume(resumeInfo.data.resume));
+          dispatch(setCurrentResumeId(resumeInfo.data.resume._id));
+        }
+      } catch (error) {
+        if (!mounted) return;
+
+        console.log("Error fetching resume data:", error);
+        toast.error("Failed to load resume data. Please try again.");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    fetchResume();
+
+    return () => {
+      mounted = false;
+    };
+  }, [params.id]);
+
+  useEffect(() => {
+    if (resumeSliceData.isChanged === false) {
+      dispatch(setIsChanged(true));
+    }
+    dispatch(setCurrentResume(resumeData));
+  }, [resumeData, dispatch]);
+
   return (
     <div className="h-screen overflow-scroll bg-[#f8f9fb] mt-4 py-12">
       <div className="max-w-5xl mx-auto px-6">
@@ -162,57 +135,66 @@ const ApprovePage = () => {
 
         {/* SECTION CONTAINER */}
         <div className="bg-white rounded-3xl  border md:p-8 py-2 px-3 shadow-sm">
-          <h2 className="text-xl font-semibold mb-6 ml-2 mt-2">
-            {sectionTitles[activeSection]}
-          </h2>
+          {loading ? (
+            <div className="text-center flex flex-col gap-1 py-20 text-gray-500">
+              <BlackLoader />{" "}
+              <p className="animate-pulse">Loading resume data</p>
+            </div>
+          ) : (
+            <>
+              <h2 className="text-xl font-semibold mb-6 ml-2 mt-2">
+                {sectionTitles[activeSection]}
+              </h2>
 
-          {renderSection(activeSection, resumeData, setResumeData)}
+              {renderSection(activeSection, resumeData, setResumeData)}
 
-          <div
-            className={`w-full flex gap-3 mt-2 md:mt-6 md:flex-row flex-col  py-2 md:border-none ${
-              sectionsOrder.indexOf(activeSection) >= 1
-                ? "justify-between"
-                : "justify-end"
-            }`}
-          >
-            {/* GO BACK */}
-            {activeSection && sectionsOrder.indexOf(activeSection) >= 1 && (
-              <button
-                onClick={handleGoBack}
-                className="inline-flex items-center gap-2 rounded-full
+              <div
+                className={`w-full flex gap-3 mt-2 md:mt-6 md:flex-row flex-col  py-2 md:border-none ${
+                  sectionsOrder.indexOf(activeSection) >= 1
+                    ? "justify-between"
+                    : "justify-end"
+                }`}
+              >
+                {/* GO BACK */}
+                {activeSection && sectionsOrder.indexOf(activeSection) >= 1 && (
+                  <button
+                    onClick={handleGoBack}
+                    className="inline-flex items-center gap-2 rounded-full
                    border border-slate-300 bg-white text-slate-700
                    px-6 py-2 text-sm font-medium
                    hover:bg-slate-50 transition"
-              >
-                <ArrowLeft size={16} />
-                Go Back
-              </button>
-            )}
+                  >
+                    <ArrowLeft size={16} />
+                    Go Back
+                  </button>
+                )}
 
-            {/* APPROVE / FINAL CTA */}
-            {activeSection !== "preview" ? (
-              <button
-                onClick={handleApprove}
-                className=" inline-flex items-center gap-2 rounded-full
+                {/* APPROVE / FINAL CTA */}
+                {activeSection !== "preview" ? (
+                  <button
+                    onClick={handleApprove}
+                    className=" inline-flex items-center gap-2 rounded-full
                  bg-black text-white
                  px-6 py-2 text-sm font-medium
                  transition"
-              >
-                <CheckCircle size={16} />
-                Approve & Continue
-              </button>
-            ) : (
-              <button
-                className=" inline-flex items-center gap-2 rounded-full
+                  >
+                    <CheckCircle size={16} />
+                    Approve & Continue
+                  </button>
+                ) : (
+                  <button
+                    className=" inline-flex items-center gap-2 rounded-full
                  bg-gradient-to-r from-indigo-600 to-violet-600
                  text-white px-7 py-2.5 text-sm font-semibold
                  shadow-md hover:shadow-lg transition"
-              >
-                <CheckCircle size={16} />
-                Enhance Your Chances
-              </button>
-            )}
-          </div>
+                  >
+                    <CheckCircle size={16} />
+                    Enhance Your Chances
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

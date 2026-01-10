@@ -1,7 +1,9 @@
 import { Check } from "lucide-react";
 import BlackLoader from "../Loaders/BlackLoader";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { setCurrentResume } from "../../redux/slice/resumeSlice";
 
 export default function ResumeProgress({ status, setstatus }) {
   const isUploaded = status.includes("uploaded");
@@ -10,7 +12,9 @@ export default function ResumeProgress({ status, setstatus }) {
 
   const socket = useSelector((state) => state.socket.socket);
   const user = useSelector((state) => state.auth.user);
+  const navigate = useNavigate();
 
+  const dispatch = useDispatch();
   useEffect(() => {
     if (!socket) return;
 
@@ -29,8 +33,27 @@ export default function ResumeProgress({ status, setstatus }) {
         });
       }
     });
-
-    return () => socket.off("resume:parsed");
+    socket.on("resume:ai:parsed", (data) => {
+      console.log("Resume AI parsed event received for job:", data);
+      const { userId, event, parsedNewResume } = JSON.parse(data);
+      if (
+        event === "RESUME_PARSE_AI_COMPLETED" &&
+        !status.includes("analysis") &&
+        userId === user._id
+      ) {
+        setstatus((prev) => {
+          const newStatus = [...prev];
+          newStatus.push("analysis");
+          return newStatus;
+        });
+        dispatch(setCurrentResume(parsedNewResume));
+        navigate(`/approve/${userId}`);
+      }
+    });
+    return () => {
+      socket.off("resume:parsed");
+      socket.off("resume:ai:parsed");
+    };
   }, [socket]);
 
   return (

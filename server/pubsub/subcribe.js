@@ -12,14 +12,12 @@ export const initSubscribers = async () => {
 
   subClient.on("message", async (channel, message) => {
     if (channel !== "resume:events") return;
-
     const payload = JSON.parse(message);
     const { event, jobId, userId } = payload;
     console.log(payload);
-
     switch (event) {
       case "RESUME_PARSE_COMPLETED": {
-        console.log("Resume parse even published");
+        console.log("Resume parse event published");
         const io = getIO();
 
         if (io) {
@@ -31,6 +29,23 @@ export const initSubscribers = async () => {
             );
           }
         }
+      }
+      case "RESUME_PARSE_AI_COMPLETED": {
+        const { parsedNewResume, userUpdateCurrentResumeId, usage } = payload;
+
+        console.log("Resume parse ai event published");
+        const io = getIO();
+
+        if (io) {
+          const socketId = await pubClient.hget("online_users", userId);
+          if (socketId) {
+            io.to(socketId).emit(
+              "resume:ai:parsed",
+              JSON.stringify({ jobId, userId, event, parsedNewResume })
+            );
+          }
+        }
+        break;
       }
     }
   });
