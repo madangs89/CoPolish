@@ -153,19 +153,35 @@ FINAL OUTPUT RULES
 export const aiResumeParser = async (text) => {
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-pro",
+      model: "gemini-2.5-flash-lite",
       contents: text,
       config: {
         systemInstruction,
       },
     });
-    console.log(response.text);
+    const newText = response.text
+      .replace(/^\s*```json\s*/, "")
+      .replace(/\s*```\s*$/, "");
 
     console.log(response.usageMetadata);
+    console.log(newText);
 
-    return response.text;
+    const payload = {
+      text: JSON.parse(newText),
+      usage: response.usageMetadata,
+      error: null,
+      isError: false,
+    };
+
+    return payload;
   } catch (error) {
+    const payload = {
+      text: null,
+      usage: null,
+      error: error,
+      isError: true,
+    };
     console.error("Error parsing resume:", error);
-    return error;
+    return payload;
   }
 };

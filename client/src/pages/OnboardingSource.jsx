@@ -114,7 +114,7 @@ const OnboardingSource = () => {
 
       {isStatusTrue && (
         <div className="absolute z-[10000000000] inset-0 w-full h-full bg-black bg-opacity-80 flex items-center justify-center">
-          <ResumeProgress status={status}  setstatus={setstatus} />
+          <ResumeProgress status={status} setstatus={setstatus} />
         </div>
       )}
     </div>

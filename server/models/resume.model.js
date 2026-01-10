@@ -8,13 +8,14 @@ const resumeTemplateSchema = new mongoose.Schema(
       required: true,
     },
     resumeGroupId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       required: true,
       index: true,
     },
     version: {
       type: Number,
       required: true,
+      default: 1,
     },
     title: {
       type: String,
@@ -73,10 +74,8 @@ const resumeTemplateSchema = new mongoose.Schema(
         credentialUrl: String,
       },
     ],
-
     achievements: [String],
     hobbies: [String],
-
     extracurricular: [
       {
         role: String,
@@ -89,7 +88,34 @@ const resumeTemplateSchema = new mongoose.Schema(
     templateId: {
       type: String,
       required: true,
-      default: "",
+    },
+    changes: [
+      {
+        section: String,
+        before: String,
+        after: String,
+        reason: String,
+        timestamp: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    scoreBefore: {
+      type: Number,
+      default: 0,
+    },
+    scoreAfter: {
+      type: Number,
+      default: 0,
+    },
+    suggestions: {
+      type: [
+        {
+          type: String,
+        },
+      ],
+      default: [],
     },
   },
   { timestamps: true }
@@ -98,12 +124,10 @@ const resumeTemplateSchema = new mongoose.Schema(
 const ResumeTemplate = mongoose.model("ResumeTemplate", resumeTemplateSchema);
 export default ResumeTemplate;
 
-
-
 // {
 //   "resumeId": "R1",
 //   "version": 4,
-//   "type": "JD_OPTIMIZATION", 
+//   "type": "JD_OPTIMIZATION",
 //   "triggeredBy": "USER",
 //   "model": "gemini-3-flash",
 //   "timestamp": "2026-01-09T10:30",

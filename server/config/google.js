@@ -11,5 +11,5 @@ export const client = new google.auth.OAuth2(
 );
 
 export const ai = new GoogleGenAI({
-  apiKey: process.env.GOOGLE_GENAI_API_KEY,
+  apiKey: "AIzaSyD83VPPzUW4zTpQw7P_LeE-UlAhVPaQzPk",
 });

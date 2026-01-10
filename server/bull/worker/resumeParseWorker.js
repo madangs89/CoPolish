@@ -3,9 +3,9 @@ import fs from "fs";
 import { PDFParse } from "pdf-parse";
 import mammoth from "mammoth";
 import { bullClient, pubClient } from "../../config/redis.js";
-import { aiResumeParser } from "../../LLmFunctions/lllm.js";
+import { resumeParseAIQueue } from "../jobs/bullJobs.js";
 
-export const resumeParserWorker = new Worker(
+const resumeParserWorker = new Worker(
   "resume-parser",
   async (job) => {
     console.log("Processing job:", job.id);
@@ -27,16 +27,18 @@ export const resumeParserWorker = new Worker(
         const result = await mammoth.extractRawText({ path: filePath });
         text = result.value;
       }
-      const res = await aiResumeParser(text);
-    } catch (error) {
-      console.error("Error parsing file:", error);
-      throw error;
-    } finally {
+      await resumeParseAIQueue.add("resume-parse-ai", {
+        parsedText: text,
+        userId,
+        jobId: job.id,
+      });
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
+    } catch (error) {
+      console.error("Error parsing file:", error);
+      throw error;
     }
-    // console.log(text);
 
     return {
       jobId: job.id,
@@ -44,7 +46,7 @@ export const resumeParserWorker = new Worker(
   },
   {
     connection: bullClient,
-    concurrency: 5, // run 2 jobs in parallel
+    concurrency: 5, // run 5 jobs in parallel
   }
 );
 // // All Events
