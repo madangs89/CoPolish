@@ -4,13 +4,21 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap");
+
+.Cormorant-Garamond {
+  font-family: "Cormorant Garamond", serif;
+  letter-spacing: 1px;
+}
+
 .ruda-font {
   font-family: "Ruda", sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
 }
-html, body {
+html,
+body {
   height: 100%;
   overflow: hidden;
 }

@@ -15,13 +15,15 @@ createRoot(document.getElementById("root")).render(
       <Provider store={store}>
         <App />
       </Provider>
-      ,
+
       <Toaster
         position="right-bottom"
         reverseOrder={false}
         gutter={8}
         containerClassName=""
-        containerStyle={{}}
+        containerStyle={{
+          zIndex: 99999999, // 👈 add this
+        }}
         toasterId="default"
         toastOptions={{
           // Define default options

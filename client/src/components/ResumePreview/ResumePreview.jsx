@@ -3,6 +3,7 @@ import ResumeClassicV1 from "../ResumeTemplates/ResumeClassicV1";
 import ResumeClassicV2 from "../ResumeTemplates/ResumeClassicV2";
 import ResumeClassicBlue from "../ResumeTemplates/ResumeClassicBlue";
 import { Expand } from "lucide-react";
+import DefaultResume from "../ResumeTemplates/DefaultResume";
 import MobileResumeWrapper from "./MobileResumeWrapper";
 
 const ResumePreview = () => {
@@ -26,19 +27,16 @@ const ResumePreview = () => {
   }, []);
 
   const resumeSettings = {
-    fontFamily: "Times New Roman, Times, serif",
+    fontFamily: "Cormorant Garamond",
     primaryColor: "#2563eb",
     textColor: "#000000",
-
     fontSizes: {
       name: 26,
       section: 13,
       body: 11,
       small: 10.5,
     },
-
     margin: 40,
-
     photo: {
       width: 100,
       height: 100,
@@ -154,7 +152,8 @@ const ResumePreview = () => {
           }}
         >
           {/* FIXED WIDTH RESUME */}
-          <ResumeClassicBlue data={resumeData} settings={resumeSettings} />
+          {/* <ResumeClassicBlue data={resumeData} settings={resumeSettings} /> */}
+          <DefaultResume data={resumeData} settings={resumeSettings} />
         </div>
       </div>
 
@@ -197,10 +196,12 @@ const ResumePreview = () => {
               {/* Scrollable resume */}
               <div className="flex-1 overflow-auto">
                 <MobileResumeWrapper>
-                  <ResumeClassicBlue
+                  {/* <ResumeClassicBlue
                     data={resumeData}
                     settings={resumeSettings}
-                  />
+                  /> */}
+          <DefaultResume data={resumeData} settings={resumeSettings} />
+
                 </MobileResumeWrapper>
               </div>
             </div>

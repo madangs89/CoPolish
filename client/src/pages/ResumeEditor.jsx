@@ -6,6 +6,8 @@ import ResumeClassicV1 from "../components/ResumeTemplates/ResumeClassicV1";
 import { GrScorecard } from "react-icons/gr";
 import { Brush } from "lucide-react";
 const ResumeEditor = () => {
+
+  
   const [resumeData, setResumeData] = useState({
     personal: {
       name: "",
