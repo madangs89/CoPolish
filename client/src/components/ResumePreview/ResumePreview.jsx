@@ -5,7 +5,12 @@ import ResumeClassicBlue from "../ResumeTemplates/ResumeClassicBlue";
 import { Expand } from "lucide-react";
 import DefaultResume from "../ResumeTemplates/DefaultResume";
 import MobileResumeWrapper from "./MobileResumeWrapper";
-
+import HarvardResume from "../ResumeTemplates/HarvardResume";
+import BalancedTwoColumnResume from "../ResumeTemplates/BalancedTwoColumnResume";
+import CleanProfessionalResume from "../ResumeTemplates/CleanProfessionalResume";
+import CareerTimelineResume from "../ResumeTemplates/CareerTimelineResume";
+import ProfessionalSidebarResume from "../ResumeTemplates/ProfessionalSidebarResume";
+import ModernMinimalResume from "../ResumeTemplates/ModernMinimalResume";
 const ResumePreview = () => {
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1);
@@ -153,7 +158,7 @@ const ResumePreview = () => {
         >
           {/* FIXED WIDTH RESUME */}
           {/* <ResumeClassicBlue data={resumeData} settings={resumeSettings} /> */}
-          <DefaultResume data={resumeData} settings={resumeSettings} />
+          <HarvardResume data={resumeData} settings={resumeSettings} />
         </div>
       </div>
 
@@ -200,7 +205,7 @@ const ResumePreview = () => {
                     data={resumeData}
                     settings={resumeSettings}
                   /> */}
-          <DefaultResume data={resumeData} settings={resumeSettings} />
+          <HarvardResume data={resumeData} settings={resumeSettings} />
 
                 </MobileResumeWrapper>
               </div>
