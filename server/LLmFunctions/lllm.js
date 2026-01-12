@@ -1,161 +1,201 @@
 import { ai } from "../config/google.js";
 
-const resumeSchema = {
-  personal: {
-    name: null,
-    title: null,
-    email: null,
-    phone: null,
-    summary: null,
-    github: null,
-    linkedin: null,
-    address: null,
-  },
-  education: [
-    {
-      degree: null,
-      institute: null,
-      from: null,
-      to: null,
-    },
-  ],
-  experience: [
-    {
-      role: null,
-      company: null,
-      duration: null,
-      from: null,
-      to: null,
-      description: [], // Array of strings
-    },
-  ],
-  skills: [],
-  projects: [
-    {
-      title: null,
-      description: [],
-      technologies: [],
-      link: null,
-    },
-  ],
-  certifications: [
-    {
-      name: null,
-      issuer: null,
-      year: null,
-      credentialUrl: null,
-    },
-  ],
-  achievements: [], // Array of strings
-  hobbies: [], // Array of strings
-  extracurricular: [
-    {
-      role: null,
-      activity: null,
-      year: null,
-      description: null,
-    },
-  ],
-  resumeScore: 0, // Numerical score representing resume quality
-  optimizationSuggestions: [], // Array of strings with suggestions for improvement
+import ResumeTemplate from "../models/resume.model.js";
+import {
+  achievementsSystemInstruction,
+  baseResumeOptimizerSystemInstruction,
+  certificationsSystemInstruction,
+  educationSystemInstruction,
+  experienceSystemInstruction,
+  extracurricularSystemInstruction,
+  hobbiesSystemInstruction,
+  parseResumeSystemInstruction,
+  personalSystemInstruction,
+  projectsSystemInstruction,
+  skillsSystemInstruction,
+} from "./llmHelpers/allSystemInstructoin.js";
+
+export const systemInstructionMask = {
+  personal: personalSystemInstruction,
+  education: educationSystemInstruction,
+  experience: experienceSystemInstruction,
+  projects: projectsSystemInstruction,
+  skills: skillsSystemInstruction,
+  certifications: certificationsSystemInstruction,
+  achievements: achievementsSystemInstruction,
+  hobbies: hobbiesSystemInstruction,
+  extracurricular: extracurricularSystemInstruction,
 };
 
-const systemInstruction = `
+const SUPPORTED_OPERATIONS = new Set([
+  "personal",
+  "education",
+  "experience",
+  "projects",
+  "skills",
+  "certifications",
+  "achievements",
+  "hobbies",
+  "extracurricular",
+  "all",
+]);
 
-You are an ATS-style resume parsing and evaluation engine.
+const ALL_OPERATION_ORDER = [
+  "skills",
+  "projects",
+  "experience",
+  "education",
+  "certifications",
+  "achievements",
+  "extracurricular",
+  "hobbies",
+  "personal",
+];
 
-Your job has TWO distinct responsibilities:
+const getResumeFromDb = async (resumeId, operation) => {
+  try {
+    const resumeData = await ResumeTemplate.findById(resumeId);
+    if (!resumeData) {
+      return null;
+    }
 
-────────────────────────────
-PART 1: STRUCTURED EXTRACTION
-────────────────────────────
+    const payload = {
+      error: null,
+      isError: false,
+      data: null,
+    };
 
-TASK:
-Extract structured information from the resume text provided.
+    switch (operation) {
+      case "all": {
+        payload.data = resumeData;
+        break;
+      }
+      case "personal": {
+        const d = {
+          experience: resumeData.experience,
+          projects: resumeData.projects,
+          skills: resumeData.skills,
+          personal: resumeData.personal,
+        };
+        payload.data = d;
+        break;
+      }
+      case "education": {
+        const d = {
+          education: resumeData.education,
+        };
+        payload.data = d;
+        break;
+      }
+      case "experience": {
+        const d = {
+          projects: resumeData.projects,
+          skills: resumeData.skills,
+          experience: resumeData.experience,
+        };
+        payload.data = d;
+        break;
+      }
+      case "projects": {
+        const d = {
+          projects: resumeData.projects,
+          skills: resumeData.skills,
+          experience: resumeData.experience,
+        };
+        payload.data = d;
+        break;
+      }
+      case "certifications": {
+        const d = {
+          skills: resumeData.skills,
+          certifications: resumeData.certifications,
+        };
+        payload.data = d;
+        break;
+      }
+      case "achievements": {
+        payload.data = resumeData.achievements;
+        break;
+      }
+      case "hobbies": {
+        payload.data = resumeData.hobbies;
+        break;
+      }
+      case "extracurricular": {
+        payload.data = resumeData.extracurricular;
+        break;
+      }
+      default: {
+        payload.data = resumeData;
+        break;
+      }
+    }
+    return payload;
+  } catch (error) {
+    console.error(error);
+    const payload = {
+      error: error,
+      isError: true,
+      data: null,
+    };
 
-STRICT RULES FOR EXTRACTION:
-- Use ONLY information explicitly present in the resume text
-- Do NOT guess or fabricate missing data
-- Do NOT infer job titles, companies, dates, or skills if not clearly mentioned
-- If a field is not found, set it to null or an empty array []
-- Do NOT repeat identical education, experience, or project entries
-- If sections are duplicated, merge them logically
-- Do NOT add explanations
-- Do NOT add extra fields
-- Do NOT include any fields outside the provided schema
-- Not assume projects as work experience
-- Output MUST match the schema EXACTLY
-- Output VALID JSON ONLY
+    return payload;
+  }
+};
 
-SCHEMA:
-${JSON.stringify(resumeSchema)}
+const derivePartialData = (fullResume, operation) => {
+  switch (operation) {
+    case "personal":
+      return {
+        experience: fullResume.experience,
+        projects: fullResume.projects,
+        skills: fullResume.skills,
+        personal: fullResume.personal,
+      };
 
-────────────────────────────
-PART 2: ATS RESUME SCORING
-────────────────────────────
+    case "education":
+      return {
+        education: fullResume.education,
+      };
 
-TASK:
-Calculate an ATS-style resume score between 0 and 100.
+    case "experience":
+      return {
+        experience: fullResume.experience,
+        projects: fullResume.projects,
+        skills: fullResume.skills,
+      };
 
-SCORING GUIDELINES (use ATS best practices):
-- Clarity of job titles and role descriptions
-- Presence of measurable impact (numbers, percentages, outcomes)
-- Skill relevance and keyword density
-- Proper section structure (summary, skills, experience, projects)
-- Consistency of dates and roles
-- Presence of links (GitHub, LinkedIn, portfolio)
-- Avoidance of vague statements
-- Overall readability for automated screening
-- If any section is missing , you must remain skelton of that section in the output with nulls eg. experience: [ { role: null, company: null, from: null, to: null, duration: null, description: [] } ]
+    case "projects":
+      return {
+        projects: fullResume.projects,
+        skills: fullResume.skills,
+        experience: fullResume.experience,
+      };
 
-IMPORTANT SCORING RULES:
-- Resume score MAY use general ATS knowledge
-- Resume score MUST be based on the extracted data
-- Do NOT assume experience that does not exist
-- If any section is missing, score should reflect that
-- Do NOT penalize missing data harshly if resume is clearly a fresher profile
-- Score must be strictly evaluated and don't show kindness for cutting scores
+    case "skills":
+      return {
+        skills: fullResume.skills,
+      };
 
-Set:
-"resumeScore": <number between 0 and 100>
+    case "certifications":
+      return {
+        certifications: fullResume.certifications,
+        skills: fullResume.skills,
+      };
 
-────────────────────────────
-PART 3: OPTIMIZATION SUGGESTIONS
-────────────────────────────
+    case "achievements":
+      return fullResume.achievements;
 
-TASK:
-Provide ATS-focused resume improvement suggestions.
+    case "hobbies":
+      return fullResume.hobbies;
 
-RULES FOR SUGGESTIONS:
-- Provide a MINIMUM of 5 suggestions
-- Suggestions must be specific and actionable
-- Suggestions must be based on ATS optimization
-- Suggestions MAY use general industry knowledge
-- Suggestions must NOT invent resume content
-- Suggestions must NOT reference missing data as if it exists
+    case "extracurricular":
+      return fullResume.extracurricular;
 
-Examples of good suggestions:
-- Improve bullet points with measurable outcomes
-- Add missing technical keywords commonly used in ATS
-- Strengthen resume summary for role targeting
-- Improve project descriptions with impact
-- Add relevant certifications or links if applicable
-
-Set:
-"optimizationSuggestions": [ minimum 5 strings ]
-
-────────────────────────────
-FINAL OUTPUT RULES
-────────────────────────────
-
-- Output a SINGLE JSON object
-- No markdown
-- No comments
-- No explanations
-- No extra keys
-- Strictly follow schema
-
-`;
+    default:
+      return null;
+  }
+};
 
 export const aiResumeParser = async (text) => {
   try {
@@ -163,7 +203,7 @@ export const aiResumeParser = async (text) => {
       model: "gemini-2.5-flash-lite",
       contents: text,
       config: {
-        systemInstruction,
+        systemInstruction: parseResumeSystemInstruction,
       },
     });
     const newText = response.text
@@ -190,5 +230,173 @@ export const aiResumeParser = async (text) => {
     };
     console.error("Error parsing resume:", error);
     return payload;
+  }
+};
+
+const aiPartWiseOptimize = async (
+  resumeId,
+  operation,
+  instruction,
+  contents
+) => {
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents,
+      config: {
+        systemInstruction: instruction,
+      },
+    });
+
+    if (!response?.text) {
+      throw new Error("Empty AI response");
+    }
+
+    const cleaned = response.text
+      .replace(/^\s*```json\s*/i, "")
+      .replace(/\s*```\s*$/i, "");
+
+    const parsed = JSON.parse(cleaned);
+
+    return {
+      error: null,
+      isError: false,
+      data: parsed,
+    };
+  } catch (error) {
+    console.error("AI optimize error:", error);
+    return {
+      error,
+      isError: true,
+      data: null,
+    };
+  }
+};
+
+export const resumeOptimizer = async (info) => {
+  try {
+    const { resumeId, operation } = info;
+    if (!resumeId || !operation) {
+      return {
+        error: "resumeId and operation are required",
+        isError: true,
+        data: null,
+      };
+    }
+
+    if (!SUPPORTED_OPERATIONS.has(operation)) {
+      return {
+        error: `Unsupported operation: ${operation}`,
+        isError: true,
+        data: null,
+      };
+    }
+
+    // ─────────────────────────────
+    // HANDLE ALL (ONE DB CALL ONLY)
+    // ─────────────────────────────
+    if (operation === "all") {
+      const full = await getResumeFromDb(resumeId, "all");
+
+      if (!full || full.isError) {
+        return {
+          error: full?.error || "Resume not found",
+          isError: true,
+          data: null,
+        };
+      }
+
+      const fullResume = full.data.toObject ? full.data.toObject() : full.data;
+      const updatedResume = { ...fullResume };
+
+      for (const key of ALL_OPERATION_ORDER) {
+        const partialData = derivePartialData(fullResume, key);
+
+        if (partialData === null) {
+          continue;
+        }
+
+        const instruction =
+          baseResumeOptimizerSystemInstruction + systemInstructionMask[key];
+
+        const contents = JSON.stringify({
+          data: partialData,
+          operation: key,
+        });
+
+        const aiResult = await aiPartWiseOptimize(
+          resumeId,
+          key,
+          instruction,
+          contents
+        );
+
+        if (aiResult.isError) {
+          return {
+            error: aiResult.error,
+            isError: true,
+            data: null,
+          };
+        }
+
+        // Merge safely (no nesting bug)
+        updatedResume[key] = aiResult.data[key];
+      }
+
+      return {
+        error: null,
+        isError: false,
+        data: updatedResume,
+      };
+    }
+
+    // ─────────────────────────────
+    // SINGLE OPERATION (DB ONCE)
+    // ─────────────────────────────
+    const resumeData = await getResumeFromDb(resumeId, operation);
+
+    if (!resumeData || resumeData.isError) {
+      return {
+        error: resumeData?.error || "Failed to fetch resume data",
+        isError: true,
+        data: null,
+      };
+    }
+
+    const instruction =
+      baseResumeOptimizerSystemInstruction + systemInstructionMask[operation];
+
+    const contents = JSON.stringify({
+      data: resumeData.data,
+      operation,
+    });
+
+    const aiResult = await aiPartWiseOptimize(
+      resumeId,
+      operation,
+      instruction,
+      contents
+    );
+
+    if (aiResult.isError) {
+      return {
+        error: aiResult.error,
+        isError: true,
+        data: null,
+      };
+    }
+
+    return {
+      error: null,
+      isError: false,
+      data: aiResult.data,
+    };
+  } catch (error) {
+    console.error("Resume optimizer error:", error);
+    return {
+      error,
+      isError: true,
+      data: null,
+    };
   }
 };
