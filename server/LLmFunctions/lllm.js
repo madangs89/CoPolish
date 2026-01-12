@@ -233,7 +233,7 @@ export const aiResumeParser = async (text) => {
   }
 };
 
-const aiPartWiseOptimize = async (
+export const aiPartWiseOptimize = async (
   resumeId,
   operation,
   instruction,
@@ -400,3 +400,4 @@ export const resumeOptimizer = async (info) => {
     };
   }
 };
+
