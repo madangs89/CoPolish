@@ -3,7 +3,7 @@ const MobileResumeWrapper = ({ children }) => {
   const scale = isMobile ? window.innerWidth / 794 : 1;
 
   return (
-    <div className="flex  justify-center">
+    <div className="flex items-start h-screen overflow-y-scroll overflow-x-hidden  justify-center">
       <div
         style={{
           transform: `scale(${scale})`,

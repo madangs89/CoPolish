@@ -30,28 +30,29 @@ const MainNavbar = () => {
   }
 
   return (
-    <div className="fixed sc px-6 md:px-8  top-0 left-0 w-full z-[99999]">
+    <div className="fixed sc  md:px-8  top-0 left-0 w-full z-[99999]">
       <div className="w-full mx-auto px-6 py-3 flex items-center justify-between">
         {/* Logo */}
         <h1 className="text-black text-[22px] font-medium">CoPolish</h1>
 
         {/* Links */}
-        {(!location.pathname.includes("onboarding") && !location.pathname.includes("approve"))&& (
-          <div className="hidden md:flex gap-7 items-center">
-            <span className="text-[14px] hover:underline font-light cursor-pointer">
-              Resume
-            </span>
-            <span className="text-[14px] hover:underline font-light cursor-pointer">
-              LinkedIn
-            </span>
-            <span className="text-[14px] font-light hover:underline cursor-pointer">
-              Post
-            </span>
-            <span className="text-[14px] font-light hover:underline cursor-pointer">
-              ATS Match
-            </span>
-          </div>
-        )}
+        {!location.pathname.includes("onboarding") &&
+          !location.pathname.includes("approve") && (
+            <div className="hidden md:flex gap-7 items-center">
+              <span className="text-[14px] hover:underline font-light cursor-pointer">
+                Resume
+              </span>
+              <span className="text-[14px] hover:underline font-light cursor-pointer">
+                LinkedIn
+              </span>
+              <span className="text-[14px] font-light hover:underline cursor-pointer">
+                Post
+              </span>
+              <span className="text-[14px] font-light hover:underline cursor-pointer">
+                ATS Match
+              </span>
+            </div>
+          )}
 
         {/* CTA */}
         <div className="flex gap-2">

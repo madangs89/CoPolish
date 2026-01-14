@@ -2,7 +2,7 @@ import React from "react";
 
 const EditorToolSwitcher = ({ editorState, setEditorState }) => {
   return (
-    <div className="mx-3 mb-4 rounded-xl bg-[#f1f3f5] p-1 flex gap-2">
+    <div className="mx-3 mb-4  rounded-xl bg-[#f1f3f5] p-1 md:flex hidden gap-2">
       {[
         { key: "editor", label: "Editor" },
         { key: "designer", label: "Designer" },

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import ResumeClassicV1 from "../ResumeTemplates/ResumeClassicV1";
 import ResumeClassicV2 from "../ResumeTemplates/ResumeClassicV2";
 import ResumeClassicBlue from "../ResumeTemplates/ResumeClassicBlue";
-import { Expand } from "lucide-react";
+import { Expand, Maximize } from "lucide-react";
 import DefaultResume from "../ResumeTemplates/DefaultResume";
 import MobileResumeWrapper from "./MobileResumeWrapper";
 import HarvardResume from "../ResumeTemplates/HarvardResume";
@@ -142,10 +142,12 @@ const ResumePreview = () => {
       className="w-full h-full relative bg-[#eef1f5] flex justify-center items-start p-2"
     >
       {/* Expand button */}
-      <Expand
-        onClick={() => setOpen(true)}
-        className="absolute w-4 h-4 cursor-pointer text-[#6B6B6B] top-3 right-7 z-[100]"
-      />
+      {!open && (
+        <Maximize
+          onClick={() => setOpen(true)}
+          className="absolute w-4 h-4 cursor-pointer text-[#6B6B6B] top-3 right-7 z-[100]"
+        />
+      )}
 
       {/* SCROLL CONTAINER (NOT SCALED) */}
       <div className="w-full h-full overflow-x-hidden overflow-y-auto scrollbar-minimal pr-5 flex justify-center">
@@ -172,7 +174,7 @@ const ResumePreview = () => {
 
           {/* Modal container */}
           <div
-            className="absolute inset-0 flex flex-col overflow-x-hidden overflow-scroll"
+            className="absolute inset-0 flex flex-col overflow-x-hidden overflow-hidden"
             style={{ paddingTop: "env(safe-area-inset-top)" }}
           >
             {/* White sheet */}
@@ -199,14 +201,9 @@ const ResumePreview = () => {
               </div>
 
               {/* Scrollable resume */}
-              <div className="flex-1 overflow-auto">
+              <div className="flex-1  ">
                 <MobileResumeWrapper>
-                  {/* <ResumeClassicBlue
-                    data={resumeData}
-                    settings={resumeSettings}
-                  /> */}
-          <HarvardResume data={resumeData} settings={resumeSettings} />
-
+                  <HarvardResume data={resumeData} settings={resumeSettings} />
                 </MobileResumeWrapper>
               </div>
             </div>

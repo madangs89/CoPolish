@@ -24,7 +24,14 @@ body {
 }
 body {
   cursor: default;
-  font-family: "Ruda", sans-serif;
+  /* font-family: "Ruda", sans-serif; */
+  /* font-family: "Source Sans 3", "Source Sans Pro", system-ui, sans-serif; */
+  /* font-family: "DM Sans", system-ui, sans-serif; */
+  /* font-family: "Roboto", system-ui, sans-serif; */
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+
+
 }
 
 .auth-input {

@@ -95,7 +95,7 @@ const App = () => {
         <Routes>
           {/* Public */}
           <Route element={<PublicLayout />}>
-            <Route index element={<Hero />} />
+            <Route index element={<ResumeEditor />} />
           </Route>
 
           {/* Protected */}
