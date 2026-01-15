@@ -1,189 +1,160 @@
-import { useEffect, useRef } from "react";
-import { Wand2, Linkedin, FileUser, Sparkles } from "lucide-react";
-import { gsap } from "gsap";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Linkedin, FileText } from "lucide-react";
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-  const containerRef = useRef(null);
+  const [userName] = useState("Madan");
+  const [credits] = useState(52);
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from(".dash-word", {
-        y: 90,
-        opacity: 0,
-        duration: 1.1,
-        stagger: 0.08,
-        ease: "power4.out",
-      });
+  const [resumeScore] = useState(84);
+  const [linkedinScore] = useState(71);
 
-      gsap.from(".score-block", {
-        y: 40,
-        opacity: 0,
-        duration: 1,
-        delay: 0.6,
-        stagger: 0.2,
-        ease: "power3.out",
-      });
-      gsap.from(".aiInsight", {
-        y: 40,
-        opacity: 0,
-        duration: 1,
-        delay: 0.6,
-        stagger: 0.2,
-        ease: "power3.out",
-      });
+  const [resumeUpdated] = useState("20 hours ago");
+  const [linkedinChecked] = useState("2 days ago");
 
-      gsap.from(".resume-preview", {
-        scale: 0.95,
-        opacity: 0,
-        duration: 1,
-        delay: 1.1,
-        ease: "power4.out",
-      });
+  const [portfolioStatus] = useState(true);
+  const [portfolioUpdated] = useState("4 days ago");
 
-      gsap.from(".cta-block", {
-        scale: 0.94,
-        opacity: 0,
-        duration: 1,
-        delay: 1.3,
-        ease: "power4.out",
-      });
-
-      gsap.from(".linkedin-float", {
-        x: 120,
-        opacity: 0,
-        duration: 1,
-        delay: 1.4,
-        ease: "power4.out",
-      });
-    }, containerRef);
-
-    return () => ctx.revert();
-  }, []);
+  const [prepProgress] = useState({
+    dsa: 70,
+    oops: 30,
+    dbms: 50,
+  });
 
   return (
-    <div
-      ref={containerRef}
-      className="min-h-screen bg-[#f7f7f7] px-6 md:px-16 py-16 overflow-hidden relative"
-    >
-      {/* ================= HERO ================= */}
-      <h1 className="text-[2.8rem] md:text-[4.8rem] font-semibold leading-[1.05] text-[#1f2430] max-w-6xl">
-        {"Your profile is visible,".split(" ").map((w, i) => (
-          <span key={i} className="dash-word inline-block mr-3">
-            {w}
-          </span>
-        ))}
-        <br />
-        {"but not impressive yet.".split(" ").map((w, i) => (
-          <span key={i} className="dash-word inline-block mr-3">
-            {w}
-          </span>
-        ))}
-      </h1>
-
-      {/* ================= AI INSIGHT ================= */}
-      <p className="mt-10 aiInsight max-w-3xl text-lg text-[#555]">
-        Our AI analyzed your resume and LinkedIn profile and detected
-        <span className="text-black font-medium">
-          {" "}
-          critical performance gaps{" "}
-        </span>
-        affecting recruiter visibility.
-      </p>
-
-      {/* ================= SCORES ================= */}
-      <div className="mt-16 flex flex-col md:flex-row gap-14">
-        <div className="score-block">
-          <p className="text-sm uppercase tracking-wide text-[#888] mb-2">
-            Resume Score
-          </p>
-          <div className="flex items-end gap-2">
-            <span className="text-6xl font-semibold text-[#1f2430]">78</span>
-            <span className="text-lg text-[#999] mb-1">/100</span>
-          </div>
-          <p className="text-sm text-[#777] mt-1">
-            Missing ATS keywords & impact metrics
-          </p>
+    <div className="min-h-screen mt-10 bg-[#f7f7f7] px-6 md:px-14 py-10">
+      {/* ================= TOP MESSAGE ================= */}
+      <div className="bg-[#eaf2ff] rounded-2xl px-6 py-4 flex items-center gap-3 mb-10">
+        <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center">
+          ✓
         </div>
-
-        <div className="score-block">
-          <p className="text-sm uppercase tracking-wide text-[#888] mb-2">
-            LinkedIn Score
-          </p>
-          <div className="flex items-end gap-2">
-            <span className="text-6xl font-semibold text-[#1f2430]">71</span>
-            <span className="text-lg text-[#999] mb-1">/100</span>
-          </div>
-          <p className="text-sm text-[#777] mt-1">
-            Headline & About section need clarity
-          </p>
-        </div>
-        <div className="score-block">
-          <p className="text-sm uppercase tracking-wide text-[#888] mb-2">
-            LinkedIn Score
-          </p>
-          <div className="flex items-end gap-2">
-            <span className="text-6xl font-semibold text-[#1f2430]">71</span>
-            <span className="text-lg text-[#999] mb-1">/100</span>
-          </div>
-          <p className="text-sm text-[#777] mt-1">
-            Headline & About section need clarity
-          </p>
-        </div>
+        <p className="text-sm md:text-base">
+          <span className="font-medium">Nice progress, {userName} 👋</span>{" "}
+          Your resume improved by <span className="font-semibold">+6 points</span>
+        </p>
       </div>
 
-      {/* ================= RESUME PREVIEW ================= */}
-      <div className="cta-block mt-20 max-w-4xl">
-        <div className="rounded-[32px] bg-black text-white px-10 py-14">
-          <div className="flex items-center gap-2 text-white/60 text-sm mb-4">
-            <Sparkles className="w-4 h-4" />
-            Credits available: <span className="text-white ml-1">52</span>
+      {/* ================= MAIN CARDS ================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* ================= RESUME CARD ================= */}
+        <div className="bg-white rounded-3xl p-6 shadow-sm">
+          <p className="text-sm text-gray-500 mb-2">Resume</p>
+
+          <div className="flex items-end gap-1">
+            <span className="text-5xl font-semibold">{resumeScore}</span>
+            <span className="text-gray-400">/100</span>
           </div>
 
-          <h2 className="text-3xl md:text-4xl font-semibold mb-6">
-            Your resume is strong —
-            <br />
-            but not competitive.
-          </h2>
+          <p className="text-sm text-gray-500 mt-2">
+            Last optimized: {resumeUpdated}
+          </p>
 
-          <button
-            onClick={() => navigate("/editor/resume/1324")}
-            className="inline-flex items-center gap-3 mt-4 text-sm font-medium
-            px-7 py-3 rounded-full bg-white text-black hover:scale-105 transition"
-          >
-            <Wand2 className="w-4 h-4" />
-            Improve Resume Now
+          <div className="flex gap-3 mt-6">
+            <button className="px-5 py-2 rounded-full border text-sm font-medium hover:bg-gray-50">
+              View Resume
+            </button>
+            <button className="px-5 py-2 rounded-full bg-black text-white text-sm font-medium hover:opacity-90">
+              Review Resume
+            </button>
+          </div>
+        </div>
+
+        {/* ================= LINKEDIN CARD ================= */}
+        <div className="bg-white rounded-3xl p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <Linkedin className="w-5 h-5 text-blue-600" />
+            <p className="text-sm font-medium">LinkedIn</p>
+          </div>
+
+          <p className="text-sm text-gray-500 mb-3">
+            Full Stack Developer | MERN | AI
+          </p>
+
+          <div className="flex items-end gap-1">
+            <span className="text-5xl font-semibold">{linkedinScore}</span>
+            <span className="text-gray-400">/100</span>
+          </div>
+
+          <p className="text-sm text-gray-500 mt-2">
+            Last checked: {linkedinChecked}
+          </p>
+
+          <div className="flex gap-3 mt-6">
+            <button className="px-5 py-2 rounded-full border text-sm font-medium hover:bg-gray-50">
+              View Suggestions
+            </button>
+            <button className="px-5 py-2 rounded-full bg-blue-600 text-white text-sm font-medium hover:opacity-90">
+              Improve LinkedIn →
+            </button>
+          </div>
+        </div>
+
+        {/* ================= PORTFOLIO CARD ================= */}
+        <div className="bg-white rounded-3xl p-6 shadow-sm">
+          <p className="text-sm font-medium mb-3">Portfolio</p>
+
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-3 h-3 rounded-full bg-green-500" />
+            <p className="text-sm">
+              {portfolioStatus ? "Published online" : "Not published"}
+            </p>
+          </div>
+
+          <p className="text-sm text-gray-500 mb-6">
+            Updated: {portfolioUpdated}
+          </p>
+
+          <button className="w-full px-5 py-3 rounded-full bg-black text-white text-sm font-medium hover:opacity-90">
+            View Portfolio
           </button>
         </div>
       </div>
 
-      {/* ================= LINKEDIN FLOAT ================= */}
-      <div
-        className="
-    linkedin-float
-    relative
-    mt-16
-    w-full
-    lg:mt-0
-    lg:absolute
-    lg:right-16
-    lg:top-[60%]
-    lg:w-[300px]
-  "
-      >
-        <div className="rounded-3xl bg-white shadow-2xl p-6">
-          <p className="font-medium text-sm mb-3">LinkedIn Preview</p>
+      {/* ================= INTERVIEW PREP ================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
+        {/* ================= PROGRESS ================= */}
+        <div className="lg:col-span-2 bg-white rounded-3xl p-6 shadow-sm">
+          <p className="text-lg font-medium mb-6">Interview Preparation</p>
 
-          <p className="text-sm font-medium">
-            Full Stack Developer | MERN | AI Tools
-          </p>
+          {/* DSA */}
+          <Progress label="DSA" value={prepProgress.dsa} />
 
-          <p className="text-xs text-[#777] mt-2 leading-relaxed">
-            Headline lacks clarity and keyword alignment. About section is
-            under-optimized.
-          </p>
+          {/* OOPS */}
+          <Progress label="OOPS" value={prepProgress.oops} />
+
+          {/* DBMS */}
+          <Progress label="DBMS" value={prepProgress.dbms} />
         </div>
+
+        {/* ================= CTA ================= */}
+        <div className="bg-[#fff7e6] rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <p className="text-sm mb-3">
+              Your LinkedIn profile still needs optimization to match recruiter
+              searches.
+            </p>
+          </div>
+
+          <button className="w-full mt-6 px-6 py-3 rounded-full bg-blue-600 text-white text-sm font-medium hover:opacity-90">
+            Optimize LinkedIn →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Progress = ({ label, value }) => {
+  return (
+    <div className="mb-6">
+      <div className="flex justify-between text-sm mb-2">
+        <span>{label}</span>
+        <span>{value}%</span>
+      </div>
+      <div className="w-full h-2 bg-gray-200 rounded-full">
+        <div
+          className="h-2 bg-blue-500 rounded-full"
+          style={{ width: `${value}%` }}
+        />
       </div>
     </div>
   );
