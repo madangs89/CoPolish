@@ -6,6 +6,8 @@ import cookieParser from "cookie-parser";
 import { connectDB } from "./config/connectDB.js";
 import authRouter from "./routes/auth.routes.js";
 import parseRouter from "./routes/parse.routes.js";
+
+import paymentRouter from "./routes/payment.routes.js";
 import { createServer } from "http";
 import { connectRedis } from "./config/redis.js";
 import { initSocket } from "./config/socket.js";
@@ -53,6 +55,7 @@ app.use("/api/auth/v1", authRouter);
 //Parse
 app.use("/api/parse/v1", parseRouter);
 app.use("/api/resume/v1", resumeRouter);
+app.use("/api/payment/v1", paymentRouter);
 
 // const instruction =
 //   baseResumeOptimizerSystemInstruction + projectsSystemInstruction;
