@@ -35,6 +35,7 @@
     "mammoth": "^1.11.0",
     "mongoose": "^9.0.2",
     "multer": "^2.0.2",
+    "nodemailer": "^7.0.12",
     "npm": "^11.7.0",
     "pdf-parse": "^2.4.5",
     "razorpay": "^2.9.6",

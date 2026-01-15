@@ -59,12 +59,13 @@ const resumeTemplateSchema = new mongoose.Schema(
         title: String,
         description: [String],
         technologies: [String],
-        link: [
-          {
-            title: String,
-            url: String,
-          },
-        ],
+        // link: [
+        //   {
+        //     title: String,
+        //     url: String,
+        //   },
+        // ],
+        link: String,
       },
     ],
 

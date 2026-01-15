@@ -3,6 +3,7 @@ import { Order } from "../models/orders.model.js";
 import crypto from "crypto";
 import User from "../models/user.model.js";
 import { Payment } from "../models/payments.model.js";
+import { pubClient } from "../config/redis.js";
 
 export const createPayment = async (req, res) => {
   try {
@@ -104,9 +105,10 @@ export const verifyPayment = async (req, res) => {
     }
 
     // Add credits
-    await User.updateOne(
-      { _id: order.userId },
-      { $inc: { totalCredits: order.credits } }
+    const updatedUser = await User.findByIdAndUpdate(
+      order.userId,
+      { $inc: { totalCredits: order.credits } },
+      { new: true }
     );
 
     await Payment.create({
@@ -117,6 +119,16 @@ export const verifyPayment = async (req, res) => {
       amount: order.amount,
       status: "success",
     });
+
+    await pubClient.publish(
+      "mail:events",
+      JSON.stringify({
+        event: "PAYMENT_SUCCESS",
+        email: req.user.email,
+        credits: order.credits,
+        totalCredits: updatedUser.totalCredits,
+      })
+    );
 
     res.json({ success: true, message: "Payment verified successfully" });
   } catch (error) {

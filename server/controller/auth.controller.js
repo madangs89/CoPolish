@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { client } from "../config/google.js";
 import axios from "axios";
+import { pubClient } from "../config/redis.js";
 
 const createToken = (user) => {
   const data = {
@@ -54,6 +55,14 @@ export const register = async (req, res) => {
     const token = createToken(user);
     createCookie(token, res);
 
+    await pubClient.publish(
+      "mail:events",
+      JSON.stringify({
+        event: "WELCOME_EMAIL",
+        email: user.email,
+        name: user.userName,
+      })
+    );
     return res.status(201).json({
       success: true,
       message: "User created successfully",
@@ -148,9 +157,11 @@ export const googleAuth = async (req, res) => {
       }
     );
     const { email, name } = userRes.data;
+    let isUserExits = true;
 
     let user = await User.findOne({ email });
     if (!user) {
+      isUserExits = false;
       user = await User.create({
         email,
         userName: name,
@@ -159,6 +170,17 @@ export const googleAuth = async (req, res) => {
     }
     const token = createToken(user);
     createCookie(token, res);
+
+    if (!isUserExits) {
+      await pubClient.publish(
+        "mail:events",
+        JSON.stringify({
+          event: "WELCOME_EMAIL",
+          email: user.email,
+          name: user.userName,
+        })
+      );
+    }
     return res.status(200).json({
       success: true,
       message: "Login successfully",

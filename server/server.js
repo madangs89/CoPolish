@@ -23,6 +23,7 @@ import {
   projectsSystemInstruction,
   skillsSystemInstruction,
 } from "./LLmFunctions/llmHelpers/allSystemInstructoin.js";
+import { mailTransporter } from "./config/mail.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -140,5 +141,6 @@ app.use("/api/payment/v1", paymentRouter);
 
 httpServer.listen(3000, async () => {
   await connectDB();
+
   console.log("Server is running on port 3000");
 });
