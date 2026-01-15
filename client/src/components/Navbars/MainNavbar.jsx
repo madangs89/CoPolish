@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-hot-toast";
 
 const MainNavbar = () => {
   const location = useLocation();
@@ -48,15 +49,13 @@ const MainNavbar = () => {
 
         modal: {
           ondismiss: () => {
-            console.log("Payment popup closed");
-            alert("Payment cancelled");
+            toast.error("Payment popup closed");
           },
         },
 
         prefill: {
           name: "John Doe",
           email: "john@example.com",
-       
         },
 
         theme: {
@@ -72,7 +71,6 @@ const MainNavbar = () => {
       alert(err.message || "Payment failed");
     }
   };
-
 
   useEffect(() => {
     gsap.fromTo(
