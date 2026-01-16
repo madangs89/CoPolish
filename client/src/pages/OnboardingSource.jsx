@@ -5,7 +5,7 @@ import ManualForm from "../components/ManualForm";
 import UploadBox from "../components/UploadBox";
 import Card from "../components/Card";
 import { useSelector } from "react-redux";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import ResumeProgress from "../components/StatusShower/ResumeProgress";
 
 const OnboardingSource = () => {
@@ -14,6 +14,7 @@ const OnboardingSource = () => {
   const [status, setstatus] = useState([]);
   const [isStatusTrue, setIsStatusTrue] = useState(false);
 
+  const navigate = useNavigate();
   if (auth?.user?.currentResumeId.length > 0 && auth?.user?.isApproved) {
     return <Navigate to={"/dashboard"} replace />;
   }
@@ -52,7 +53,7 @@ const OnboardingSource = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex items-center justify-center gap-6">
               {/* Resume */}
               <Card
                 icon={<FileText className="text-[#4f46e5]" />}
@@ -64,25 +65,14 @@ const OnboardingSource = () => {
                 handleHover={handleHover}
               />
 
-              {/* LinkedIn */}
-              <Card
-                icon={<Linkedin className="text-[#0a66c2]" />}
-                bg="bg-[#e6f4ff]"
-                title="Import LinkedIn PDF"
-                desc="Upload the PDF you downloaded from LinkedIn."
-                footer="Privacy-safe import →"
-                onClick={() => setView("linkedin")}
-                handleHover={handleHover}
-              />
-
               {/* Manual */}
               <Card
-                icon={<Edit3 className="text-[#f59e0b]" />}
+                icon={<Edit3 className="text-[#f59e0b] cursor-pointer" />}
                 bg="bg-[#fff4e5]"
                 title="Build Manually"
                 desc="Start from scratch using guided forms."
                 footer="Guided profile builder →"
-                onClick={() => setView("manual")}
+                onClick={() => navigate("/approve/default")}
                 handleHover={handleHover}
               />
             </div>
@@ -99,17 +89,6 @@ const OnboardingSource = () => {
             subtitle="Supported formats: PDF, DOCX"
           />
         )}
-
-        {/* ===================== LINKEDIN UPLOAD ===================== */}
-        {view === "linkedin" && (
-          <UploadBox
-            title="Upload LinkedIn Profile PDF"
-            subtitle="LinkedIn → Profile → Save as PDF"
-          />
-        )}
-
-        {/* ===================== MANUAL FORM ===================== */}
-        {view === "manual" && <ManualForm />}
       </div>
 
       {isStatusTrue && (

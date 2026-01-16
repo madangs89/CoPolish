@@ -11,6 +11,7 @@ const resumeTemplateSchema = new mongoose.Schema(
       type: String,
       required: true,
       index: true,
+      default: () => new mongoose.Types.ObjectId().toString(),
     },
     version: {
       type: Number,
@@ -91,6 +92,7 @@ const resumeTemplateSchema = new mongoose.Schema(
     templateId: {
       type: String,
       required: true,
+      default: "default_template_1",
     },
     changes: [
       {

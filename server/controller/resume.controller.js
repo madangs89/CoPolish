@@ -78,3 +78,52 @@ export const markApprovedAndUpdate = async (req, res) => {
     });
   }
 };
+
+export const markApproveAndCreateNew = async (req, res) => {
+  try {
+    const user = req.user;
+
+    const { resumeData } = req.body;
+
+    if (!resumeData) {
+      return res.status(400).json({
+        success: false,
+        message: "Resume data is required",
+      });
+    }
+
+    if (user._id.toString() !== resumeData.userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized to update this resume",
+      });
+    }
+
+    const createResume = await ResumeTemplate.create(resumeData);
+
+    if (!createResume) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to create new resume",
+      });
+    }
+
+    const makeUserApproved = await User.findByIdAndUpdate(
+      user._id,
+      { isApproved: true, currentResumeId: createResume._id },
+      { new: true }
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Resume updated and marked as approved",
+      resume: createResume,
+      user: makeUserApproved,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update resume",
+    });
+  }
+};

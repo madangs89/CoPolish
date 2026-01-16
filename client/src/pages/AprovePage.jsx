@@ -57,6 +57,7 @@ const ApprovePage = () => {
   );
 
   const resumeSliceData = useSelector((state) => state.resume);
+  const userSliceData = useSelector((state) => state.auth);
   const handleApprove = () => {
     setApproved((prev) => ({ ...prev, [activeSection]: true }));
 
@@ -73,22 +74,32 @@ const ApprovePage = () => {
     }
   };
 
-  // ! need to handle approve and update now only handling approve
   const handleApproveAndUpdate = async () => {
     try {
       setButtonLoading(true);
-      const response = await axios.put(
-        `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/mark-approved`,
-        { resumeId: params.id, resumeData },
-        { withCredentials: true }
-      );
-
-      if (resumeSliceData.isChanged) {
-        // Call api to save updated resume
-      }
-      if (response.data.success) {
-        navigate("/dashboard");
-        toast.success("Resume approved. Redirecting to dashboard");
+      if (params.id === "default") {
+        const d = { ...resumeData, userId: userSliceData.user._id };
+        const response = await axios.post(
+          `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/resume/v1/mark-approved-create-new`,
+          { resumeData: d },
+          { withCredentials: true }
+        );
+        if (response.data.success) {
+          navigate("/dashboard");
+          toast.success("Resume approved. Redirecting to dashboard");
+        }
+      } else {
+        const response = await axios.put(
+          `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/mark-approved`,
+          { resumeId: params.id, resumeData },
+          { withCredentials: true }
+        );
+        if (response.data.success) {
+          navigate("/dashboard");
+          toast.success("Resume approved. Redirecting to dashboard");
+        }
       }
     } catch (error) {
       console.log(error);
@@ -164,7 +175,9 @@ const ApprovePage = () => {
         <div className="mb-10 flex justify-between items-start">
           <div className="">
             <h1 className="text-3xl font-bold text-[#1f2430]">
-              Review & Approve Resume
+              {params.id === "default"
+                ? "Approve Your New Resume"
+                : "Approve Your Updated Resume"}
             </h1>
             <p className="text-sm text-[#6b6b6b] mt-2">
               Review each section. You stay in full control.
@@ -197,7 +210,7 @@ const ApprovePage = () => {
                  transition"
           >
             <CheckCircle size={16} />
-            Skip & Preview
+            Skip & Go to Preview
           </button>
         </div>
 
