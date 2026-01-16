@@ -58,7 +58,7 @@ const resumeParseAIWorker = new Worker(
 resumeParseAIWorker.on("completed", async (job) => {
   console.log(`Job ${job.id} has completed!`);
 
-  const data = job.returnvalue;
+  const data = job?.returnvalue || {};
 
   await pubClient.publish(
     "resume:events",
@@ -94,6 +94,4 @@ resumeParseAIWorker.on("failed", async (job, err) => {
       error: err?.message,
     })
   );
-
-
 });
