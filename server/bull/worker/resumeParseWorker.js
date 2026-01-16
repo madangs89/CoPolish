@@ -11,7 +11,7 @@ const resumeParserWorker = new Worker(
     console.log("Processing job:", job.id);
     console.log(job.data);
 
-    const { filePath, fileType: mimetype, userId } = job.data;
+    const { filePath, fileType: mimetype, userId, jobKey } = job.data;
     let text = "";
     try {
       if (mimetype === "application/pdf") {
@@ -27,11 +27,18 @@ const resumeParserWorker = new Worker(
         const result = await mammoth.extractRawText({ path: filePath });
         text = result.value;
       }
-      await resumeParseAIQueue.add("resume-parse-ai", {
-        parsedText: text,
-        userId,
-        jobId: job.id,
-      });
+
+      await resumeParseAIQueue.add(
+        "resume-parse-ai",
+        {
+          parsedText: text,
+          userId,
+          jobKey,
+        },
+        {
+          jobId: jobKey,
+        }
+      );
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
@@ -41,7 +48,7 @@ const resumeParserWorker = new Worker(
     }
 
     return {
-      jobId: job.id,
+      jobId: jobKey,
     };
   },
   {
@@ -49,7 +56,6 @@ const resumeParserWorker = new Worker(
     concurrency: 5, // run 5 jobs in parallel
   }
 );
-
 
 resumeParserWorker.on("completed", async (job) => {
   const { data } = job;
@@ -67,7 +73,7 @@ resumeParserWorker.on("completed", async (job) => {
   console.log("completed", data);
 });
 
-resumeParserWorker.on("failed", async (job , err) => {
+resumeParserWorker.on("failed", async (job, err) => {
   const { data } = job;
 
   await pubClient.publish(

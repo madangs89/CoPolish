@@ -197,6 +197,7 @@ const derivePartialData = (fullResume, operation) => {
   }
 };
 
+// Used in the queue, it will parse the initial stage of resume
 export const aiResumeParser = async (text) => {
   try {
     const response = await ai.models.generateContent({
@@ -400,4 +401,3 @@ export const resumeOptimizer = async (info) => {
     };
   }
 };
-

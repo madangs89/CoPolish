@@ -9,7 +9,7 @@ await connectDB();
 const resumeParseAIWorker = new Worker(
   "resume-parse-ai",
   async (job) => {
-    const { parsedText, userId, jobId } = job.data;
+    const { parsedText, userId, jobKey } = job.data;
     const res = await aiResumeParser(parsedText);
 
     const { text, usage, error, isError } = res;
@@ -34,7 +34,12 @@ const resumeParseAIWorker = new Worker(
     let parsedNewResume;
     let userUpdateCurrentResumeId;
     try {
-      parsedNewResume = await ResumeTemplate.create(payload);
+      payload.jobKey = jobKey;
+      const parsedNewResume = await ResumeTemplate.findOneAndUpdate(
+        { jobKey },
+        { $setOnInsert: payload },
+        { upsert: true, new: true }
+      );
       userUpdateCurrentResumeId = await User.findByIdAndUpdate(userId, {
         currentResumeId: parsedNewResume._id,
       });
@@ -42,7 +47,7 @@ const resumeParseAIWorker = new Worker(
       console.error("Error saving parsed resume to DB:", error);
     }
     return {
-      jobId: job.id,
+      jobKey,
       userId,
       parsedNewResume,
       userUpdateCurrentResumeId,

@@ -7,6 +7,12 @@ const resumeTemplateSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    jobKey: {
+      type: String,
+      required: true,
+      index: true,
+      unique: true,
+    },
     resumeGroupId: {
       type: String,
       required: true,

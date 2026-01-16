@@ -1,3 +1,4 @@
+import { pubClient } from "../config/redis.js";
 import ResumeTemplate from "../models/resume.model.js";
 import User from "../models/user.model.js";
 
@@ -127,3 +128,127 @@ export const markApproveAndCreateNew = async (req, res) => {
     });
   }
 };
+
+// import { resumeOptimizeQueue } from "../bull/jobs/bullJobs.js";
+// import { pubClient } from "../config/redis.js";
+
+export const optimizeResume = async (req, res) => {
+  try {
+    const { resumeId, operation } = req.body;
+    const userId = req.user._id;
+
+    if (!resumeId || !operation) {
+      return res.status(400).json({
+        success: false,
+        message: "resumeId and operation are required",
+      });
+    }
+
+    // 🔑 DETERMINISTIC jobId (PRIMARY IDENTITY)
+    const jobId = `optimize:${resumeId}:${operation}:v1`;
+
+    // 🟡 Redis = UX guard only
+    const redisKey = `optimize-lock:${jobId}`;
+    const lock = await pubClient.set(redisKey, "1", {
+      NX: true,
+      EX: 300, // 5 min
+    });
+
+    if (!lock) {
+      return res.status(429).json({
+        success: false,
+        message: "Optimization already in progress",
+      });
+    }
+
+    // 🔥 BullMQ jobId = HARD idempotency
+    // await resumeOptimizeQueue.add(
+    //   "resume-optimize",
+    //   {
+    //     resumeId,
+    //     operation,
+    //     userId,
+    //     jobKey: jobId,
+    //   },
+    //   {
+    //     jobId,              // 👈 THIS is critical
+    //     removeOnComplete: true,
+    //     attempts: 3,
+    //   }
+    // );
+
+    return res.status(202).json({
+      success: true,
+      jobId,
+      message: "Optimization queued",
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to queue optimization",
+    });
+  }
+};
+
+
+
+// import { Worker } from "bullmq";
+// import { bullClient, pubClient } from "../../config/redis.js";
+// import ResumeTemplate from "../../models/resume.model.js";
+
+// const resumeOptimizeWorker = new Worker(
+//   "resume-optimize",
+//   async (job) => {
+//     const { resumeId, operation, userId, jobKey } = job.data;
+
+//     // 🔒 EXECUTION LOCK (prevents parallel execution)
+//     const execLockKey = `exec-lock:${jobKey}`;
+//     const acquired = await pubClient.set(execLockKey, "1", {
+//       NX: true,
+//       PX: 10 * 60 * 1000, // 10 min
+//     });
+
+//     if (!acquired) {
+//       // Another worker already processed this
+//       return { skipped: true };
+//     }
+
+//     try {
+//       // 🔍 CHECK DB FIRST (final idempotency)
+//       const existing = await ResumeTemplate.findOne({ jobKey });
+//       if (existing) {
+//         return { reused: true, resumeId: existing._id };
+//       }
+
+//       // ---- AI CALL HERE ----
+//       const optimizedData = await runAIOptimization(resumeId, operation);
+
+//       const payload = {
+//         userId,
+//         jobKey,
+//         resumeGroupId: resumeId,
+//         version: 1,
+//         ...optimizedData,
+//       };
+
+//       // 🔐 UPSERT = ONLY ONE INSERT EVER
+//       const resume = await ResumeTemplate.findOneAndUpdate(
+//         { jobKey },
+//         { $setOnInsert: payload },
+//         { upsert: true, new: true }
+//       );
+
+//       return {
+//         success: true,
+//         resumeId: resume._id,
+//       };
+//     } finally {
+//       // Optional: let TTL handle cleanup
+//     }
+//   },
+//   {
+//     connection: bullClient,
+//     concurrency: 2,
+//   }
+// );

@@ -81,7 +81,6 @@ export const initSubscribers = async () => {
           case "RESUME_PARSE_COMPLETED": {
             console.log("Resume parse event published");
             const io = getIO();
-
             const { error, isError } = payload;
 
             if (isError) {
@@ -100,7 +99,7 @@ export const initSubscribers = async () => {
                 if (socketId) {
                   io.to(socketId).emit(
                     "resume:parsed",
-                    JSON.stringify({ jobId, userId, event })
+                    JSON.stringify({ jobId, userId, event, error, isError })
                   );
                 }
               }
@@ -142,7 +141,7 @@ export const initSubscribers = async () => {
                 if (socketId) {
                   io.to(socketId).emit(
                     "resume:ai:parsed",
-                    JSON.stringify({ jobId, userId, event, parsedNewResume })
+                    JSON.stringify({ jobId, userId, event, parsedNewResume, error, isError })
                   );
                 }
               }

@@ -1,20 +1,28 @@
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import BlackLoader from "../Loaders/BlackLoader";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { setCurrentResume } from "../../redux/slice/resumeSlice";
 import toast from "react-hot-toast";
+import { setJobSeenJobs } from "../../redux/slice/jobSlice";
 
-export default function ResumeProgress({ status, setstatus }) {
+export default function ResumeProgress({
+  status,
+  setstatus,
+  errorStates,
+  setErrorStates,
+  setIsStatusTrue,
+}) {
   const isUploaded = status.includes("uploaded");
   const isParsed = status.includes("parsed");
   const isAnalyzing = status.includes("analysis");
 
-  const [errorStates, setErrorStates] = useState([]);
+  const hasError = errorStates.length > 0;
 
   const socket = useSelector((state) => state.socket.socket);
   const user = useSelector((state) => state.auth.user);
+  const jobs = useSelector((state) => state.job.seenJobs);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -22,41 +30,53 @@ export default function ResumeProgress({ status, setstatus }) {
   useEffect(() => {
     if (!socket || !user?._id) return;
 
-    /* ================= PARSE SUCCESS ================= */
     const onParsed = (data) => {
-      const { userId, event } = JSON.parse(data);
+      const { userId, event, jobId, isError } = JSON.parse(data);
+      const newId = `${event}:${jobId}:${userId}`;;
 
-      if (event === "RESUME_PARSE_COMPLETED" && userId === user._id) {
+      if (jobs[newId] == true) {
+        return;
+      }
+      if (
+        (event === "RESUME_PARSE_COMPLETED" &&
+          userId === user._id &&
+          jobs[newId] == undefined) ||
+        jobs[newId] == null ||
+        jobs[newId] == false
+      ) {
+        dispatch(setJobSeenJobs({ id: newId, data: isError }));
         setstatus((prev) =>
           prev.includes("parsed") ? prev : [...prev, "parsed"]
         );
       }
     };
 
-    /* ================= AI PARSE SUCCESS ================= */
     const onAIParsed = (data) => {
-      const { userId, event, parsedNewResume } = JSON.parse(data);
+      const { userId, event, parsedNewResume , isError , jobId } = JSON.parse(data);
 
-      if (event === "RESUME_PARSE_AI_COMPLETED" && userId === user._id) {
+           const newId = `${event}:${jobId}:${userId}`;;
+
+
+      if (jobs[newId] == true) {
+        return;
+      }
+
+      if (event === "RESUME_PARSE_AI_COMPLETED" && userId === user._id && jobs[newId] == undefined  || jobs[newId] == null || jobs[newId] == false) {
         setstatus((prev) => {
-          let isParseIncluded = prev.includes("parsed");
-          let isAnalysisIncluded = prev.includes("analysis");
-
           let newStatus = [...prev];
-          if (!isParseIncluded) newStatus.push("parsed");
-          if (!isAnalysisIncluded) newStatus.push("analysis");
-
+          if (!newStatus.includes("parsed")) newStatus.push("parsed");
+          if (!newStatus.includes("analysis")) newStatus.push("analysis");
           return newStatus;
         });
 
+        dispatch(setJobSeenJobs({ id: newId, data: isError }));
         dispatch(setCurrentResume(parsedNewResume));
         navigate(`/approve/${userId}`);
       }
     };
 
-    /* ================= PARSE ERROR ================= */
     const onParsedError = (data) => {
-      const { userId, isError, error } = JSON.parse(data);
+      const { userId, isError, error  } = JSON.parse(data);
 
       if (userId === user._id && isError) {
         setErrorStates((prev) => [
@@ -70,7 +90,6 @@ export default function ResumeProgress({ status, setstatus }) {
       }
     };
 
-    /* ================= AI PARSE ERROR ================= */
     const onAIParsedError = (data) => {
       const { userId, isError, error } = JSON.parse(data);
 
@@ -97,44 +116,55 @@ export default function ResumeProgress({ status, setstatus }) {
       socket.off("resume:parsed:error", onParsedError);
       socket.off("resume:ai:parsed:error", onAIParsedError);
     };
-  }, [socket, user?._id, dispatch, navigate, setstatus]);
+  }, [socket, user?._id, dispatch, navigate, setstatus, setErrorStates]);
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-xl bg-white rounded-xl shadow-lg p-6 sm:p-8">
+      <div className="relative w-full max-w-xl bg-white rounded-xl shadow-lg p-6 sm:p-8">
+        {/* ❌ CLOSE BUTTON */}
+        <button
+          onClick={() => {
+            setIsStatusTrue(false);
+            setstatus([]);
+            setErrorStates([]);
+          }}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+        >
+          <X size={20} />
+        </button>
+
         <h2 className="text-2xl font-semibold mb-6 text-gray-800">
           Resume Analysis Progress
         </h2>
 
-        {/* ================= UPLOADED ================= */}
         <ProgressStep
           active={isUploaded}
-          loading={!isUploaded}
+          loading={!isUploaded && !hasError}
           title="Uploaded"
           description="Your resume has been received."
           color="green"
+          hasError={hasError}
         />
 
-        {/* ================= PARSED ================= */}
         <ProgressStep
           active={isParsed}
-          loading={isUploaded && !isParsed}
+          loading={isUploaded && !isParsed && !hasError}
           title="Parsed"
           description="Resume text has been extracted."
           color="green"
+          hasError={hasError}
         />
 
-        {/* ================= AI ANALYSIS ================= */}
         <ProgressStep
           active={isAnalyzing}
-          loading={isUploaded && isParsed && !isAnalyzing}
+          loading={isUploaded && isParsed && !isAnalyzing && !hasError}
           title="AI Analysis"
           description="Analyzing your resume with AI..."
           color="blue"
+          hasError={hasError}
         />
 
-        {/* ================= ERRORS ================= */}
-        {errorStates.length > 0 && (
+        {hasError && (
           <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
             <h4 className="text-red-600 font-semibold mb-2">
               Something went wrong
@@ -157,21 +187,32 @@ export default function ResumeProgress({ status, setstatus }) {
   );
 }
 
-/* ================= REUSABLE STEP ================= */
+/* ================= STEP ================= */
 
-function ProgressStep({ active, loading, title, description, color }) {
+function ProgressStep({
+  active,
+  loading,
+  title,
+  description,
+  color,
+  hasError,
+}) {
   return (
     <div className="flex gap-4 mt-6">
       <div
         className={`w-10 h-10 rounded-full flex items-center justify-center ${
-          active
+          hasError
+            ? "bg-red-500"
+            : active
             ? color === "blue"
               ? "bg-blue-600"
               : "bg-green-500"
             : "bg-gray-300"
         }`}
       >
-        {loading ? (
+        {hasError ? (
+          <X className="text-white" size={20} />
+        ) : loading ? (
           <BlackLoader size={20} color="black" />
         ) : active ? (
           <Check className="text-white" size={20} />
@@ -183,7 +224,9 @@ function ProgressStep({ active, loading, title, description, color }) {
       <div>
         <h3
           className={`text-lg font-semibold ${
-            active
+            hasError
+              ? "text-red-600"
+              : active
               ? color === "blue"
                 ? "text-blue-600"
                 : "text-green-600"

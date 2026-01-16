@@ -3,6 +3,7 @@ import {
   getResumeById,
   markApproveAndCreateNew,
   markApprovedAndUpdate,
+  optimizeResume,
 } from "../controller/resume.controller.js";
 import { authMiddelware } from "../middleware/auth.middelware.js";
 
@@ -15,5 +16,7 @@ resumeRouter.post(
   authMiddelware,
   markApproveAndCreateNew
 );
+
+resumeRouter.post("/optimize-resume", authMiddelware, optimizeResume);
 
 export default resumeRouter;

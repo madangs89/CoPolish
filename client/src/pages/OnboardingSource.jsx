@@ -14,6 +14,8 @@ const OnboardingSource = () => {
   const [status, setstatus] = useState([]);
   const [isStatusTrue, setIsStatusTrue] = useState(false);
 
+  const [errorStates, setErrorStates] = useState([]);
+
   const navigate = useNavigate();
   if (auth?.user?.currentResumeId.length > 0 && auth?.user?.isApproved) {
     return <Navigate to={"/dashboard"} replace />;
@@ -85,6 +87,8 @@ const OnboardingSource = () => {
             setIsStatusTrue={setIsStatusTrue}
             status={status}
             setstatus={setstatus}
+            errorStates={errorStates}
+            setErrorStates={setErrorStates}
             title="Upload your resume"
             subtitle="Supported formats: PDF, DOCX"
           />
@@ -92,8 +96,8 @@ const OnboardingSource = () => {
       </div>
 
       {isStatusTrue && (
-        <div className="absolute z-[10000000000] inset-0 w-full h-full bg-black bg-opacity-80 flex items-center justify-center">
-          <ResumeProgress status={status} setstatus={setstatus} />
+        <div className="absolute z-[9999] inset-0 w-full h-full bg-black bg-opacity-80 flex items-center justify-center">
+          <ResumeProgress status={status} setIsStatusTrue={setIsStatusTrue} setstatus={setstatus} errorStates={errorStates} setErrorStates={setErrorStates} />
         </div>
       )}
     </div>

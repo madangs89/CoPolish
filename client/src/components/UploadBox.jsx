@@ -3,7 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import axios from "axios";
 
-const UploadBox = ({ title, subtitle, status, setIsStatusTrue, setstatus }) => {
+const UploadBox = ({
+  title,
+  subtitle,
+  status,
+  setIsStatusTrue,
+  setstatus,
+  errorStates,
+  setErrorStates,
+}) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const navigate = useNavigate();
 
@@ -45,7 +53,15 @@ const UploadBox = ({ title, subtitle, status, setIsStatusTrue, setstatus }) => {
         });
       }
     } catch (error) {
-      setIsStatusTrue(false);
+      setErrorStates((prev) => [
+        ...prev,
+        {
+          type: "upload",
+          message:
+            error?.response?.data?.message ||
+            "Something went wrong while uploading file",
+        },
+      ]);
       console.log("Error while uploading file:", error);
       toast.error(
         error?.response?.data?.message ||
