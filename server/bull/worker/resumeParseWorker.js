@@ -49,12 +49,7 @@ const resumeParserWorker = new Worker(
     concurrency: 5, // run 5 jobs in parallel
   }
 );
-// // All Events
 
-// resumeParserWorker.on("active", (job) => {
-//   // getIO().emit("job:active", { jobId });
-//   console.log("active", job);
-// });
 
 resumeParserWorker.on("completed", async (job) => {
   const { data } = job;
@@ -65,16 +60,25 @@ resumeParserWorker.on("completed", async (job) => {
       event: "RESUME_PARSE_COMPLETED",
       jobId: job.id,
       userId: data.userId,
+      isError: false,
+      error: null,
     })
   );
   console.log("completed", data);
 });
 
-// resumeParserWorker.on("failed", (job) => {
-//   // getIO().emit("job:failed", {
-//   //   jobId,
-//   //   reason: failedReason,
-//   // });
+resumeParserWorker.on("failed", async (job , err) => {
+  const { data } = job;
 
-//   console.log("failed", job);
-// });
+  await pubClient.publish(
+    "resume:events",
+    JSON.stringify({
+      event: "RESUME_PARSE_COMPLETED",
+      jobId: job.id,
+      userId: data.userId,
+      isError: true,
+      error: err?.message,
+    })
+  );
+  console.log("failed", job);
+});

@@ -51,7 +51,7 @@ const resumeParseAIWorker = new Worker(
   },
   {
     connection: bullClient,
-    concurrency: 1, // run 5 jobs in parallel
+    concurrency: 2, // run 2 jobs in parallel
   }
 );
 
@@ -69,11 +69,31 @@ resumeParseAIWorker.on("completed", async (job) => {
       parsedNewResume: data.parsedNewResume,
       userUpdateCurrentResumeId: data.userUpdateCurrentResumeId,
       usage: data.usage,
+      isError: false,
+      error: null,
     })
   );
   console.log("completed", data);
 });
 
-resumeParseAIWorker.on("failed", (job, err) => {
+resumeParseAIWorker.on("failed", async (job, err) => {
   console.log(`Job ${job.id} has failed with error ${err.message}`);
+
+  const data = job.returnvalue;
+
+  await pubClient.publish(
+    "resume:events",
+    JSON.stringify({
+      event: "RESUME_PARSE_AI_COMPLETED",
+      jobId: job.id,
+      userId: data.userId,
+      parsedNewResume: data.parsedNewResume,
+      userUpdateCurrentResumeId: data.userUpdateCurrentResumeId,
+      usage: data.usage,
+      isError: true,
+      error: err?.message,
+    })
+  );
+
+
 });

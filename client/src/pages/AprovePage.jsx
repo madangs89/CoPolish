@@ -73,6 +73,7 @@ const ApprovePage = () => {
     }
   };
 
+  // ! need to handle approve and update now only handling approve
   const handleApproveAndUpdate = async () => {
     try {
       setButtonLoading(true);
@@ -123,7 +124,7 @@ const ApprovePage = () => {
         if (!mounted) return;
 
         console.log("Error fetching resume data:", error);
-        toast.error("Failed to load resume data. Please try again.");
+        // toast.error("Failed to load resume data. Please try again.");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -156,13 +157,26 @@ const ApprovePage = () => {
     <div ref={sectionRef} className="h-screen header  bg-[#f8f9fb] mt-8 py-12">
       <div className="max-w-5xl mx-auto px-6">
         {/* HEADER */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold text-[#1f2430]">
-            Review & Approve Resume
-          </h1>
-          <p className="text-sm text-[#6b6b6b] mt-2">
-            Review each section. You stay in full control.
-          </p>
+        <div className="mb-10 flex justify-between items-start">
+          <div className="">
+            <h1 className="text-3xl font-bold text-[#1f2430]">
+              Review & Approve Resume
+            </h1>
+            <p className="text-sm text-[#6b6b6b] mt-2">
+              Review each section. You stay in full control.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setActiveSection("preview")}
+            className=" inline-flex items-center gap-2 rounded-full
+                 bg-black text-white
+                 px-6 py-2 text-sm font-medium
+                 transition"
+          >
+            <CheckCircle size={16} />
+            Skip & Preview
+          </button>
         </div>
 
         {/* SECTION CONTAINER */}

@@ -82,31 +82,69 @@ export const initSubscribers = async () => {
             console.log("Resume parse event published");
             const io = getIO();
 
-            if (io) {
-              const socketId = await pubClient.hget("online_users", userId);
-              if (socketId) {
-                io.to(socketId).emit(
-                  "resume:parsed",
-                  JSON.stringify({ jobId, userId, event })
-                );
+            const { error, isError } = payload;
+
+            if (isError) {
+              if (io) {
+                const socketId = await pubClient.hget("online_users", userId);
+                if (socketId) {
+                  io.to(socketId).emit(
+                    "resume:parsed:error",
+                    JSON.stringify({ jobId, userId, event, error, isError })
+                  );
+                }
+              }
+            } else {
+              if (io) {
+                const socketId = await pubClient.hget("online_users", userId);
+                if (socketId) {
+                  io.to(socketId).emit(
+                    "resume:parsed",
+                    JSON.stringify({ jobId, userId, event })
+                  );
+                }
               }
             }
             break;
           }
           case "RESUME_PARSE_AI_COMPLETED": {
-            const { parsedNewResume, userUpdateCurrentResumeId, usage } =
-              payload;
+            const {
+              parsedNewResume,
+              userUpdateCurrentResumeId,
+              usage,
+              error,
+              isError,
+            } = payload;
 
             console.log("Resume parse ai event published");
             const io = getIO();
 
-            if (io) {
-              const socketId = await pubClient.hget("online_users", userId);
-              if (socketId) {
-                io.to(socketId).emit(
-                  "resume:ai:parsed",
-                  JSON.stringify({ jobId, userId, event, parsedNewResume })
-                );
+            if (isError) {
+              if (io) {
+                const socketId = await pubClient.hget("online_users", userId);
+                if (socketId) {
+                  io.to(socketId).emit(
+                    "resume:ai:parsed:error",
+                    JSON.stringify({
+                      jobId,
+                      userId,
+                      event,
+                      parsedNewResume,
+                      error,
+                      isError,
+                    })
+                  );
+                }
+              }
+            } else {
+              if (io) {
+                const socketId = await pubClient.hget("online_users", userId);
+                if (socketId) {
+                  io.to(socketId).emit(
+                    "resume:ai:parsed",
+                    JSON.stringify({ jobId, userId, event, parsedNewResume })
+                  );
+                }
               }
             }
             break;

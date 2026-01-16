@@ -8,6 +8,7 @@ import { useDispatch } from "react-redux";
 import { setAuthTrue, setUser } from "../redux/slice/authSlice";
 import { useNavigate } from "react-router-dom";
 import ButtonLoader from "./Loaders/ButtonLoader";
+import BlackLoader from "./Loaders/BlackLoader";
 const AuthOverlay = ({ open, onClose }) => {
   const [mode, setMode] = useState("login");
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -75,6 +76,7 @@ const AuthOverlay = ({ open, onClose }) => {
         }
       }
     } catch (error) {
+      toast.error(error.response.data.message || "Google Login Failed");
       console.log(error);
     } finally {
       setIsGoogleLoading(false);
@@ -142,7 +144,7 @@ const AuthOverlay = ({ open, onClose }) => {
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.response.data.message);
+      toast.error(error.response.data.message || "Authentication Failed");
     } finally {
       setNormalAuthLoader(false);
     }
@@ -281,11 +283,15 @@ const AuthOverlay = ({ open, onClose }) => {
         {/* OAuth */}
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => googleLogin()}
+            onClick={() => {
+              setIsGoogleLoading(true);
+              googleLogin();
+            }}
+            disabled={isGoogleLoading}
             className="w-full rounded-full border py-3 text-sm flex items-center justify-center font-medium hover:bg-[#f5f5f5] transition"
           >
             {isGoogleLoading ? (
-              <ButtonLoader color="black" />
+              <BlackLoader color="black" size={20} />
             ) : (
               <p>Continue with Google</p>
             )}
