@@ -96,8 +96,14 @@ const OnboardingSource = () => {
       </div>
 
       {isStatusTrue && (
-        <div className="absolute z-[9999] inset-0 w-full h-full bg-black bg-opacity-80 flex items-center justify-center">
-          <ResumeProgress status={status} setIsStatusTrue={setIsStatusTrue} setstatus={setstatus} errorStates={errorStates} setErrorStates={setErrorStates} />
+        <div className="absolute z-[99999] inset-0 w-full h-full bg-black bg-opacity-80 flex items-center justify-center">
+          <ResumeProgress
+            status={status}
+            setIsStatusTrue={setIsStatusTrue}
+            setstatus={setstatus}
+            errorStates={errorStates}
+            setErrorStates={setErrorStates}
+          />
         </div>
       )}
     </div>

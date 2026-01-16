@@ -24,7 +24,6 @@ export const resumeParserQueue = new Queue("resume-parser", {
   },
 });
 
-
 export const resumeParseAIQueue = new Queue("resume-parse-ai", {
   connection: bullClient,
   defaultJobOptions: {
@@ -43,7 +42,7 @@ export const resumeParseAIQueue = new Queue("resume-parse-ai", {
     },
   },
   limiter: {
-    max: 2,      // 🔥 SAFE for AI
+    max: 2, // 🔥 SAFE for AI
     duration: 1000,
   },
 });

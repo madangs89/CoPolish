@@ -85,18 +85,22 @@ resumeParseAIWorker.on("failed", async (job, err) => {
   console.log(`Job ${job.id} has failed with error ${err.message}`);
 
   const data = job.returnvalue;
+  const attemptsMade = job.attemptsMade;
+  const maxAttempts = job.opts.attempts ?? 1;
 
-  await pubClient.publish(
-    "resume:events",
-    JSON.stringify({
-      event: "RESUME_PARSE_AI_COMPLETED",
-      jobId: job.id,
-      userId: data.userId,
-      parsedNewResume: data.parsedNewResume,
-      userUpdateCurrentResumeId: data.userUpdateCurrentResumeId,
-      usage: data.usage,
-      isError: true,
-      error: err?.message,
-    })
-  );
+  if (attemptsMade >= maxAttempts) {
+    await pubClient.publish(
+      "resume:events",
+      JSON.stringify({
+        event: "RESUME_PARSE_AI_COMPLETED",
+        jobId: job.id,
+        userId: data.userId,
+        parsedNewResume: data.parsedNewResume,
+        userUpdateCurrentResumeId: data.userUpdateCurrentResumeId,
+        usage: data.usage,
+        isError: true,
+        error: err?.message,
+      })
+    );
+  }
 });
