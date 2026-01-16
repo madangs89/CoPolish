@@ -82,6 +82,10 @@ const ApprovePage = () => {
         { resumeId: params.id, resumeData },
         { withCredentials: true }
       );
+
+      if (resumeSliceData.isChanged) {
+        // Call api to save updated resume
+      }
       if (response.data.success) {
         navigate("/dashboard");
         toast.success("Resume approved. Redirecting to dashboard");
@@ -168,7 +172,25 @@ const ApprovePage = () => {
           </div>
 
           <button
-            onClick={() => setActiveSection("preview")}
+            onClick={() => {
+              setApproved((prev) => {
+                let all = {
+                  personal: true,
+                  education: true,
+                  experience: true,
+                  skills: true,
+                  projects: true,
+                  certifications: true,
+                  achievements: true,
+                  hobbies: true,
+                  extracurricular: true,
+                  preview: true,
+                };
+                return { ...all, ...prev };
+              });
+
+              setActiveSection("preview");
+            }}
             className=" inline-flex items-center gap-2 rounded-full
                  bg-black text-white
                  px-6 py-2 text-sm font-medium
