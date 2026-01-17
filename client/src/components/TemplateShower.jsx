@@ -178,7 +178,7 @@ const TemplateShower = () => {
   const dispatch = useDispatch();
 
   return (
-    <div className="w-full px-2 h-screen flex flex-col gap-4 bg-white border-l">
+    <div className="w-full px-2 h-screen flex flex-col gap-4  ">
       {Object.keys(templates).map((key) => {
         const TemplateComponent = templateRegistry[key];
 
@@ -192,7 +192,7 @@ const TemplateShower = () => {
           >
             <h1 className="text-sm  font-semibold mb-2">{key}</h1>
 
-            <div className="relative h-[500px] w-[330px] overflow-hidden border bg-white">
+            <div className="relative h-full w-[330px] overflow-hidden border bg-white">
               <div
                 className="origin-top-left scale-[0.45]"
                 style={{ width: "800px" }}

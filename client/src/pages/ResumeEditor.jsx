@@ -6,7 +6,6 @@ const ResumePreview = lazy(
 );
 const Editor = lazy(() => import("../components/Editor"));
 
-
 import { GrScorecard } from "react-icons/gr";
 import {
   Brush,
@@ -21,9 +20,14 @@ import {
   Target,
 } from "lucide-react";
 import { useSelector } from "react-redux";
+import ResumeConfigEditor from "../components/ResumeConfigEditor";
+import TemplateShower from "../components/TemplateShower";
 const ResumeEditor = () => {
   const resumeSlice = useSelector((state) => state.resume);
   const [resumeData, setResumeData] = useState(resumeSlice.currentResume);
+  const config = useSelector((state) => state.resume.currentResumeConfig);
+
+  const [resumeConfig, setResumeConfig] = useState(config);
 
   const [checkedFields, setCheckedFields] = useState([]);
 
@@ -83,6 +87,8 @@ const ResumeEditor = () => {
                 setResumeData={setResumeData}
                 checkedFields={checkedFields}
                 setCheckedFields={setCheckedFields}
+                resumeConfig={resumeConfig}
+                setResumeConfig={setResumeConfig}
               />
             </>
           ) : null}
@@ -94,6 +100,8 @@ const ResumeEditor = () => {
             resumeData={resumeData}
             setResumeData={setResumeData}
             checkedFields={checkedFields}
+            resumeConfig={resumeConfig}
+            setResumeConfig={setResumeConfig}
             setCheckedFields={setCheckedFields}
           />
         </div>
@@ -110,6 +118,8 @@ const ResumeEditor = () => {
             setResumeData={setResumeData}
             checkedFields={checkedFields}
             setCheckedFields={setCheckedFields}
+            resumeConfig={resumeConfig}
+            setResumeConfig={setResumeConfig}
           />
         </div>
 
@@ -138,7 +148,7 @@ const ResumeEditor = () => {
 
           {/* SETTINGS */}
           <div
-            onClick={() => setMobileModalState("settings")}
+            onClick={() => setMobileModalState("config")}
             className="flex flex-col items-center justify-center gap-1"
           >
             <SlidersHorizontal className="w-6 h-6 text-gray-700" />
@@ -293,6 +303,57 @@ const ResumeEditor = () => {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Modal State configuration */}
+        <div
+          className={`absolute w-full z-[1000000] overflow-y-auto overflow-x-hidden md:hidden h-full bg-black/80 transition-all duration-200 ease-in-out ${
+            mobileModalState == "config" ? "translate-y-0" : "translate-y-full"
+          }`}
+        >
+          <div
+            className={` ${mobileModalState == "config" ? "translate-y-20" : "translate-y-full"} relative px-2`}
+          >
+            <button
+              onClick={() => setMobileModalState(null)}
+              className="text-gray-400 top-2 right-5 absolute text-xl"
+            >
+              ✕
+            </button>
+            <ResumeConfigEditor
+              setConfig={setResumeConfig}
+              config={resumeConfig}
+              resumeData={resumeData}
+            />
+          </div>
+        </div>
+        {/* Modal State Template */}
+        <div
+          className={`absolute w-full z-[1000000] overflow-y-auto overflow-x-hidden md:hidden h-full bg-black/80 transition-all duration-200 ease-in-out ${
+            mobileModalState == "template"
+              ? "translate-y-0"
+              : "translate-y-full"
+          }`}
+        >
+          {/* Sticky header */}
+          <div className="sticky top-2 flex justify-end px-5 z-[1000001]">
+            <button
+              onClick={() => setMobileModalState(null)}
+              className="text-gray-400 text-xl"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div
+            className={`${
+              mobileModalState == "template"
+                ? "translate-y-20"
+                : "translate-y-full"
+            } min-h-screen relative px-2`}
+          >
+            <TemplateShower />
           </div>
         </div>
       </div>

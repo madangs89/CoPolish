@@ -237,7 +237,7 @@ const ModernMinimalResume = ({ data, config }) => {
         fontFamily: config.typography.fontFamily.body,
         color: config.colors.text,
         lineHeight: config.typography.lineHeight,
-        boxSizing: "border-box",
+      
       }}
     >
       {/* ================= HEADER ================= */}

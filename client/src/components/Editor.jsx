@@ -34,14 +34,14 @@ const Editor = ({
   setCheckedFields,
   setMobileModalState,
   mobileModalState,
+  resumeConfig,
+  setResumeConfig,
 }) => {
   const [editorState, setEditorState] = useState("editor");
   const [selectedSection, setSelectedSection] = useState([]);
 
   const dispatch = useDispatch();
-  const config = useSelector((state) => state.resume.currentResumeConfig);
   const currentResume = useSelector((state) => state.resume.currentResume);
-  const [resumeConfig, setResumeConfig] = useState(config);
 
   useEffect(() => {
     dispatch(setCurrentResumeConfig(resumeConfig));
