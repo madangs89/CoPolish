@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import EditorToolSwitcher from "./EditorToolSwitcher";
 import Personal from "./ResumeEditor/Personal";
 import Education from "./ResumeEditor/Education";
@@ -10,6 +10,10 @@ import Achievement from "./ResumeEditor/Achievement";
 import Hobbies from "./ResumeEditor/Hobbies";
 import Extracurricular from "./ResumeEditor/Extracurricular";
 import { ArrowRight } from "lucide-react";
+import ResumeConfigEditor from "./ResumeConfigEditor";
+import { useDispatch, useSelector } from "react-redux";
+import { setCurrentResumeConfig } from "../redux/slice/resumeSlice";
+import TemplateShower from "./TemplateShower";
 
 const sectionTitles = {
   personal: "Personal Details",
@@ -33,8 +37,18 @@ const Editor = ({
 }) => {
   const [editorState, setEditorState] = useState("editor");
   const [selectedSection, setSelectedSection] = useState([]);
+
+  const dispatch = useDispatch();
+  const config = useSelector((state) => state.resume.currentResumeConfig);
+  const currentResume = useSelector((state) => state.resume.currentResume);
+  const [resumeConfig, setResumeConfig] = useState(config);
+
+  useEffect(() => {
+    dispatch(setCurrentResumeConfig(resumeConfig));
+  }, [resumeConfig, setResumeConfig]);
+
   return (
-    <div className="h-full w-full relative flex scrollbar-minimal flex-col bg-white border-l md:pt-3 pt-1.5 overflow-y-auto">
+    <div className="h-full w-full relative flex scrollbar-minimal flex-col bg-white border-l pt-1.5 overflow-y-auto">
       {mobileModalState == "editor" && (
         <div
           onClick={() => setMobileModalState("")}
@@ -53,9 +67,7 @@ const Editor = ({
       {/* ================= EDITOR ================= */}
       {editorState === "editor" && (
         <>
-   
           <div className="flex w-full px-3 md:my-2 flex-col gap-3">
-        
             <Personal
               resumeData={resumeData}
               setResumeData={setResumeData}
@@ -139,6 +151,15 @@ const Editor = ({
           </div>
         </>
       )}
+
+      {editorState === "designer" && (
+        <ResumeConfigEditor
+          config={resumeConfig}
+          resumeData={currentResume}
+          setConfig={setResumeConfig}
+        />
+      )}
+      {editorState === "template" && <TemplateShower />}
     </div>
   );
 };

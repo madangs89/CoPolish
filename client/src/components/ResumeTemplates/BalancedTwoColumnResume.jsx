@@ -1,5 +1,224 @@
 import React from "react";
 
+const SKILL_CATEGORIES = {
+  "Programming Languages": [
+    "JavaScript",
+    "TypeScript",
+    "Python",
+    "Java",
+    "C",
+    "C++",
+    "C#",
+    "Go",
+    "Rust",
+    "PHP",
+    "Ruby",
+    "Swift",
+    "Kotlin",
+    "Dart",
+    "R",
+    "MATLAB",
+    "Scala",
+    "Perl",
+  ],
+
+  "Web Technologies": [
+    "HTML",
+    "HTML5",
+    "CSS",
+    "CSS3",
+    "SASS",
+    "SCSS",
+    "Tailwind CSS",
+    "Bootstrap",
+    "Material UI",
+    "Chakra UI",
+    "Ant Design",
+  ],
+
+  "Frontend Frameworks & Libraries": [
+    "React",
+    "Next.js",
+    "Vue.js",
+    "Nuxt.js",
+    "Angular",
+    "Svelte",
+    "Redux",
+    "Redux Toolkit",
+    "Zustand",
+    "Recoil",
+    "React Query",
+    "TanStack Query",
+    "GSAP",
+    "Three.js",
+  ],
+
+  "Backend Frameworks": [
+    "Node.js",
+    "Express.js",
+    "NestJS",
+    "Django",
+    "Flask",
+    "FastAPI",
+    "Spring Boot",
+    "Spring MVC",
+    "Laravel",
+    "Ruby on Rails",
+    "ASP.NET Core",
+  ],
+
+  Databases: [
+    "MongoDB",
+    "PostgreSQL",
+    "MySQL",
+    "SQLite",
+    "MariaDB",
+    "Oracle",
+    "Microsoft SQL Server",
+    "Redis",
+    "Cassandra",
+    "DynamoDB",
+    "Firebase Firestore",
+    "Supabase",
+  ],
+
+  "DevOps & Cloud": [
+    "Docker",
+    "Docker Compose",
+    "Kubernetes",
+    "AWS",
+    "EC2",
+    "S3",
+    "Lambda",
+    "CloudFront",
+    "RDS",
+    "GCP",
+    "Azure",
+    "Terraform",
+    "Ansible",
+    "Jenkins",
+    "GitHub Actions",
+    "CI/CD",
+  ],
+
+  "Version Control & Collaboration": [
+    "Git",
+    "GitHub",
+    "GitLab",
+    "Bitbucket",
+    "Jira",
+    "Confluence",
+    "Trello",
+    "Slack",
+  ],
+
+  "APIs & Communication": [
+    "REST APIs",
+    "GraphQL",
+    "WebSockets",
+    "Socket.IO",
+    "gRPC",
+    "JSON",
+    "XML",
+  ],
+
+  Testing: [
+    "Jest",
+    "Mocha",
+    "Chai",
+    "Vitest",
+    "Cypress",
+    "Playwright",
+    "Selenium",
+    "JUnit",
+    "PyTest",
+    "Postman",
+  ],
+
+  "Mobile Development": [
+    "Android",
+    "Android Studio",
+    "Java (Android)",
+    "Kotlin (Android)",
+    "React Native",
+    "Flutter",
+    "SwiftUI",
+    "iOS Development",
+  ],
+
+  "System Design & Architecture": [
+    "Microservices",
+    "Monolithic Architecture",
+    "Event-Driven Architecture",
+    "RESTful Design",
+    "Scalable Systems",
+    "Load Balancing",
+    "Caching",
+    "Rate Limiting",
+  ],
+
+  "Messaging & Streaming": [
+    "Kafka",
+    "RabbitMQ",
+    "AWS SQS",
+    "AWS SNS",
+    "Redis Streams",
+  ],
+
+  Security: [
+    "Authentication",
+    "Authorization",
+    "JWT",
+    "OAuth",
+    "OAuth 2.0",
+    "SSO",
+    "HTTPS",
+    "CORS",
+    "OWASP",
+    "Encryption",
+    "Hashing",
+  ],
+
+  "Operating Systems": ["Linux", "Ubuntu", "CentOS", "Windows", "macOS"],
+
+  "AI / ML / Data": [
+    "Machine Learning",
+    "Deep Learning",
+    "Natural Language Processing",
+    "Computer Vision",
+    "TensorFlow",
+    "PyTorch",
+    "Scikit-learn",
+    "Pandas",
+    "NumPy",
+    "OpenCV",
+  ],
+
+  "Dev Tools & Build": [
+    "Vite",
+    "Webpack",
+    "Babel",
+    "ESLint",
+    "Prettier",
+    "npm",
+    "yarn",
+    "pnpm",
+  ],
+
+  Methodologies: ["Agile", "Scrum", "Kanban", "Waterfall", "SDLC"],
+
+  "Soft Skills": [
+    "Problem Solving",
+    "Critical Thinking",
+    "Communication",
+    "Team Collaboration",
+    "Leadership",
+    "Time Management",
+    "Adaptability",
+    "Mentoring",
+  ],
+};
+
 /* ================= HELPERS ================= */
 
 const isEmpty = (value) => {
@@ -8,6 +227,71 @@ const isEmpty = (value) => {
   if (typeof value === "object")
     return Object.values(value).every((v) => !v || v.length === 0);
   return false;
+};
+
+const normalize = (s) => s.trim().toLowerCase();
+
+const groupSkills = (skills = []) => {
+  const grouped = {};
+  const used = new Set();
+
+  for (const [category, categorySkills] of Object.entries(SKILL_CATEGORIES)) {
+    const normalizedCategorySkills = categorySkills.map(normalize);
+
+    const matched = skills.filter((skill) =>
+      normalizedCategorySkills.includes(normalize(skill))
+    );
+
+    if (matched.length > 0) {
+      grouped[category] = matched;
+      matched.forEach((s) => used.add(normalize(s)));
+    }
+  }
+
+  // Remaining skills → Other
+  const others = skills.filter((s) => !used.has(normalize(s)));
+
+  if (others.length > 0) {
+    grouped["Other"] = others;
+  }
+
+  return grouped;
+};
+
+const renderGroupedSkills = (skills = [], config) => {
+  const groupedSkills = groupSkills(skills);
+
+  return Object.entries(groupedSkills).map(([category, items]) => (
+    <div
+      key={category}
+      style={{
+        marginBottom: `${config.spacing.itemGap}px`,
+      }}
+    >
+      {/* Category */}
+      <div
+        style={{
+          fontWeight: 600,
+          fontSize: `${config.typography.fontSize.small}px`,
+          marginBottom: "4px",
+          color: config.colors.primary,
+        }}
+      >
+        {category}:
+      </div>
+
+      {/* Skills */}
+      <div
+        style={{
+          fontSize: `${config.typography.fontSize.small}px`,
+          color: config.colors.text,
+          lineHeight: config.typography.lineHeight,
+        }}
+      >
+        {items.join(", ")}
+      </div>
+    </div>
+  ));
 };
 
 /* ================= COMPONENTS ================= */
@@ -46,6 +330,7 @@ const LinkItem = ({ href, text, config }) => (
 
 const BalancedTwoColumnResume = ({ data, config }) => {
   const { personal } = data;
+  console.log(config);
 
   const renderSection = (section) => {
     if (isEmpty(data[section])) return null;
@@ -117,18 +402,12 @@ const BalancedTwoColumnResume = ({ data, config }) => {
       case "skills":
         return (
           <>
-            <SectionTitle title="Skills" config={config} />
-            {data.skills.map((skill, i) => (
-              <div
-                key={i}
-                style={{
-                  fontSize: `${config.typography.fontSize.small}px`,
-                  marginBottom: "6px",
-                }}
-              >
-                {skill}
-              </div>
-            ))}
+            {data.skills?.length > 0 && (
+              <section>
+                <SectionTitle title="Skills" config={config} />
+                {renderGroupedSkills(data.skills, config)}
+              </section>
+            )}
           </>
         );
 

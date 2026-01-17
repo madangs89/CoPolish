@@ -11,7 +11,6 @@ const resumeTemplateSchema = new mongoose.Schema(
       type: String,
       required: true,
       index: true,
-      unique: true,
     },
     resumeGroupId: {
       type: String,
@@ -47,7 +46,6 @@ const resumeTemplateSchema = new mongoose.Schema(
         to: String,
       },
     ],
-
     experience: [
       {
         role: String,

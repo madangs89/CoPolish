@@ -24,6 +24,7 @@ const SectionTitle = ({ title, config }) => (
     <h2
       style={{
         fontSize: `${config.typography.fontSize.section}px`,
+        fontFamily: config.typography.fontFamily.heading,
         fontWeight: "bold",
         textTransform: "uppercase",
         marginBottom: "2px",
@@ -161,7 +162,12 @@ const HarvardResume = ({ data, config }) => {
     >
       {/* ================= HEADER ================= */}
       {!isEmpty(personal) && (
-        <div style={{ textAlign: "center", marginBottom: config.spacing.sectionGap }}>
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: config.spacing.sectionGap,
+          }}
+        >
           <h1
             style={{
               fontSize: `${config.typography.fontSize.name}px`,

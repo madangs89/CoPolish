@@ -1,4 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
+import BalancedTwoColumnResume from "../../components/ResumeTemplates/BalancedTwoColumnResume";
+import CareerTimelineResume from "../../components/ResumeTemplates/CareerTimelineResume";
+import HarvardResume from "../../components/ResumeTemplates/HarvardResume";
+import ModernMinimalResume from "../../components/ResumeTemplates/ModernMinimalResume";
+import ProfessionalSidebarResume from "../../components/ResumeTemplates/ProfessionalSidebarResume";
+import ResumeClassicBlue from "../../components/ResumeTemplates/ResumeClassicBlue";
+import ResumeClassicV1 from "../../components/ResumeTemplates/ResumeClassicV1";
+import CleanProfessionalResume from "../../components/ResumeTemplates/CleanProfessionalResume";
 
 const resumeConfig = {
   content: {
@@ -63,6 +71,18 @@ const resumeConfig = {
     templateId: "balanced-two-column",
     lastUpdated: new Date().toISOString(),
   },
+};
+
+const templateMask = {
+  BalancedTwoColumnResume: "BalancedTwoColumnResume",
+  CareerTimelineResume: "CareerTimelineResume",
+  CleanProfessionalResume: "CleanProfessionalResume",
+  HarvardResume: "HarvardResume",
+  ModernMinimalResume: "ModernMinimalResume",
+  ProfessionalSidebarResume: "ProfessionalSidebarResume",
+  ResumeClassicBlue: "ResumeClassicBlue",
+  ResumeClassicV1: "ResumeClassicV1",
+  "default-template": "CleanProfessionalResume",
 };
 
 const initialState = {
@@ -144,6 +164,7 @@ const initialState = {
   },
   config: resumeConfig,
   currentResumeConfig: resumeConfig,
+  templates: templateMask,
 };
 
 export const resumeSlice = createSlice({
@@ -159,11 +180,18 @@ export const resumeSlice = createSlice({
     setCurrentResume: (state, actions) => {
       state.currentResume = actions.payload;
     },
+    setCurrentResumeConfig: (state, actions) => {
+      state.currentResumeConfig = actions.payload;
+    },
   },
 });
 
-export const { setIsChanged, setCurrentResumeId, setCurrentResume } =
-  resumeSlice.actions;
+export const {
+  setIsChanged,
+  setCurrentResumeId,
+  setCurrentResume,
+  setCurrentResumeConfig,
+} = resumeSlice.actions;
 const resumeReducer = resumeSlice.reducer;
 
 export default resumeReducer;

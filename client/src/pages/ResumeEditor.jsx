@@ -1,12 +1,12 @@
 import React, { useState, Suspense, lazy } from "react";
 
 const EditorScoreBox = lazy(() => import("../components/EditorScoreBox"));
-const ResumePreview = lazy(() =>
-  import("../components/ResumePreview/ResumePreview")
+const ResumePreview = lazy(
+  () => import("../components/ResumePreview/ResumePreview")
 );
 const Editor = lazy(() => import("../components/Editor"));
 
-import ResumeClassicV1 from "../components/ResumeTemplates/ResumeClassicV1";
+
 import { GrScorecard } from "react-icons/gr";
 import {
   Brush,
@@ -20,63 +20,10 @@ import {
   Search,
   Target,
 } from "lucide-react";
+import { useSelector } from "react-redux";
 const ResumeEditor = () => {
-  const [resumeData, setResumeData] = useState({
-    personal: {
-      name: "",
-      title: "",
-      email: "",
-      phone: "",
-      summary: "",
-      github: "",
-      linkedin: "",
-      address: "",
-      avatar: "",
-    },
-    education: [
-      {
-        degree: "",
-        institute: "",
-        from: "",
-        to: "",
-      },
-    ],
-    experience: [
-      {
-        role: "",
-        company: "",
-        duration: "",
-        description: ["", ""],
-      },
-    ],
-    skills: [],
-    projects: [
-      {
-        title: "",
-        description: [],
-        technologies: [],
-        link: "",
-      },
-    ],
-    certifications: [
-      {
-        name: "",
-        issuer: "",
-        year: "",
-        credentialUrl: "",
-      },
-    ],
-    achievements: ["", ""],
-    hobbies: [],
-    extracurricular: [
-      {
-        role: "",
-        activity: "",
-        year: "",
-        description: "",
-      },
-    ],
-  });
+  const resumeSlice = useSelector((state) => state.resume);
+  const [resumeData, setResumeData] = useState(resumeSlice.currentResume);
 
   const [checkedFields, setCheckedFields] = useState([]);
 
@@ -120,12 +67,12 @@ const ResumeEditor = () => {
         {/* Here handles both big and small screen */}
         <div className="h-full   px-3 md:w-[50%] w-full overflow-hidden ">
           <div className="shadow-xl  md:flex hidden items-center justify-center h-full bg-white relative overflow-hidden">
-            <ResumePreview />
+            <ResumePreview resumeData={resumeData} />
           </div>
 
           {mobileEditorState === "preview" ? (
             <div className="h-full flex md:hidden  items-center justify-center shadow-xl bg-white relative overflow-hidden">
-              <ResumePreview />
+              <ResumePreview resumeData={resumeData} />
             </div>
           ) : mobileEditorState === "editor" ? (
             <>
@@ -140,6 +87,7 @@ const ResumeEditor = () => {
             </>
           ) : null}
         </div>
+
         {/* Big Screen Editor*/}
         <div className="h-full w-[30%] hidden md:flex ">
           <Editor
