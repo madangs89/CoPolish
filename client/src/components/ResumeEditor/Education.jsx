@@ -92,7 +92,7 @@ const Education = ({
     transition-all duration-300 ease-in-out
     ${
       selectedSection.includes("education")
-        ? "md:max-h-[600px] h-fit p-4  opacity-100"
+        ? "md:h-fit h-fit p-4  opacity-100"
         : "max-h-0 opacity-0"
     }`}
       >

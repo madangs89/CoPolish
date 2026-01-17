@@ -115,7 +115,7 @@ const Achievement = ({
     transition-all duration-300 ease-in-out
     ${
       selectedSection.includes("achievements")
-        ? "md:max-h-[600px] h-fit p-4  opacity-100"
+        ? " h-fit p-4  opacity-100"
         : "max-h-0 opacity-0"
     }`}
       >

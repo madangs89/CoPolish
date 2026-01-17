@@ -1,7 +1,7 @@
 import React from "react";
 
 const SKILL_CATEGORIES = {
-  "Programming Languages": [
+  Languages: [
     "JavaScript",
     "TypeScript",
     "Python",
@@ -22,21 +22,8 @@ const SKILL_CATEGORIES = {
     "Perl",
   ],
 
-  "Web Technologies": [
-    "HTML",
-    "HTML5",
-    "CSS",
-    "CSS3",
-    "SASS",
-    "SCSS",
-    "Tailwind CSS",
-    "Bootstrap",
-    "Material UI",
-    "Chakra UI",
-    "Ant Design",
-  ],
-
-  "Frontend Frameworks & Libraries": [
+  "Frameworks & Libraries": [
+    // Frontend
     "React",
     "Next.js",
     "Vue.js",
@@ -51,9 +38,8 @@ const SKILL_CATEGORIES = {
     "TanStack Query",
     "GSAP",
     "Three.js",
-  ],
 
-  "Backend Frameworks": [
+    // Backend
     "Node.js",
     "Express.js",
     "NestJS",
@@ -65,6 +51,11 @@ const SKILL_CATEGORIES = {
     "Laravel",
     "Ruby on Rails",
     "ASP.NET Core",
+
+    // Mobile
+    "React Native",
+    "Flutter",
+    "SwiftUI",
   ],
 
   Databases: [
@@ -101,100 +92,16 @@ const SKILL_CATEGORIES = {
     "CI/CD",
   ],
 
-  "Version Control & Collaboration": [
+  "Tools & Platforms": [
     "Git",
     "GitHub",
     "GitLab",
     "Bitbucket",
+    "Postman",
     "Jira",
     "Confluence",
     "Trello",
     "Slack",
-  ],
-
-  "APIs & Communication": [
-    "REST APIs",
-    "GraphQL",
-    "WebSockets",
-    "Socket.IO",
-    "gRPC",
-    "JSON",
-    "XML",
-  ],
-
-  Testing: [
-    "Jest",
-    "Mocha",
-    "Chai",
-    "Vitest",
-    "Cypress",
-    "Playwright",
-    "Selenium",
-    "JUnit",
-    "PyTest",
-    "Postman",
-  ],
-
-  "Mobile Development": [
-    "Android",
-    "Android Studio",
-    "Java (Android)",
-    "Kotlin (Android)",
-    "React Native",
-    "Flutter",
-    "SwiftUI",
-    "iOS Development",
-  ],
-
-  "System Design & Architecture": [
-    "Microservices",
-    "Monolithic Architecture",
-    "Event-Driven Architecture",
-    "RESTful Design",
-    "Scalable Systems",
-    "Load Balancing",
-    "Caching",
-    "Rate Limiting",
-  ],
-
-  "Messaging & Streaming": [
-    "Kafka",
-    "RabbitMQ",
-    "AWS SQS",
-    "AWS SNS",
-    "Redis Streams",
-  ],
-
-  Security: [
-    "Authentication",
-    "Authorization",
-    "JWT",
-    "OAuth",
-    "OAuth 2.0",
-    "SSO",
-    "HTTPS",
-    "CORS",
-    "OWASP",
-    "Encryption",
-    "Hashing",
-  ],
-
-  "Operating Systems": ["Linux", "Ubuntu", "CentOS", "Windows", "macOS"],
-
-  "AI / ML / Data": [
-    "Machine Learning",
-    "Deep Learning",
-    "Natural Language Processing",
-    "Computer Vision",
-    "TensorFlow",
-    "PyTorch",
-    "Scikit-learn",
-    "Pandas",
-    "NumPy",
-    "OpenCV",
-  ],
-
-  "Dev Tools & Build": [
     "Vite",
     "Webpack",
     "Babel",
@@ -205,7 +112,27 @@ const SKILL_CATEGORIES = {
     "pnpm",
   ],
 
-  Methodologies: ["Agile", "Scrum", "Kanban", "Waterfall", "SDLC"],
+  "Concepts & Architecture": [
+    "REST APIs",
+    "GraphQL",
+    "WebSockets",
+    "Socket.IO",
+    "gRPC",
+    "Microservices",
+    "Monolithic Architecture",
+    "Event-Driven Architecture",
+    "Scalable Systems",
+    "Caching",
+    "Rate Limiting",
+    "Authentication",
+    "Authorization",
+    "JWT",
+    "OAuth",
+    "OAuth 2.0",
+    "HTTPS",
+    "CORS",
+    "OWASP",
+  ],
 
   "Soft Skills": [
     "Problem Solving",
@@ -229,29 +156,64 @@ const isEmpty = (value) => {
   return false;
 };
 
-const normalize = (s) => s.trim().toLowerCase();
+const SKILL_ALIASES = {
+  javascript: ["js", "javascript es6", "javascript es6+"],
+  react: ["reactjs", "context api"],
+  node: ["nodejs"],
+  "socket io": ["socketio"],
+  "rest apis": ["restful apis", "rest api"],
+  sql: ["mysql", "postgresql", "postgres"],
+};
 
-const groupSkills = (skills = []) => {
+const normalize = (str = "") =>
+  str
+    .toLowerCase()
+    .replace(/\(.*?\)/g, "") // remove (ES6+), (Moderate)
+    .replace(/\.js/g, "") // react.js → react
+    .replace(/[^a-z0-9+ ]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const resolveSkill = (skill) => {
+  const n = normalize(skill);
+
+  for (const [base, aliases] of Object.entries(SKILL_ALIASES)) {
+    if (n === base) return base;
+    if (aliases.some((a) => n.includes(a))) return base;
+  }
+
+  return n;
+};
+
+const groupSkills = (skills = [], maxCategories = 4) => {
   const grouped = {};
   const used = new Set();
 
   for (const [category, categorySkills] of Object.entries(SKILL_CATEGORIES)) {
-    const normalizedCategorySkills = categorySkills.map(normalize);
-
-    const matched = skills.filter((skill) =>
-      normalizedCategorySkills.includes(normalize(skill))
+    const normalizedCategorySkills = categorySkills.map((s) =>
+      normalize(resolveSkill(s))
     );
 
-    if (matched.length > 0) {
-      grouped[category] = matched;
-      matched.forEach((s) => used.add(normalize(s)));
+    for (const rawSkill of skills) {
+      const resolved = resolveSkill(rawSkill);
+
+      // 🔴 IMPORTANT: skip if already assigned
+      if (used.has(resolved)) continue;
+
+      if (normalizedCategorySkills.includes(normalize(resolved))) {
+        if (!grouped[category]) grouped[category] = [];
+        grouped[category].push(rawSkill);
+        used.add(resolved);
+      }
     }
+
+    if (Object.keys(grouped).length >= maxCategories) break;
   }
 
-  // Remaining skills → Other
-  const others = skills.filter((s) => !used.has(normalize(s)));
+  // Remaining → Other
+  const others = skills.filter((s) => !used.has(resolveSkill(s)));
 
-  if (others.length > 0) {
+  if (others.length && Object.keys(grouped).length < maxCategories + 1) {
     grouped["Other"] = others;
   }
 
@@ -263,6 +225,7 @@ const renderGroupedSkills = (skills = [], config) => {
 
   return Object.entries(groupedSkills).map(([category, items]) => (
     <div
+      className="flex"
       key={category}
       style={{
         marginBottom: `${config.spacing.itemGap}px`,
@@ -270,6 +233,7 @@ const renderGroupedSkills = (skills = [], config) => {
     >
       {/* Category */}
       <div
+        className="mr-2"
         style={{
           fontWeight: 600,
           fontSize: `${config.typography.fontSize.small}px`,
@@ -402,12 +366,8 @@ const BalancedTwoColumnResume = ({ data, config }) => {
       case "skills":
         return (
           <>
-            {data.skills?.length > 0 && (
-              <section>
-                <SectionTitle title="Skills" config={config} />
-                {renderGroupedSkills(data.skills, config)}
-              </section>
-            )}
+            <SectionTitle title="Skills" config={config} />
+            {renderGroupedSkills(data.skills, config)}
           </>
         );
 
