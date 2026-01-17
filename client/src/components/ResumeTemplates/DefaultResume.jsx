@@ -1,216 +1,309 @@
 import React from "react";
-import { Mail, Phone, Github, Linkedin } from "lucide-react";
 
-const theme = {
-  page: {
-    width: "794px",
-    minHeight: "1123px",
-    padding: "36px",
-    background: "#ffffff",
-  },
-  colors: {
-    primary: "#3b1d5a",
-    text: "#111111",
-    muted: "#444",
-    line: "#3b1d5a",
-  },
-  fonts: {
-    heading: "Times New Roman, serif",
-    body: "Times New Roman, serif",
-  },
-  fontSizes: {
-    name: "28px",
-    section: "15px",
-    body: "14px",
-    small: "13px",
-  },
+/* ================= HELPERS ================= */
+
+const isEmpty = (value) => {
+  if (!value) return true;
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === "object")
+    return Object.values(value).every(
+      (v) => v === null || v === "" || (Array.isArray(v) && v.length === 0)
+    );
+  return false;
 };
 
-const SectionTitle = ({ title }) => (
-  <div style={{ marginTop: "22px" }}>
-    <h2
-      style={{
-        fontSize: theme.fontSizes.section,
-        fontWeight: "bold",
-        letterSpacing: "1px",
-        color: theme.colors.primary,
-        marginBottom: "4px",
-        textTransform: "uppercase",
-      }}
-    >
-      {title}
-    </h2>
-    <div
-      style={{
-        height: "1px",
-        background: theme.colors.line,
-        width: "100%",
-      }}
-    />
+/* ================= COMPONENTS ================= */
+
+const SectionTitle = ({ title, config }) => (
+  <div
+    style={{
+      marginTop: config.spacing.sectionGap,
+      marginBottom: config.spacing.itemGap,
+    }}
+  >
+    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+      <h2
+        style={{
+          fontSize: `${config.typography.fontSize.section}px`,
+          fontWeight: 700,
+          color: config.colors.primary,
+          textTransform: "uppercase",
+          letterSpacing: "0.6px",
+          margin: 0,
+          whiteSpace: "nowrap",
+        }}
+      >
+        {title}
+      </h2>
+      <div
+        style={{
+          height: "1px",
+          background: config.colors.line,
+          width: "100%",
+        }}
+      />
+    </div>
   </div>
 );
 
-const LinkItem = ({ href, icon: Icon, text }) => (
+const LinkItem = ({ href, text, config }) => (
   <a
     href={href}
     target="_blank"
     rel="noopener noreferrer"
     style={{
-      display: "flex",
-      alignItems: "center",
-      gap: "6px",
-      color: theme.colors.text,
+      color: config.colors.accent,
       textDecoration: "none",
+      fontSize: `${config.typography.fontSize.small}px`,
     }}
   >
-    <Icon size={14} />
-    <span>{text}</span>
+    {text}
   </a>
 );
 
-const DefaultResume = ({ data }) => {
+/* ================= TEMPLATE ================= */
+
+const CleanProfessionalResume = ({ data, config }) => {
   const { personal } = data;
+
+  const renderSection = (section) => {
+    if (section === "personal") return null;
+    if (isEmpty(data[section])) return null;
+
+    switch (section) {
+      case "experience":
+        return (
+          <>
+            <SectionTitle title="Experience" config={config} />
+            {data.experience.map((exp, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontWeight: 600,
+                  }}
+                >
+                  <span>
+                    {exp.role} · {exp.company}
+                  </span>
+                  <span style={{ color: config.colors.muted }}>
+                    {exp.duration}
+                  </span>
+                </div>
+                <ul style={{ paddingLeft: "18px", marginTop: "6px" }}>
+                  {exp.description.map((d, j) => (
+                    <li key={j}>{d}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </>
+        );
+
+      case "projects":
+        return (
+          <>
+            <SectionTitle title="Projects" config={config} />
+            {data.projects.map((p, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <strong>{p.title}</strong>
+                <ul style={{ paddingLeft: "18px", marginTop: "6px" }}>
+                  {p.description.map((d, j) => (
+                    <li key={j}>{d}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </>
+        );
+
+      case "skills":
+        return (
+          <>
+            <SectionTitle title="Skills" config={config} />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+              {data.skills.map((skill, i) => (
+                <span
+                  key={i}
+                  style={{
+                    fontSize: `${config.typography.fontSize.small}px`,
+                    padding: "6px 10px",
+                    background: "#f8fafc",
+                    border: `1px solid ${config.colors.line}`,
+                    borderRadius: "6px",
+                  }}
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </>
+        );
+
+      case "education":
+        return (
+          <>
+            <SectionTitle title="Education" config={config} />
+            {data.education.map((edu, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontWeight: 600,
+                  }}
+                >
+                  <span>{edu.degree}</span>
+                  <span style={{ color: config.colors.muted }}>
+                    {edu.from} – {edu.to}
+                  </span>
+                </div>
+                <p>{edu.institute}</p>
+              </div>
+            ))}
+          </>
+        );
+
+      case "certifications":
+        return (
+          <>
+            <SectionTitle title="Certifications" config={config} />
+            {data.certifications.map((c, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <strong>{c.name}</strong>
+                <p style={{ color: config.colors.muted }}>
+                  {c.issuer} {c.year && `· ${c.year}`}
+                </p>
+              </div>
+            ))}
+          </>
+        );
+
+      case "achievements":
+        return (
+          <>
+            <SectionTitle title="Achievements" config={config} />
+            <ul style={{ paddingLeft: "18px" }}>
+              {data.achievements.map((a, i) => (
+                <li key={i}>{a}</li>
+              ))}
+            </ul>
+          </>
+        );
+
+      case "extracurricular":
+        return (
+          <>
+            <SectionTitle title="Extracurricular" config={config} />
+            {data.extracurricular.map((e, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <strong>{e.role}</strong>
+                <p style={{ color: config.colors.muted }}>
+                  {e.activity} {e.year && `· ${e.year}`}
+                </p>
+                {e.description && <p>{e.description}</p>}
+              </div>
+            ))}
+          </>
+        );
+
+      case "hobbies":
+        return (
+          <>
+            <SectionTitle title="Hobbies" config={config} />
+            <p style={{ color: config.colors.muted }}>
+              {data.hobbies.join(" · ")}
+            </p>
+          </>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  /* ================= RENDER ================= */
 
   return (
     <div
       id="resume-export"
       style={{
-        width: theme.page.width,
-        minHeight: theme.page.minHeight,
-        padding: theme.page.padding,
-        background: theme.page.background,
-        fontFamily: theme.fonts.body,
-        color: theme.colors.text,
+        width: `${config.page.width}px`,
+        minHeight: `${config.page.minHeight}px`,
+        padding: `${config.page.padding}px`,
+        background: config.page.background,
+        fontFamily: config.typography.fontFamily.body,
+        color: config.colors.text,
+        lineHeight: config.typography.lineHeight,
         boxSizing: "border-box",
-        lineHeight: 1.4,
+        boxShadow: `0 0 0 1px ${config.colors.line}`,
       }}
     >
       {/* ================= HEADER ================= */}
-      <div style={{ textAlign: "center", marginBottom: "18px" }}>
-        <h1
-          style={{
-            fontSize: theme.fontSizes.name,
-            fontWeight: "bold",
-            color: theme.colors.primary,
-            marginBottom: "4px",
-          }}
-        >
-          {personal.name}
-        </h1>
-
-        <p style={{ fontWeight: "bold", marginBottom: "6px" }}>
-          {personal.title}
-        </p>
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            flexWrap: "wrap",
-            gap: "14px",
-            fontSize: theme.fontSizes.small,
-          }}
-        >
-          <LinkItem
-            icon={Mail}
-            href={`mailto:${personal.email}`}
-            text={personal.email}
-          />
-          <LinkItem
-            icon={Phone}
-            href={`tel:${personal.phone}`}
-            text={personal.phone}
-          />
-          <LinkItem
-            icon={Github}
-            href={`https://${personal.github}`}
-            text={personal.github}
-          />
-          <LinkItem
-            icon={Linkedin}
-            href={`https://${personal.linkedin}`}
-            text={personal.linkedin}
-          />
-        </div>
-      </div>
-
-      {/* ================= SUMMARY ================= */}
-      <SectionTitle title="Summary" />
-      <p style={{ fontSize: theme.fontSizes.body }}>{personal.summary}</p>
-
-      {/* ================= EXPERIENCE ================= */}
-      <SectionTitle title="Professional Experience" />
-
-      {data.experience.map((exp, i) => (
-        <div key={i} style={{ marginBottom: "14px" }}>
-          <div
+      {!isEmpty(personal) && (
+        <div style={{ marginBottom: config.spacing.sectionGap }}>
+          <h1
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontWeight: "bold",
+              fontSize: `${config.typography.fontSize.name}px`,
+              fontWeight: 800,
+              color: config.colors.primary,
             }}
           >
-            <span>
-              {exp.role}, {exp.company}
-            </span>
-            <span>{exp.duration}</span>
+            {personal.name}
+          </h1>
+
+          <p style={{ color: config.colors.muted }}>
+            {personal.title} · {personal.address}
+          </p>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "14px" }}>
+            {personal.email && (
+              <LinkItem
+                href={`mailto:${personal.email}`}
+                text={personal.email}
+                config={config}
+              />
+            )}
+            {personal.phone && (
+              <LinkItem
+                href={`tel:${personal.phone}`}
+                text={personal.phone}
+                config={config}
+              />
+            )}
+            {personal.github && (
+              <LinkItem
+                href={`https://${personal.github}`}
+                text="GitHub"
+                config={config}
+              />
+            )}
+            {personal.linkedin && (
+              <LinkItem
+                href={`https://${personal.linkedin}`}
+                text="LinkedIn"
+                config={config}
+              />
+            )}
           </div>
-
-          <ol style={{ paddingLeft: "20px", marginTop: "6px" }}>
-            {exp.description.map((d, j) => (
-              <li key={j}>{d}</li>
-            ))}
-          </ol>
         </div>
-      ))}
+      )}
 
-      {/* ================= PROJECTS ================= */}
-      <SectionTitle title="Projects" />
+      {/* ================= SUMMARY ================= */}
+      {personal?.summary && (
+        <>
+          <SectionTitle title="Summary" config={config} />
+          <p>{personal.summary}</p>
+        </>
+      )}
 
-      {data.projects.map((p, i) => (
-        <div key={i} style={{ marginBottom: "14px" }}>
-          <strong>{p.title}</strong>
-          <ul style={{ paddingLeft: "18px", marginTop: "6px" }}>
-            {p.description.map((d, j) => (
-              <li key={j}>{d}</li>
-            ))}
-          </ul>
-        </div>
-      ))}
-
-      {/* ================= SKILLS ================= */}
-      <SectionTitle title="Technical Skills" />
-
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          fontSize: theme.fontSizes.body,
-        }}
-      >
-        {data.skills.map((skill, i) => (
-          <div key={i} style={{ width: "33%", marginBottom: "4px" }}>
-            {skill}
-          </div>
-        ))}
-      </div>
-
-      {/* ================= EDUCATION ================= */}
-      <SectionTitle title="Education" />
-
-      {data.education.map((edu, i) => (
-        <div key={i} style={{ marginBottom: "10px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <strong>{edu.degree}</strong>
-            <span>
-              {edu.from} – {edu.to}
-            </span>
-          </div>
-          <p>{edu.institute}</p>
-        </div>
+      {/* ================= BODY (ORDERED) ================= */}
+      {config.content.order.map((section) => (
+        <div key={section}>{renderSection(section)}</div>
       ))}
     </div>
   );
 };
 
-export default DefaultResume;
+export default CleanProfessionalResume;

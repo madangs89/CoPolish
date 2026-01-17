@@ -1,5 +1,70 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const resumeConfig = {
+  content: {
+    order: [
+      "skills",
+      "projects",
+      "experience",
+      "education",
+      "certifications",
+      "achievements",
+      "extracurricular",
+      "hobbies",
+      "personal",
+    ],
+  },
+
+  layout: {
+    type: "single-column", // "two-column" | "timeline"
+    columnRatio: [2, 1], // only used for two-column
+  },
+
+  page: {
+    width: 794,
+    minHeight: 1123,
+    padding: 36,
+    background: "#ffffff",
+  },
+
+  typography: {
+    fontFamily: {
+      heading: "Inter, system-ui, sans-serif",
+      body: "Inter, system-ui, sans-serif",
+    },
+    fontSize: {
+      name: 30,
+      section: 15,
+      body: 14,
+      small: 13,
+    },
+    lineHeight: 1.55,
+  },
+
+  colors: {
+    primary: "#111827",
+    accent: "#2563eb",
+    text: "#1f2937",
+    muted: "#6b7280",
+    line: "#e5e7eb",
+  },
+
+  spacing: {
+    sectionGap: 28,
+    itemGap: 14,
+  },
+
+  decorations: {
+    showDividers: true,
+    dividerStyle: "line", // "dot" | "timeline"
+  },
+
+  meta: {
+    templateId: "balanced-two-column",
+    lastUpdated: new Date().toISOString(),
+  },
+};
+
 const initialState = {
   isChanged: false,
   currentResumeId: null,
@@ -77,6 +142,8 @@ const initialState = {
     scoreAfter: 0,
     suggestions: [],
   },
+  config: resumeConfig,
+  currentResumeConfig: resumeConfig,
 };
 
 export const resumeSlice = createSlice({

@@ -1,47 +1,25 @@
 import React from "react";
 
-/* ================= THEME ================= */
+/* ================= HELPERS ================= */
 
-const timelineTheme = {
-  page: {
-    width: "794px",
-    minHeight: "1123px",
-    padding: "32px",
-    background: "#ffffff",
-  },
-
-  colors: {
-    primary: "#020617",   // slate-950
-    accent: "#0ea5e9",    // sky-500
-    text: "#111827",
-    muted: "#6b7280",
-    line: "#e5e7eb",
-    dot: "#0ea5e9",
-  },
-
-  fonts: {
-    heading: "Inter, system-ui, -apple-system, sans-serif",
-    body: "Inter, system-ui, -apple-system, sans-serif",
-  },
-
-  fontSizes: {
-    name: "28px",
-    section: "15px",
-    body: "14px",
-    small: "13px",
-  },
+const isEmpty = (value) => {
+  if (!value) return true;
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === "object")
+    return Object.values(value).every(v => !v || v.length === 0);
+  return false;
 };
 
 /* ================= COMPONENTS ================= */
 
-const SectionTitle = ({ title }) => (
+const SectionTitle = ({ title, config }) => (
   <h2
     style={{
-      marginTop: "32px",
-      marginBottom: "12px",
-      fontSize: timelineTheme.fontSizes.section,
+      marginTop: config.spacing.sectionGap,
+      marginBottom: config.spacing.itemGap,
+      fontSize: `${config.typography.fontSize.section}px`,
       fontWeight: 700,
-      color: timelineTheme.colors.primary,
+      color: config.colors.primary,
       textTransform: "uppercase",
       letterSpacing: "0.6px",
     }}
@@ -52,168 +30,191 @@ const SectionTitle = ({ title }) => (
 
 /* ================= TEMPLATE ================= */
 
-const CareerTimelineResume = ({ data }) => {
+const CareerTimelineResume = ({ data, config }) => {
   const { personal } = data;
+
+  const renderSection = (section) => {
+    if (isEmpty(data[section])) return null;
+
+    switch (section) {
+      case "experience":
+        return (
+          <>
+            <SectionTitle title="Career Timeline" config={config} />
+
+            <div style={{ position: "relative", marginLeft: "14px" }}>
+              {/* vertical line */}
+              {config.decorations.dividerStyle === "timeline" && (
+                <div
+                  style={{
+                    position: "absolute",
+                    left: "6px",
+                    top: 0,
+                    bottom: 0,
+                    width: "2px",
+                    background: config.colors.line,
+                  }}
+                />
+              )}
+
+              {data.experience.map((exp, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    gap: "16px",
+                    marginBottom: config.spacing.sectionGap,
+                  }}
+                >
+                  {/* dot */}
+                  <div
+                    style={{
+                      width: "14px",
+                      height: "14px",
+                      borderRadius: "50%",
+                      background: config.colors.accent,
+                      marginTop: "6px",
+                      flexShrink: 0,
+                    }}
+                  />
+
+                  {/* content */}
+                  <div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <span>
+                        {exp.role} · {exp.company}
+                      </span>
+                      <span style={{ color: config.colors.muted }}>
+                        {exp.duration}
+                      </span>
+                    </div>
+
+                    <ul style={{ paddingLeft: "18px", marginTop: "6px" }}>
+                      {exp.description.map((d, j) => (
+                        <li key={j}>{d}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        );
+
+      case "projects":
+        return (
+          <>
+            <SectionTitle title="Selected Projects" config={config} />
+            {data.projects.map((p, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <strong>{p.title}</strong>
+                <ul style={{ paddingLeft: "18px", marginTop: "6px" }}>
+                  {p.description.map((d, j) => (
+                    <li key={j}>{d}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </>
+        );
+
+      case "skills":
+        return (
+          <>
+            <SectionTitle title="Core Skills" config={config} />
+            <p style={{ color: config.colors.muted }}>
+              {data.skills.join(" · ")}
+            </p>
+          </>
+        );
+
+      case "education":
+        return (
+          <>
+            <SectionTitle title="Education" config={config} />
+            {data.education.map((edu, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <strong>{edu.degree}</strong>{" "}
+                <span style={{ color: config.colors.muted }}>
+                  ({edu.from} – {edu.to})
+                </span>
+                <p>{edu.institute}</p>
+              </div>
+            ))}
+          </>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  /* ================= RENDER ================= */
 
   return (
     <div
       id="resume-export"
       style={{
-        width: timelineTheme.page.width,
-        minHeight: timelineTheme.page.minHeight,
-        padding: timelineTheme.page.padding,
-        background: timelineTheme.page.background,
-        fontFamily: timelineTheme.fonts.body,
-        color: timelineTheme.colors.text,
+        width: `${config.page.width}px`,
+        minHeight: `${config.page.minHeight}px`,
+        padding: `${config.page.padding}px`,
+        background: config.page.background,
+        fontFamily: config.typography.fontFamily.body,
+        color: config.colors.text,
+        lineHeight: config.typography.lineHeight,
         boxSizing: "border-box",
-        lineHeight: 1.6,
-        border: "1px solid #e5e7eb",
+        border: `1px solid ${config.colors.line}`,
       }}
     >
-      {/* ================= HEADER BAND ================= */}
-      <div
-        style={{
-          paddingBottom: "20px",
-          borderBottom: `2px solid ${timelineTheme.colors.line}`,
-          marginBottom: "28px",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: timelineTheme.fontSizes.name,
-            fontWeight: 800,
-            marginBottom: "6px",
-            color: timelineTheme.colors.primary,
-          }}
-        >
-          {personal.name}
-        </h1>
-
-        <p
-          style={{
-            fontSize: timelineTheme.fontSizes.body,
-            color: timelineTheme.colors.muted,
-            marginBottom: "8px",
-          }}
-        >
-          {personal.title} · {personal.address}
-        </p>
-
+      {/* ================= HEADER ================= */}
+      {!isEmpty(personal) && (
         <div
           style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "16px",
-            fontSize: timelineTheme.fontSizes.small,
+            paddingBottom: "20px",
+            borderBottom: `2px solid ${config.colors.line}`,
+            marginBottom: config.spacing.sectionGap,
           }}
         >
-          <a href={`mailto:${personal.email}`}>{personal.email}</a>
-          <a href={`tel:${personal.phone}`}>{personal.phone}</a>
-          <a href={`https://${personal.github}`}>GitHub</a>
-          <a href={`https://${personal.linkedin}`}>LinkedIn</a>
-        </div>
-      </div>
-
-      {/* ================= SUMMARY ================= */}
-      <SectionTitle title="Profile" />
-      <p>{personal.summary}</p>
-
-      {/* ================= EXPERIENCE (TIMELINE) ================= */}
-      <SectionTitle title="Career Timeline" />
-
-      <div style={{ position: "relative", marginLeft: "14px" }}>
-        {/* vertical line */}
-        <div
-          style={{
-            position: "absolute",
-            left: "6px",
-            top: 0,
-            bottom: 0,
-            width: "2px",
-            background: timelineTheme.colors.line,
-          }}
-        />
-
-        {data.experience.map((exp, i) => (
-          <div
-            key={i}
+          <h1
             style={{
-              display: "flex",
-              gap: "16px",
-              marginBottom: "28px",
+              fontSize: `${config.typography.fontSize.name}px`,
+              fontWeight: 800,
+              color: config.colors.primary,
             }}
           >
-            {/* dot */}
-            <div
-              style={{
-                width: "14px",
-                height: "14px",
-                borderRadius: "50%",
-                background: timelineTheme.colors.dot,
-                marginTop: "6px",
-                flexShrink: 0,
-              }}
-            />
+            {personal.name}
+          </h1>
 
-            {/* content */}
-            <div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontWeight: 600,
-                }}
-              >
-                <span>
-                  {exp.role} · {exp.company}
-                </span>
-                <span style={{ color: timelineTheme.colors.muted }}>
-                  {exp.duration}
-                </span>
-              </div>
+          <p style={{ color: config.colors.muted }}>
+            {personal.title} · {personal.address}
+          </p>
 
-              <ul style={{ paddingLeft: "18px", marginTop: "6px" }}>
-                {exp.description.map((d, j) => (
-                  <li key={j}>{d}</li>
-                ))}
-              </ul>
-            </div>
+          <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+            {personal.email && <a href={`mailto:${personal.email}`}>{personal.email}</a>}
+            {personal.phone && <a href={`tel:${personal.phone}`}>{personal.phone}</a>}
+            {personal.github && <a href={`https://${personal.github}`}>GitHub</a>}
+            {personal.linkedin && <a href={`https://${personal.linkedin}`}>LinkedIn</a>}
           </div>
-        ))}
-      </div>
-
-      {/* ================= PROJECTS ================= */}
-      <SectionTitle title="Selected Projects" />
-
-      {data.projects.map((p, i) => (
-        <div key={i} style={{ marginBottom: "18px" }}>
-          <strong>{p.title}</strong>
-          <ul style={{ paddingLeft: "18px", marginTop: "6px" }}>
-            {p.description.map((d, j) => (
-              <li key={j}>{d}</li>
-            ))}
-          </ul>
         </div>
-      ))}
+      )}
 
-      {/* ================= SKILLS ================= */}
-      <SectionTitle title="Core Skills" />
+      {/* ================= SUMMARY ================= */}
+      {personal?.summary && (
+        <>
+          <SectionTitle title="Profile" config={config} />
+          <p>{personal.summary}</p>
+        </>
+      )}
 
-      <p style={{ color: timelineTheme.colors.muted }}>
-        {data.skills.join(" · ")}
-      </p>
-
-      {/* ================= EDUCATION ================= */}
-      <SectionTitle title="Education" />
-
-      {data.education.map((edu, i) => (
-        <div key={i} style={{ marginBottom: "10px" }}>
-          <strong>{edu.degree}</strong>{" "}
-          <span style={{ color: timelineTheme.colors.muted }}>
-            ({edu.from} – {edu.to})
-          </span>
-          <p>{edu.institute}</p>
-        </div>
+      {/* ================= BODY (ORDERED) ================= */}
+      {config.content.order.map((section) => (
+        <div key={section}>{renderSection(section)}</div>
       ))}
     </div>
   );

@@ -1,65 +1,46 @@
 import React from "react";
 
-const theme = {
-  page: {
-    width: "794px",
-    minHeight: "1123px",
-    background: "#ffffff",
-  },
-  sidebar: {
-    width: "260px",
-    background: "#f3f4f6",
-    padding: "32px",
-  },
-  main: {
-    padding: "32px",
-  },
-  colors: {
-    primary: "#111827",
-    accent: "#2563eb",
-    text: "#1f2937",
-    muted: "#6b7280",
-    line: "#e5e7eb",
-  },
-  fonts: {
-    heading: "Inter, system-ui, sans-serif",
-    body: "Inter, system-ui, sans-serif",
-  },
-  fontSizes: {
-    name: "24px",
-    section: "13px",
-    body: "13px",
-    small: "12px",
-  },
+/* ================= HELPERS ================= */
+
+const isEmpty = (value) => {
+  if (!value) return true;
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === "object")
+    return Object.values(value).every(
+      (v) => v === null || v === "" || (Array.isArray(v) && v.length === 0)
+    );
+  return false;
 };
 
-const SidebarSectionTitle = ({ title }) => (
-  <div style={{ marginTop: "20px", marginBottom: "10px" }}>
+/* ================= COMPONENTS ================= */
+
+const SidebarSectionTitle = ({ title, config }) => (
+  <div style={{ marginTop: config.spacing.sectionGap, marginBottom: 10 }}>
     <h3
       style={{
-        fontSize: theme.fontSizes.section,
+        fontSize: `${config.typography.fontSize.section}px`,
         fontWeight: 700,
         letterSpacing: "0.8px",
         textTransform: "uppercase",
-        color: theme.colors.primary,
+        color: config.colors.primary,
         marginBottom: "6px",
       }}
     >
       {title}
     </h3>
-    <div style={{ height: "1px", background: theme.colors.line }} />
+    <div style={{ height: "1px", background: config.colors.line }} />
   </div>
 );
 
-const SidebarLink = ({ href, text }) => (
+const SidebarLink = ({ href, text, config }) => (
   <a
     href={href}
     target="_blank"
     rel="noopener noreferrer"
     style={{
       display: "block",
-      fontSize: theme.fontSizes.small,
-      color: theme.colors.accent,
+      fontSize: `${config.typography.fontSize.small}px`,
+      color: config.colors.accent,
       textDecoration: "none",
       marginBottom: "6px",
     }}
@@ -68,137 +49,212 @@ const SidebarLink = ({ href, text }) => (
   </a>
 );
 
-const ProfessionalSidebarResume = ({ data }) => {
+/* ================= TEMPLATE ================= */
+
+const ProfessionalSidebarResume = ({ data, config }) => {
   const { personal } = data;
+
+  const renderMainSection = (section) => {
+    if (isEmpty(data[section])) return null;
+
+    switch (section) {
+      case "experience":
+        return (
+          <>
+            <SidebarSectionTitle title="Experience" config={config} />
+            {data.experience.map((exp, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontWeight: 600,
+                  }}
+                >
+                  <span>
+                    {exp.role} — {exp.company}
+                  </span>
+                  <span style={{ color: config.colors.muted }}>
+                    {exp.duration}
+                  </span>
+                </div>
+                <ul style={{ paddingLeft: "18px", marginTop: "6px" }}>
+                  {exp.description.map((d, j) => (
+                    <li key={j}>{d}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </>
+        );
+
+      case "projects":
+        return (
+          <>
+            <SidebarSectionTitle title="Projects" config={config} />
+            {data.projects.map((p, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <strong>{p.title}</strong>
+                <ul style={{ paddingLeft: "18px", marginTop: "6px" }}>
+                  {p.description.map((d, j) => (
+                    <li key={j}>{d}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </>
+        );
+
+      case "education":
+        return (
+          <>
+            <SidebarSectionTitle title="Education" config={config} />
+            {data.education.map((edu, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <strong>{edu.degree}</strong>
+                  <span style={{ color: config.colors.muted }}>
+                    {edu.from} – {edu.to}
+                  </span>
+                </div>
+                <p>{edu.institute}</p>
+              </div>
+            ))}
+          </>
+        );
+
+      case "achievements":
+        return (
+          <>
+            <SidebarSectionTitle title="Achievements" config={config} />
+            <ul style={{ paddingLeft: "18px" }}>
+              {data.achievements.map((a, i) => (
+                <li key={i}>{a}</li>
+              ))}
+            </ul>
+          </>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  /* ================= RENDER ================= */
 
   return (
     <div
       id="resume-export"
       style={{
-        width: theme.page.width,
-        minHeight: theme.page.minHeight,
+        width: `${config.page.width}px`,
+        minHeight: `${config.page.minHeight}px`,
         display: "flex",
-        background: theme.page.background,
-        fontFamily: theme.fonts.body,
-        color: theme.colors.text,
+        background: config.page.background,
+        fontFamily: config.typography.fontFamily.body,
+        color: config.colors.text,
         boxSizing: "border-box",
-        boxShadow: "0 0 0 1px #e5e7eb",
+        boxShadow: `0 0 0 1px ${config.colors.line}`,
       }}
     >
       {/* ===== SIDEBAR ===== */}
       <div
         style={{
-          width: theme.sidebar.width,
-          background: theme.sidebar.background,
-          padding: theme.sidebar.padding,
+          width: `${config.layout.columnRatio?.[0] || 260}px`,
+          background: "#f3f4f6",
+          padding: `${config.page.padding}px`,
           boxSizing: "border-box",
         }}
       >
-        <h1
-          style={{
-            fontSize: theme.fontSizes.name,
-            fontWeight: 800,
-            marginBottom: "4px",
-          }}
-        >
-          {personal.name}
-        </h1>
+        {!isEmpty(personal) && (
+          <>
+            <h1
+              style={{
+                fontSize: `${config.typography.fontSize.name}px`,
+                fontWeight: 800,
+                marginBottom: "4px",
+              }}
+            >
+              {personal.name}
+            </h1>
 
-        <p
-          style={{
-            fontSize: theme.fontSizes.small,
-            color: theme.colors.muted,
-            marginBottomBottom: "16px",
-          }}
-        >
-          {personal.title}
-        </p>
+            <p
+              style={{
+                fontSize: `${config.typography.fontSize.small}px`,
+                color: config.colors.muted,
+                marginBottom: "16px",
+              }}
+            >
+              {personal.title}
+            </p>
 
-        <SidebarSectionTitle title="Contact" />
-        <SidebarLink href={`mailto:${personal.email}`} text={personal.email} />
-        <SidebarLink href={`tel:${personal.phone}`} text={personal.phone} />
-        <SidebarLink href={`https://${personal.github}`} text="GitHub" />
-        <SidebarLink href={`https://${personal.linkedin}`} text="LinkedIn" />
+            <SidebarSectionTitle title="Contact" config={config} />
+            {personal.email && (
+              <SidebarLink
+                href={`mailto:${personal.email}`}
+                text={personal.email}
+                config={config}
+              />
+            )}
+            {personal.phone && (
+              <SidebarLink
+                href={`tel:${personal.phone}`}
+                text={personal.phone}
+                config={config}
+              />
+            )}
+            {personal.github && (
+              <SidebarLink
+                href={`https://${personal.github}`}
+                text="GitHub"
+                config={config}
+              />
+            )}
+            {personal.linkedin && (
+              <SidebarLink
+                href={`https://${personal.linkedin}`}
+                text="LinkedIn"
+                config={config}
+              />
+            )}
+          </>
+        )}
 
-        <SidebarSectionTitle title="Skills" />
-        {data.skills.map((skill, i) => (
-          <div
-            key={i}
-            style={{
-              fontSize: theme.fontSizes.small,
-              marginBottom: "6px",
-            }}
-          >
-            {skill}
-          </div>
-        ))}
+        {!isEmpty(data.skills) && (
+          <>
+            <SidebarSectionTitle title="Skills" config={config} />
+            {data.skills.map((skill, i) => (
+              <div
+                key={i}
+                style={{
+                  fontSize: `${config.typography.fontSize.small}px`,
+                  marginBottom: "6px",
+                }}
+              >
+                {skill}
+              </div>
+            ))}
+          </>
+        )}
       </div>
 
       {/* ===== MAIN CONTENT ===== */}
       <div
         style={{
           flex: 1,
-          padding: theme.main.padding,
+          padding: `${config.page.padding}px`,
           boxSizing: "border-box",
-          lineHeight: 1.55,
+          lineHeight: config.typography.lineHeight,
         }}
       >
-        <SidebarSectionTitle title="Summary" />
-        <p>{personal.summary}</p>
+        {personal?.summary && (
+          <>
+            <SidebarSectionTitle title="Summary" config={config} />
+            <p>{personal.summary}</p>
+          </>
+        )}
 
-        <SidebarSectionTitle title="Experience" />
-        {data.experience.map((exp, i) => (
-          <div key={i} style={{ marginBottom: "16px" }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontWeight: 600,
-              }}
-            >
-              <span>
-                {exp.role} — {exp.company}
-              </span>
-              <span style={{ color: theme.colors.muted }}>
-                {exp.duration}
-              </span>
-            </div>
-            <ul style={{ paddingLeft: "18px", marginTop: "6px" }}>
-              {exp.description.map((d, j) => (
-                <li key={j}>{d}</li>
-              ))}
-            </ul>
-          </div>
-        ))}
-
-        <SidebarSectionTitle title="Projects" />
-        {data.projects.map((p, i) => (
-          <div key={i} style={{ marginBottom: "14px" }}>
-            <strong>{p.title}</strong>
-            <ul style={{ paddingLeft: "18px", marginTop: "6px" }}>
-              {p.description.map((d, j) => (
-                <li key={j}>{d}</li>
-              ))}
-            </ul>
-          </div>
-        ))}
-
-        <SidebarSectionTitle title="Education" />
-        {data.education.map((edu, i) => (
-          <div key={i} style={{ marginBottom: "10px" }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-              }}
-            >
-              <strong>{edu.degree}</strong>
-              <span style={{ color: theme.colors.muted }}>
-                {edu.from} – {edu.to}
-              </span>
-            </div>
-            <p>{edu.institute}</p>
-          </div>
+        {config.content.order.map((section) => (
+          <div key={section}>{renderMainSection(section)}</div>
         ))}
       </div>
     </div>
