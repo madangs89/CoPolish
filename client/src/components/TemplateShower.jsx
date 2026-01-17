@@ -1,5 +1,5 @@
 import React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import BalancedTwoColumnResume from "./ResumeTemplates/BalancedTwoColumnResume";
 import CareerTimelineResume from "./ResumeTemplates/CareerTimelineResume";
 import CleanProfessionalResume from "./ResumeTemplates/CleanProfessionalResume";
@@ -8,6 +8,7 @@ import ModernMinimalResume from "./ResumeTemplates/ModernMinimalResume";
 import ProfessionalSidebarResume from "./ResumeTemplates/ProfessionalSidebarResume";
 import ResumeClassicBlue from "./ResumeTemplates/ResumeClassicBlue";
 import ResumeClassicV1 from "./ResumeTemplates/ResumeClassicV1";
+import { setCurrentResumeTemplateId } from "../redux/slice/resumeSlice";
 
 const fakeResumeData = {
   personal: {
@@ -170,6 +171,11 @@ const templateRegistry = {
 const TemplateShower = () => {
   const templates = useSelector((state) => state.resume.templates);
   const config = useSelector((state) => state.resume.currentResumeConfig);
+  const currentTemplateId = useSelector(
+    (state) => state.resume.currentResume.templateId
+  );
+
+  const dispatch = useDispatch();
 
   return (
     <div className="w-full px-2 h-screen flex flex-col gap-4 bg-white border-l">
@@ -181,11 +187,12 @@ const TemplateShower = () => {
         return (
           <div
             key={key}
-            className="w-full flex h-[600px] items-center flex-col  rounded-lg p-4 "
+            onClick={() => dispatch(setCurrentResumeTemplateId(templates[key]))}
+            className={`w-full ${currentTemplateId === key ? "border-2 border-blue-500" : "border"} cursor-pointer bg-gray-100 flex h-[600px] items-start flex-col  rounded-lg p-4 `}
           >
-            <h1 className="text-sm font-semibold mb-2">{key}</h1>
+            <h1 className="text-sm  font-semibold mb-2">{key}</h1>
 
-            <div className="relative h-[500px] w-[340px] overflow-hidden border bg-white">
+            <div className="relative h-[500px] w-[330px] overflow-hidden border bg-white">
               <div
                 className="origin-top-left scale-[0.45]"
                 style={{ width: "800px" }}

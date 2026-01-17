@@ -183,6 +183,9 @@ export const resumeSlice = createSlice({
     setCurrentResumeConfig: (state, actions) => {
       state.currentResumeConfig = actions.payload;
     },
+    setCurrentResumeTemplateId: (state, actions) => {
+      state.currentResume.templateId = actions.payload;
+    },
   },
 });
 
@@ -191,6 +194,7 @@ export const {
   setCurrentResumeId,
   setCurrentResume,
   setCurrentResumeConfig,
+  setCurrentResumeTemplateId,
 } = resumeSlice.actions;
 const resumeReducer = resumeSlice.reducer;
 

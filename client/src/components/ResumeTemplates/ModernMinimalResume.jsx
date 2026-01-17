@@ -87,7 +87,10 @@ const ModernMinimalResume = ({ data, config }) => {
                     {exp.duration}
                   </span>
                 </div>
-                <ul className="list-decimal" style={{ paddingLeft: "18px", marginTop: "6px" }}>
+                <ul
+                  className="list-decimal"
+                  style={{ paddingLeft: "18px", marginTop: "6px" }}
+                >
                   {exp.description.map((d, j) => (
                     <li key={j}>{d}</li>
                   ))}
@@ -104,7 +107,10 @@ const ModernMinimalResume = ({ data, config }) => {
             {data.projects.map((p, i) => (
               <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
                 <strong>{p.title}</strong>
-                <ul className="list-decimal" style={{ paddingLeft: "18px", marginTop: "6px" }}>
+                <ul
+                  className="list-decimal"
+                  style={{ paddingLeft: "18px", marginTop: "6px" }}
+                >
                   {p.description.map((d, j) => (
                     <li key={j}>{d}</li>
                   ))}
@@ -179,7 +185,7 @@ const ModernMinimalResume = ({ data, config }) => {
         return (
           <>
             <SectionTitle title="Achievements" config={config} />
-            <ul >
+            <ul>
               {data.achievements.map((a, i) => (
                 <li key={i}>{a}</li>
               ))}

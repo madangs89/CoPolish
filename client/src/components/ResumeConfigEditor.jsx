@@ -117,10 +117,10 @@ const ResumeConfigEditor = ({ config, setConfig, resumeData }) => {
         <label className="text-xs text-gray-500">Padding (px)</label>
         <input
           type="number"
-          min={16}
+          min={10}
           max={60}
           value={config.page.padding}
-          onChange={(e) => set("page.padding", clamp(+e.target.value, 16, 60))}
+          onChange={(e) => set("page.padding", clamp(+e.target.value, 10, 60))}
           className="border rounded px-3 py-2 w-full mb-3"
         />
 
