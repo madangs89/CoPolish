@@ -13,6 +13,7 @@ const initialState = {
       github: "",
       linkedin: "",
       address: "",
+      hackerRank: "",
     },
     education: [
       {
@@ -70,6 +71,11 @@ const initialState = {
         description: "",
       },
     ],
+    templateId: null,
+    changes: [],
+    scoreBefore: 0,
+    scoreAfter: 0,
+    suggestions: [],
   },
 };
 

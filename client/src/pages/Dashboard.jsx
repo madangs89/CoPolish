@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { Linkedin, FileText } from "lucide-react";
+import { useSelector } from "react-redux";
+import { formatDistanceToNow } from "date-fns";
+
+let nowTime = new Date();
 
 const Dashboard = () => {
+  const userDetails = useSelector((state) => state.auth.user);
+  const resumeSlice = useSelector((state) => state.resume);
   const [userName] = useState("Madan");
   const [credits] = useState(52);
 
@@ -28,8 +34,12 @@ const Dashboard = () => {
           ✓
         </div>
         <p className="text-sm md:text-base">
-          <span className="font-medium">Nice progress, {userName} 👋</span>{" "}
-          Your resume improved by <span className="font-semibold">+6 points</span>
+          <span className="font-medium">
+            Nice progress,{" "}
+            {userDetails?.userName && userDetails?.userName.split(" ")[0]} 👋
+          </span>{" "}
+          Your resume improved by{" "}
+          <span className="font-semibold">+6 points</span>
         </p>
       </div>
 
@@ -45,7 +55,13 @@ const Dashboard = () => {
           </div>
 
           <p className="text-sm text-gray-500 mt-2">
-            Last optimized: {resumeUpdated}
+            Last optimized:{" "}
+            {formatDistanceToNow(
+              new Date(resumeSlice?.currentResume?.updatedAt || nowTime),
+              {
+                addSuffix: true,
+              }
+            )}
           </p>
 
           <div className="flex gap-3 mt-6">
