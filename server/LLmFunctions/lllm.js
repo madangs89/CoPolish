@@ -1,4 +1,5 @@
 import { ai } from "../config/google.js";
+import { validateLLMResponse } from "../JsonHandlers/handlers/ajv.js";
 
 import ResumeTemplate from "../models/resume.model.js";
 import {
@@ -213,6 +214,21 @@ export const aiResumeParser = async (text) => {
 
     console.log(response.usageMetadata);
     console.log(newText);
+
+    const isValid = validateLLMResponse("parsed", JSON.parse(newText));
+
+    const { isValid: valid, errors } = isValid;
+
+    if (!valid) {
+      console.error("Validation errors:", errors);
+
+      return {
+        text: null,
+        usage: response.usageMetadata,
+        error: errors,
+        isError: true,
+      };
+    }
 
     const payload = {
       text: JSON.parse(newText),
