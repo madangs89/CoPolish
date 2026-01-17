@@ -3,7 +3,10 @@ import BlackLoader from "../Loaders/BlackLoader";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { setCurrentResume } from "../../redux/slice/resumeSlice";
+import {
+  setCurrentResume,
+  setCurrentResumeId,
+} from "../../redux/slice/resumeSlice";
 import toast from "react-hot-toast";
 import { setJobSeenJobs } from "../../redux/slice/jobSlice";
 
@@ -32,7 +35,7 @@ export default function ResumeProgress({
 
     const onParsed = (data) => {
       const { userId, event, jobId, isError } = JSON.parse(data);
-      const newId = `${event}:${jobId}:${userId}`;;
+      const newId = `${event}:${jobId}:${userId}`;
 
       if (jobs[newId] == true) {
         return;
@@ -52,16 +55,24 @@ export default function ResumeProgress({
     };
 
     const onAIParsed = (data) => {
-      const { userId, event, parsedNewResume , isError , jobId } = JSON.parse(data);
+      const { userId, event, parsedNewResume, isError, jobId } =
+        JSON.parse(data);
 
-           const newId = `${event}:${jobId}:${userId}`;;
+      console.log("RESUME_PARSE_AI_COMPLETED");
 
+      const newId = `${event}:${jobId}:${userId}`;
 
       if (jobs[newId] == true) {
         return;
       }
 
-      if (event === "RESUME_PARSE_AI_COMPLETED" && userId === user._id && jobs[newId] == undefined  || jobs[newId] == null || jobs[newId] == false) {
+      if (
+        (event === "RESUME_PARSE_AI_COMPLETED" &&
+          userId === user._id &&
+          jobs[newId] == undefined) ||
+        jobs[newId] == null ||
+        jobs[newId] == false
+      ) {
         setstatus((prev) => {
           let newStatus = [...prev];
           if (!newStatus.includes("parsed")) newStatus.push("parsed");
@@ -69,14 +80,24 @@ export default function ResumeProgress({
           return newStatus;
         });
 
+        console.log(parsedNewResume);
+
+        if (parsedNewResume) {
+          dispatch(setCurrentResumeId(parsedNewResume?._id));
+
+          dispatch(setCurrentResume(parsedNewResume));
+        }
         dispatch(setJobSeenJobs({ id: newId, data: isError }));
-        dispatch(setCurrentResume(parsedNewResume));
-        navigate(`/approve/${userId}`);
+        navigate(`/approve/${parsedNewResume?._id}`, {
+          state: {
+            resume: parsedNewResume,
+          },
+        });
       }
     };
 
     const onParsedError = (data) => {
-      const { userId, isError, error  } = JSON.parse(data);
+      const { userId, isError, error } = JSON.parse(data);
 
       if (userId === user._id && isError) {
         setErrorStates((prev) => [

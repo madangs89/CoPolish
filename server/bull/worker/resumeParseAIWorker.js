@@ -18,8 +18,8 @@ const resumeParseAIWorker = new Worker(
       console.error("Error in AI resume parsing:", error);
       throw error;
     }
-    console.log(text);
-    console.log(usage);
+    // console.log(text);
+    // console.log(usage);
 
     const payload = {
       userId,
@@ -35,11 +35,17 @@ const resumeParseAIWorker = new Worker(
     let userUpdateCurrentResumeId;
     try {
       payload.jobKey = jobKey;
-      const parsedNewResume = await ResumeTemplate.findOneAndUpdate(
-        { jobKey },
-        { $setOnInsert: payload },
-        { upsert: true, new: true }
-      );
+      parsedNewResume = await ResumeTemplate.findOne({ jobKey });
+
+      if (!parsedNewResume) {
+        try {
+          parsedNewResume = await ResumeTemplate.create(payload);
+        } catch (err) {
+          // Handle race condition
+          parsedNewResume = await ResumeTemplate.findOne({ jobKey });
+        }
+      }
+
       userUpdateCurrentResumeId = await User.findByIdAndUpdate(userId, {
         currentResumeId: parsedNewResume._id,
       });
@@ -65,6 +71,7 @@ resumeParseAIWorker.on("completed", async (job) => {
 
   const data = job?.returnvalue || {};
 
+  console.log("completed", data);
   await pubClient.publish(
     "resume:events",
     JSON.stringify({

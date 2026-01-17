@@ -115,6 +115,8 @@ export const initSubscribers = async () => {
               isError,
             } = payload;
 
+            console.log({ parsedNewResume });
+
             console.log("Resume parse ai event published");
             const io = getIO();
 
@@ -141,7 +143,14 @@ export const initSubscribers = async () => {
                 if (socketId) {
                   io.to(socketId).emit(
                     "resume:ai:parsed",
-                    JSON.stringify({ jobId, userId, event, parsedNewResume, error, isError })
+                    JSON.stringify({
+                      jobId,
+                      userId,
+                      event,
+                      parsedNewResume,
+                      error,
+                      isError,
+                    })
                   );
                 }
               }

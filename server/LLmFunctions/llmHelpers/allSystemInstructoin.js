@@ -33,7 +33,12 @@ const resumeSchema = {
       title: null,
       description: [],
       technologies: [],
-      link: null,
+      link: [
+        {
+          title: String,
+          url: String,
+        },
+      ],
     },
   ],
   certifications: [
@@ -42,6 +47,12 @@ const resumeSchema = {
       issuer: null,
       year: null,
       credentialUrl: null,
+      link: [
+        {
+          title: String,
+          url: String,
+        },
+      ],
     },
   ],
   achievements: [], // Array of strings
@@ -206,7 +217,6 @@ Accuracy and honesty take priority over optimization.
 
 `;
 
-
 export const personalSystemInstruction = `
 
 Operation: personal
@@ -239,7 +249,6 @@ If insufficient data exists to write a factual 3–5 line summary:
 
 `;
 
-
 export const educationSystemInstruction = `
 
 Operation: education
@@ -263,8 +272,6 @@ RULES:
 - Preserve original academic intent.
 
 `;
-
-
 
 export const experienceSystemInstruction = `
 
@@ -297,8 +304,6 @@ DESCRIPTION RULES (VERY IMPORTANT):
 
 `;
 
-
-
 export const projectsSystemInstruction = `
 
 Operation: projects
@@ -310,7 +315,12 @@ Return ONLY the following JSON structure:
       "title": string | null,
       "description": string[],
       "technologies": string[],
-      "link": string | null
+      "link": [
+          {
+            title: String, // Github repo link
+            url: String,
+          },
+        ],
     }
   ]
 }
@@ -327,7 +337,6 @@ PROJECT DESCRIPTION RULES:
 - Do NOT convert academic projects into production claims.
 
 `;
-
 
 export const skillsSystemInstruction = `
 
@@ -346,7 +355,6 @@ RULES:
 
 `;
 
-
 export const certificationsSystemInstruction = `
 
 Operation: certifications
@@ -359,6 +367,12 @@ Return ONLY the following JSON structure:
       "issuer": string | null,
       "year": string | null,
       "credentialUrl": string | null
+      "link": [
+          {
+            title: String, // Certification link
+            url: String,
+          },
+        ],
     }
   ]
 }
@@ -369,7 +383,6 @@ RULES:
 - Do NOT add credibility statements.
 
 `;
-
 
 export const achievementsSystemInstruction = `
 
@@ -388,7 +401,6 @@ RULES:
 
 `;
 
-
 export const hobbiesSystemInstruction = `
 
 Operation: hobbies
@@ -404,7 +416,6 @@ RULES:
 - Do NOT professionalize hobbies.
 
 `;
-
 
 export const extracurricularSystemInstruction = `
 

@@ -38,7 +38,12 @@ const initialState = {
         title: "",
         description: [],
         technologies: [],
-        link: "",
+        link: [
+          {
+            title: "",
+            url: null,
+          },
+        ],
       },
     ],
     certifications: [
@@ -47,6 +52,12 @@ const initialState = {
         issuer: "",
         year: "",
         credentialUrl: "",
+        link: [
+          {
+            title: "",
+            url: null,
+          },
+        ],
       },
     ],
     achievements: [],

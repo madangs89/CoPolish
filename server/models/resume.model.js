@@ -66,13 +66,12 @@ const resumeTemplateSchema = new mongoose.Schema(
         title: String,
         description: [String],
         technologies: [String],
-        // link: [
-        //   {
-        //     title: String,
-        //     url: String,
-        //   },
-        // ],
-        link: String,
+        link: [
+          {
+            title: String,
+            url: String,
+          },
+        ],
       },
     ],
 
@@ -82,6 +81,12 @@ const resumeTemplateSchema = new mongoose.Schema(
         issuer: String,
         year: String,
         credentialUrl: String,
+        link: [
+          {
+            title: String,
+            url: String,
+          },
+        ],
       },
     ],
     achievements: [String],

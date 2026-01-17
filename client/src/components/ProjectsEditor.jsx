@@ -5,96 +5,131 @@ const ProjectsEditor = ({ data, onChange }) => {
   const [newBullet, setNewBullet] = useState({});
   const [newTech, setNewTech] = useState({});
 
-  /* ---------------- HELPERS ---------------- */
+  /* ---------------- BASIC FIELD ---------------- */
 
   const updateField = (projIndex, field, value) => {
-    const updated = [...data];
-    updated[projIndex] = {
-      ...updated[projIndex],
-      [field]: value,
-    };
+    const updated = data.map((p, i) =>
+      i === projIndex ? { ...p, [field]: value } : p
+    );
     onChange(updated);
   };
+
+  /* ---------------- LINKS ---------------- */
+
+  const updateLink = (projIndex, linkIndex, field, value) => {
+    const updated = data.map((p, i) => {
+      if (i !== projIndex) return p;
+
+      const links = p.link.map((l, j) =>
+        j === linkIndex ? { ...l, [field]: value } : l
+      );
+
+      return { ...p, link: links };
+    });
+
+    onChange(updated);
+  };
+
+  const addLink = (projIndex) => {
+    const updated = data.map((p, i) =>
+      i === projIndex
+        ? {
+            ...p,
+            link: [...p.link, { title: "", url: null }],
+          }
+        : p
+    );
+
+    onChange(updated);
+  };
+
+  const deleteLink = (projIndex, linkIndex) => {
+    const updated = data.map((p, i) =>
+      i === projIndex
+        ? {
+            ...p,
+            link: p.link.filter((_, j) => j !== linkIndex),
+          }
+        : p
+    );
+
+    onChange(updated);
+  };
+
+  /* ---------------- BULLETS ---------------- */
 
   const addBullet = (projIndex) => {
     const value = newBullet[projIndex]?.trim();
     if (!value) return;
 
-    const updated = [...data];
-    const bullets = [
-      ...updated[projIndex].description,
-      value,
-    ];
-
-    updated[projIndex] = {
-      ...updated[projIndex],
-      description: bullets,
-    };
+    const updated = data.map((p, i) =>
+      i === projIndex
+        ? { ...p, description: [...p.description, value] }
+        : p
+    );
 
     onChange(updated);
     setNewBullet((p) => ({ ...p, [projIndex]: "" }));
   };
 
   const updateBullet = (projIndex, bulletIndex, value) => {
-    const updated = [...data];
-    const bullets = [...updated[projIndex].description];
-
-    bullets[bulletIndex] = value;
-
-    updated[projIndex] = {
-      ...updated[projIndex],
-      description: bullets,
-    };
+    const updated = data.map((p, i) =>
+      i === projIndex
+        ? {
+            ...p,
+            description: p.description.map((b, j) =>
+              j === bulletIndex ? value : b
+            ),
+          }
+        : p
+    );
 
     onChange(updated);
   };
 
   const deleteBullet = (projIndex, bulletIndex) => {
-    const updated = [...data];
-    const bullets = updated[projIndex].description.filter(
-      (_, i) => i !== bulletIndex
+    const updated = data.map((p, i) =>
+      i === projIndex
+        ? {
+            ...p,
+            description: p.description.filter((_, j) => j !== bulletIndex),
+          }
+        : p
     );
-
-    updated[projIndex] = {
-      ...updated[projIndex],
-      description: bullets,
-    };
 
     onChange(updated);
   };
+
+  /* ---------------- TECHNOLOGIES ---------------- */
 
   const addTech = (projIndex) => {
     const value = newTech[projIndex]?.trim();
     if (!value) return;
 
-    const updated = [...data];
-    const techs = [
-      ...updated[projIndex].technologies,
-      value,
-    ];
-
-    updated[projIndex] = {
-      ...updated[projIndex],
-      technologies: techs,
-    };
+    const updated = data.map((p, i) =>
+      i === projIndex
+        ? { ...p, technologies: [...p.technologies, value] }
+        : p
+    );
 
     onChange(updated);
     setNewTech((p) => ({ ...p, [projIndex]: "" }));
   };
 
   const deleteTech = (projIndex, techIndex) => {
-    const updated = [...data];
-    const techs = updated[projIndex].technologies.filter(
-      (_, i) => i !== techIndex
+    const updated = data.map((p, i) =>
+      i === projIndex
+        ? {
+            ...p,
+            technologies: p.technologies.filter((_, j) => j !== techIndex),
+          }
+        : p
     );
-
-    updated[projIndex] = {
-      ...updated[projIndex],
-      technologies: techs,
-    };
 
     onChange(updated);
   };
+
+  /* ---------------- PROJECT ---------------- */
 
   const addProject = () => {
     onChange([
@@ -103,7 +138,7 @@ const ProjectsEditor = ({ data, onChange }) => {
         title: "",
         description: [],
         technologies: [],
-        link: "",
+        link: [{ title: "", url: null }],
       },
     ]);
   };
@@ -119,92 +154,97 @@ const ProjectsEditor = ({ data, onChange }) => {
       {data.map((proj, projIndex) => (
         <div
           key={projIndex}
-          className="rounded-2xl border border-[#e6e6e6] p-6 bg-white space-y-5"
+          className="rounded-2xl border p-6 bg-white space-y-5"
         >
           {/* HEADER */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-[#1f2430]">
-              Project {projIndex + 1}
-            </h3>
-            <button
-              type="button"
-              onClick={() => deleteProject(projIndex)}
-              className="text-red-500 hover:text-red-600"
-              title="Delete project"
-            >
-              <Trash2 size={18} />
+          <div className="flex justify-between items-center">
+            <h3 className="font-semibold">Project {projIndex + 1}</h3>
+            <button onClick={() => deleteProject(projIndex)}>
+              <Trash2 className="text-red-500" size={18} />
             </button>
           </div>
 
           {/* TITLE */}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-[#6b6b6b]">Project Title</label>
-            <input
-              className="auth-input"
-              value={proj.title}
-              onChange={(e) =>
-                updateField(projIndex, "title", e.target.value)
-              }
-              placeholder="AI Resume Analyzer"
-            />
-          </div>
+          <input
+            className="auth-input"
+            placeholder="Project Title"
+            value={proj.title}
+            onChange={(e) =>
+              updateField(projIndex, "title", e.target.value)
+            }
+          />
 
-          {/* LINK */}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-[#6b6b6b]">
-              Project Link (GitHub / Live)
-            </label>
-            <input
-              className="auth-input"
-              value={proj.link}
-              onChange={(e) =>
-                updateField(projIndex, "link", e.target.value)
-              }
-              placeholder="https://github.com/username/project"
-            />
-          </div>
+          {/* LINKS */}
+          <div className="space-y-2">
+            <label className="text-xs text-gray-500">Project Links</label>
 
-          {/* DESCRIPTION BULLETS */}
-          <div className="space-y-3">
-            <label className="text-xs text-[#6b6b6b]">
-              Key Highlights
-            </label>
-
-            {proj.description.map((bullet, bulletIndex) => (
-              <div
-                key={bulletIndex}
-                className="flex items-center gap-2"
-              >
+            {proj.link.map((l, linkIndex) => (
+              <div key={linkIndex} className="flex gap-2">
                 <input
                   className="auth-input flex-1"
-                  value={bullet}
+                  placeholder="Link title"
+                  value={l.title}
                   onChange={(e) =>
-                    updateBullet(
+                    updateLink(
                       projIndex,
-                      bulletIndex,
+                      linkIndex,
+                      "title",
                       e.target.value
                     )
                   }
-                  placeholder={`Achievement ${bulletIndex + 1}`}
+                />
+                <input
+                  className="auth-input flex-1"
+                  placeholder="https://example.com"
+                  value={l.url ?? ""}
+                  onChange={(e) =>
+                    updateLink(
+                      projIndex,
+                      linkIndex,
+                      "url",
+                      e.target.value
+                    )
+                  }
                 />
                 <button
-                  type="button"
-                  onClick={() =>
-                    deleteBullet(projIndex, bulletIndex)
-                  }
-                  className="text-red-500 hover:text-red-600"
+                  onClick={() => deleteLink(projIndex, linkIndex)}
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={16} className="text-red-500" />
                 </button>
               </div>
             ))}
 
-            {/* ADD BULLET */}
+            <button
+              onClick={() => addLink(projIndex)}
+              className="text-sm text-blue-600 flex items-center gap-1"
+            >
+              <Plus size={14} /> Add link
+            </button>
+          </div>
+
+          {/* DESCRIPTION */}
+          <div className="space-y-2">
+            <label className="text-xs text-gray-500">Key Highlights</label>
+
+            {proj.description.map((b, i) => (
+              <div key={i} className="flex gap-2">
+                <input
+                  className="auth-input flex-1"
+                  value={b}
+                  onChange={(e) =>
+                    updateBullet(projIndex, i, e.target.value)
+                  }
+                />
+                <button onClick={() => deleteBullet(projIndex, i)}>
+                  <Trash2 size={16} className="text-red-500" />
+                </button>
+              </div>
+            ))}
+
             <div className="flex gap-2">
               <textarea
                 rows={2}
-                className="w-full p-2 rounded-md border outline-none text-sm"
-                placeholder="Add project highlight"
+                className="w-full border rounded p-2"
                 value={newBullet[projIndex] || ""}
                 onChange={(e) =>
                   setNewBullet((p) => ({
@@ -214,9 +254,8 @@ const ProjectsEditor = ({ data, onChange }) => {
                 }
               />
               <button
-                type="button"
                 onClick={() => addBullet(projIndex)}
-                className="px-3 rounded-md bg-black text-white"
+                className="bg-black text-white px-3 rounded"
               >
                 <Plus size={16} />
               </button>
@@ -225,35 +264,25 @@ const ProjectsEditor = ({ data, onChange }) => {
 
           {/* TECHNOLOGIES */}
           <div className="space-y-2">
-            <label className="text-xs text-[#6b6b6b]">
-              Technologies Used
-            </label>
+            <label className="text-xs text-gray-500">Technologies</label>
 
             <div className="flex flex-wrap gap-2">
-              {proj.technologies.map((tech, techIndex) => (
-                <div
-                  key={techIndex}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-full border bg-white text-sm"
+              {proj.technologies.map((t, i) => (
+                <span
+                  key={i}
+                  className="px-3 py-1 border rounded-full flex items-center gap-1"
                 >
-                  <span>{tech}</span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      deleteTech(projIndex, techIndex)
-                    }
-                    className="text-red-500"
-                  >
+                  {t}
+                  <button onClick={() => deleteTech(projIndex, i)}>
                     <Trash2 size={12} />
                   </button>
-                </div>
+                </span>
               ))}
             </div>
 
-            {/* ADD TECH */}
             <div className="flex gap-2">
               <input
                 className="auth-input flex-1"
-                placeholder="Add technology (e.g. React)"
                 value={newTech[projIndex] || ""}
                 onChange={(e) =>
                   setNewTech((p) => ({
@@ -263,9 +292,8 @@ const ProjectsEditor = ({ data, onChange }) => {
                 }
               />
               <button
-                type="button"
                 onClick={() => addTech(projIndex)}
-                className="px-4 rounded-md bg-black text-white"
+                className="bg-black text-white px-4 rounded"
               >
                 Add
               </button>
@@ -274,14 +302,11 @@ const ProjectsEditor = ({ data, onChange }) => {
         </div>
       ))}
 
-      {/* ADD PROJECT */}
       <button
-        type="button"
         onClick={addProject}
-        className="inline-flex items-center gap-2 rounded-full border px-5 py-2 text-sm hover:bg-gray-50"
+        className="flex items-center gap-2 border rounded-full px-5 py-2"
       >
-        <Plus size={16} />
-        Add Project
+        <Plus size={16} /> Add Project
       </button>
     </div>
   );
