@@ -28,6 +28,7 @@ import {
   setCheckedField,
 } from "../redux/slice/resumeSlice";
 import { useRef } from "react";
+import ImproveWithAIModal from "../components/modals/ImproveWithAIModal";
 const ResumeEditor = () => {
   const dispatch = useDispatch();
 
@@ -42,6 +43,8 @@ const ResumeEditor = () => {
   const [mobileModalState, setMobileModalState] = useState("");
   const [mobileEditorState, setMobileEditorState] = useState("preview");
   const timer = useRef(null);
+
+  const [open, setOpen] = useState(false);
 
   let debounceFunction = (func, delay) => {
     return (...args) => {
@@ -90,6 +93,7 @@ const ResumeEditor = () => {
           <EditorScoreBox
             mobileModalState={mobileModalState}
             setMobileModalState={setMobileModalState}
+            setOpen={setOpen}
           />
         </div>
 
@@ -410,6 +414,17 @@ const ResumeEditor = () => {
             <TemplateShower />
           </div>
         </div>
+
+        {/* Big Screen Modal */}
+        <ImproveWithAIModal
+          isOpen={open}
+          onClose={() => setOpen(false)}
+          onConfirm={() => {
+            setOpen(false);
+            // call your AI optimization API here
+          }}
+          userCredits={8}
+        />
       </div>
     </Suspense>
   );

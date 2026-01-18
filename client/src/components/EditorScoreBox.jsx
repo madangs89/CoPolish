@@ -5,6 +5,7 @@ const EditorScoreBox = ({
   progress = 40,
   mobileModalState,
   setMobileModalState,
+  setOpen,
 }) => {
   const issuesData = [
     { label: "Resume Structure", issues: 5, color: "#ef4444" },
@@ -114,8 +115,8 @@ const EditorScoreBox = ({
                     item.impact === "High"
                       ? "bg-[#FEE2E2] text-[#991B1B]"
                       : item.impact === "Medium"
-                      ? "bg-[#FEF3C7] text-[#92400E]"
-                      : "bg-[#EFF6FF] text-[#1D4ED8]"
+                        ? "bg-[#FEF3C7] text-[#92400E]"
+                        : "bg-[#EFF6FF] text-[#1D4ED8]"
                   }`}
                 >
                   {item.impact}
@@ -132,6 +133,7 @@ const EditorScoreBox = ({
           Uses 5 credits • Creates a new version
         </p>
         <button
+          onClick={() => setOpen(true)}
           className="px-3 mx-auto mt-2 py-2.5 rounded-lg text-sm font-medium 
 bg-black text-white hover:bg-zinc-900 
 transition-all duration-200 ease-linear"
