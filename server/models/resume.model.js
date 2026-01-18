@@ -101,7 +101,7 @@ const resumeTemplateSchema = new mongoose.Schema(
     templateId: {
       type: String,
       required: true,
-      default: "default_template_1",
+      default: "ModernMinimalResume",
     },
     changes: [
       {
@@ -165,7 +165,7 @@ const resumeTemplateSchema = new mongoose.Schema(
         },
         padding: {
           type: Number,
-          default: 12,
+          default: 16,
         },
         background: {
           type: String,
@@ -190,11 +190,11 @@ const resumeTemplateSchema = new mongoose.Schema(
           },
           section: {
             type: Number,
-            default: 15,
+            default: 18,
           },
           body: {
             type: Number,
-            default: 10,
+            default: 16,
           },
           small: {
             type: Number,
@@ -231,11 +231,11 @@ const resumeTemplateSchema = new mongoose.Schema(
       spacing: {
         sectionGap: {
           type: Number,
-          default: 10,
+          default: 7,
         },
         itemGap: {
           type: Number,
-          default: 10,
+          default: 6,
         },
       },
       decorations: {

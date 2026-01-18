@@ -9,6 +9,7 @@ import ProfessionalSidebarResume from "./ResumeTemplates/ProfessionalSidebarResu
 import ResumeClassicBlue from "./ResumeTemplates/ResumeClassicBlue";
 import ResumeClassicV1 from "./ResumeTemplates/ResumeClassicV1";
 import { setCurrentResumeTemplateId } from "../redux/slice/resumeSlice";
+import { templateRegistry } from "../config/templateRegistory";
 
 const fakeResumeData = {
   personal: {
@@ -157,20 +158,11 @@ const fakeResumeData = {
   ],
 };
 
-const templateRegistry = {
-  BalancedTwoColumnResume,
-  CareerTimelineResume,
-  CleanProfessionalResume,
-  HarvardResume,
-  ModernMinimalResume,
-  ProfessionalSidebarResume,
-  ResumeClassicBlue,
-  ResumeClassicV1,
-};
+// templateRegistry
 
 const TemplateShower = () => {
   const templates = useSelector((state) => state.resume.templates);
-  const config = useSelector((state) => state.resume.currentResumeConfig);
+  const config = useSelector((state) => state.resume.config);
   const currentTemplateId = useSelector(
     (state) => state.resume.currentResume.templateId
   );
@@ -187,14 +179,14 @@ const TemplateShower = () => {
         return (
           <div
             key={key}
-            onClick={() => dispatch(setCurrentResumeTemplateId(templates[key]))}
+            onClick={() => dispatch(setCurrentResumeTemplateId(key))}
             className={`w-full ${currentTemplateId === key ? "border-2 border-blue-500" : "border"} cursor-pointer bg-gray-100 flex h-[600px] items-start flex-col  rounded-lg p-4 `}
           >
             <h1 className="text-sm  font-semibold mb-2">{key}</h1>
 
             <div className="relative h-full w-[330px] overflow-hidden border bg-white">
               <div
-                className="origin-top-left scale-[0.45]"
+                className="origin-top-left p-5 scale-[0.45]"
                 style={{ width: "800px" }}
               >
                 <TemplateComponent data={fakeResumeData} config={config} />

@@ -4,6 +4,7 @@ import React from "react";
 
 const SECTIONS = [
   "personal",
+  "summary",
   "education",
   "experience",
   "projects",
@@ -39,23 +40,28 @@ const updateConfig = (prev, path, value) => {
   return copy;
 };
 
-const handleIfDataThereOrNot = (resumeData, s) => {
-  if (s === "personal") {
-    return false;
-  }
-  const data = resumeData[s];
-  if (Array.isArray(data)) {
-    return data.length > 0;
-  } else {
-    return Object.keys(data).length > 0;
-  }
-};
-
 /* ================= COMPONENT ================= */
 
-const ResumeConfigEditor = ({ config, setConfig, resumeData }) => {
+const ResumeConfigEditor = ({ config, setConfig }) => {
   const set = (path, value) => {
     setConfig((prev) => updateConfig(prev, path, value));
+  };
+
+  /* ================= SECTION ORDER ================= */
+
+  const handleSectionChange = (index, newValue) => {
+    const next = [...config.content.order];
+    next[index] = newValue;
+
+    // remove duplicates
+    const unique = [...new Set(next)];
+
+    // re-add missing sections at the end
+    SECTIONS.forEach((s) => {
+      if (!unique.includes(s)) unique.push(s);
+    });
+
+    set("content.order", unique);
   };
 
   return (
@@ -64,40 +70,26 @@ const ResumeConfigEditor = ({ config, setConfig, resumeData }) => {
       <section>
         <h3 className="text-sm font-semibold mb-2">Section Order</h3>
         <p className="text-xs text-gray-500 mb-3">
-          Sections appear from top to bottom in this order.
+          Controls the vertical order of sections in the resume.
         </p>
 
-        {config.content.order.map((section, index) => {
-          const isDataThere = handleIfDataThereOrNot(resumeData, section);
+        {config.content.order.map((section, index) => (
+          <div key={`${section}-${index}`} className="flex items-center gap-3 mb-2">
+            <span className="text-xs text-gray-400 w-6">{index + 1}.</span>
 
-          return (
-            isDataThere && (
-              <div key={index} className="flex items-center gap-3 mb-2">
-                <span className="text-xs text-gray-400 w-6">{index + 1}.</span>
-
-                <select
-                  value={section}
-                  onChange={(e) => {
-                    const next = [...config.content.order];
-                    next[index] = e.target.value;
-                    set("content.order", next);
-                  }}
-                  className="border rounded px-3 py-1 text-sm flex-1"
-                >
-                  {SECTIONS.map((s) => {
-                    return (
-                      handleIfDataThereOrNot(resumeData, s) && (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      )
-                    );
-                  })}
-                </select>
-              </div>
-            )
-          );
-        })}
+            <select
+              value={section}
+              onChange={(e) => handleSectionChange(index, e.target.value)}
+              className="border rounded px-3 py-1 text-sm flex-1"
+            >
+              {SECTIONS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
       </section>
 
       {/* ================= PAGE ================= */}
@@ -114,17 +106,31 @@ const ResumeConfigEditor = ({ config, setConfig, resumeData }) => {
           className="border rounded px-3 py-2 w-full mb-3"
         />
 
-        <label className="text-xs text-gray-500">Padding (px)</label>
+        <label className="text-xs text-gray-500">Min Height (px)</label>
         <input
           type="number"
-          min={10}
-          max={60}
-          value={config.page.padding}
-          onChange={(e) => set("page.padding", clamp(+e.target.value, 10, 60))}
+          min={900}
+          max={1400}
+          value={config.page.minHeight}
+          onChange={(e) =>
+            set("page.minHeight", clamp(+e.target.value, 900, 1400))
+          }
           className="border rounded px-3 py-2 w-full mb-3"
         />
 
-        <label className="text-xs text-gray-500">Background Color</label>
+        <label className="text-xs text-gray-500">Padding (px)</label>
+        <input
+          type="number"
+          min={8}
+          max={60}
+          value={config.page.padding}
+          onChange={(e) =>
+            set("page.padding", clamp(+e.target.value, 8, 60))
+          }
+          className="border rounded px-3 py-2 w-full mb-3"
+        />
+
+        <label className="text-xs text-gray-500">Background</label>
         <input
           type="color"
           value={config.page.background}
@@ -140,7 +146,9 @@ const ResumeConfigEditor = ({ config, setConfig, resumeData }) => {
         <label className="text-xs text-gray-500">Heading Font</label>
         <select
           value={config.typography.fontFamily.heading}
-          onChange={(e) => set("typography.fontFamily.heading", e.target.value)}
+          onChange={(e) =>
+            set("typography.fontFamily.heading", e.target.value)
+          }
           className="border rounded px-3 py-2 w-full mb-3 text-sm"
         >
           {FONT_OPTIONS.map((f) => (
@@ -153,7 +161,9 @@ const ResumeConfigEditor = ({ config, setConfig, resumeData }) => {
         <label className="text-xs text-gray-500">Body Font</label>
         <select
           value={config.typography.fontFamily.body}
-          onChange={(e) => set("typography.fontFamily.body", e.target.value)}
+          onChange={(e) =>
+            set("typography.fontFamily.body", e.target.value)
+          }
           className="border rounded px-3 py-2 w-full mb-3 text-sm"
         >
           {FONT_OPTIONS.map((f) => (
@@ -163,19 +173,31 @@ const ResumeConfigEditor = ({ config, setConfig, resumeData }) => {
           ))}
         </select>
 
-        <label className="text-xs text-gray-500">Name Font Size</label>
+        <label className="text-xs text-gray-500">Name Size</label>
         <input
           type="number"
           min={20}
-          max={36}
+          max={40}
           value={config.typography.fontSize.name}
           onChange={(e) =>
-            set("typography.fontSize.name", clamp(+e.target.value, 20, 36))
+            set("typography.fontSize.name", clamp(+e.target.value, 20, 40))
           }
           className="border rounded px-3 py-2 w-full mb-3"
         />
 
-        <label className="text-xs text-gray-500">Body Font Size</label>
+        <label className="text-xs text-gray-500">Section Size</label>
+        <input
+          type="number"
+          min={12}
+          max={22}
+          value={config.typography.fontSize.section}
+          onChange={(e) =>
+            set("typography.fontSize.section", clamp(+e.target.value, 12, 22))
+          }
+          className="border rounded px-3 py-2 w-full mb-3"
+        />
+
+        <label className="text-xs text-gray-500">Body Size</label>
         <input
           type="number"
           min={8}
@@ -183,6 +205,18 @@ const ResumeConfigEditor = ({ config, setConfig, resumeData }) => {
           value={config.typography.fontSize.body}
           onChange={(e) =>
             set("typography.fontSize.body", clamp(+e.target.value, 8, 18))
+          }
+          className="border rounded px-3 py-2 w-full mb-3"
+        />
+
+        <label className="text-xs text-gray-500">Small Size</label>
+        <input
+          type="number"
+          min={8}
+          max={16}
+          value={config.typography.fontSize.small}
+          onChange={(e) =>
+            set("typography.fontSize.small", clamp(+e.target.value, 8, 16))
           }
           className="border rounded px-3 py-2 w-full mb-3"
         />
@@ -225,11 +259,11 @@ const ResumeConfigEditor = ({ config, setConfig, resumeData }) => {
         <label className="text-xs text-gray-500">Section Gap</label>
         <input
           type="number"
-          min={8}
+          min={6}
           max={48}
           value={config.spacing.sectionGap}
           onChange={(e) =>
-            set("spacing.sectionGap", clamp(+e.target.value, 8, 48))
+            set("spacing.sectionGap", clamp(+e.target.value, 6, 48))
           }
           className="border rounded px-3 py-2 w-full mb-3"
         />
@@ -237,50 +271,19 @@ const ResumeConfigEditor = ({ config, setConfig, resumeData }) => {
         <label className="text-xs text-gray-500">Item Gap</label>
         <input
           type="number"
-          min={6}
+          min={4}
           max={28}
           value={config.spacing.itemGap}
           onChange={(e) =>
-            set("spacing.itemGap", clamp(+e.target.value, 6, 28))
+            set("spacing.itemGap", clamp(+e.target.value, 4, 28))
           }
           className="border rounded px-3 py-2 w-full"
         />
       </section>
 
-      {/* ================= DECORATIONS ================= */}
-      {/* <section>
-        <h3 className="text-sm font-semibold mb-2">Decorations</h3>
-
-        <label className="flex items-center gap-2 text-sm mb-3">
-          <input
-            type="checkbox"
-            checked={config.decorations.showDividers}
-            onChange={(e) => set("decorations.showDividers", e.target.checked)}
-          />
-          Show section dividers
-        </label>
-
-        {config.decorations.showDividers && (
-          <>
-            <label className="text-xs text-gray-500">Divider Style</label>
-            <select
-              value={config.decorations.dividerStyle}
-              onChange={(e) => set("decorations.dividerStyle", e.target.value)}
-              className="border rounded px-3 py-2 w-full text-sm"
-            >
-              <option value="line">Line</option>
-              <option value="dot">Dot</option>
-              <option value="timeline">Timeline</option>
-            </select>
-          </>
-        )}
-      </section> */}
-
-      {/* List Style */}
-
+      {/* ================= LIST STYLE ================= */}
       <section>
         <h3 className="text-sm font-semibold mb-2">List Style</h3>
-        <label className="text-xs text-gray-500">List Style</label>
         <select
           value={config.listStyle}
           onChange={(e) => set("listStyle", e.target.value)}

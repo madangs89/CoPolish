@@ -24,7 +24,7 @@ const Project = ({
           title: "",
           description: [],
           technologies: [],
-          link: "",
+          link: [{ title: "", url: "" }],
         },
       ],
     }));
@@ -47,6 +47,22 @@ const Project = ({
     updated[projIndex] = {
       ...updated[projIndex],
       [field]: value,
+    };
+
+    setResumeData((prev) => ({
+      ...prev,
+      projects: updated,
+    }));
+  };
+
+  const updateLink = (projIndex, field, value, index) => {
+    const updated = [...resumeData.projects];
+
+    updated[projIndex] = {
+      ...updated[projIndex],
+      link: updated[projIndex].link.map((linkItem, linkIndex) =>
+        linkIndex === index ? { ...linkItem, [field]: value } : linkItem
+      ),
     };
 
     setResumeData((prev) => ({
@@ -130,6 +146,34 @@ const Project = ({
     setProjectTechState((prev) => ({
       ...prev,
       [projIndex]: "",
+    }));
+  };
+
+  const deleteLink = (projIndex, linkIndex) => {
+    const updated = [...resumeData.projects];
+
+    updated[projIndex] = {
+      ...updated[projIndex],
+      link: updated[projIndex].link.filter((_, i) => i !== linkIndex),
+    };
+
+    setResumeData((prev) => ({
+      ...prev,
+      projects: updated,
+    }));
+  };
+
+  const addLink = (projIndex) => {
+    const updated = [...resumeData.projects];
+
+    updated[projIndex] = {
+      ...updated[projIndex],
+      link: [...updated[projIndex].link, { title: "", url: "" }],
+    };
+
+    setResumeData((prev) => ({
+      ...prev,
+      projects: updated,
     }));
   };
 
@@ -291,18 +335,56 @@ const Project = ({
               </div>
 
               {/* Link */}
+              <p
+                onClick={() => addLink(projIndex)}
+                className="text-xs cursor-pointer text-end font-medium text-[#6b6b6b]"
+              >
+                Add link
+              </p>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-[#6b6b6b]">
-                  Project Link
-                </label>
-                <input
-                  className="auth-input"
-                  value={proj.link}
-                  onChange={(e) =>
-                    updateProject(projIndex, "link", e.target.value)
-                  }
-                  placeholder="https://github.com/username/project"
-                />
+                {proj.link &&
+                  proj.link.map((linkItem, linkIndex) => {
+                    return (
+                      <div key={linkIndex} className="space-y-1.5">
+                        <label className="text-xs flex items-center justify-between font-medium text-[#6b6b6b]">
+                          Link Title
+                          <Trash2
+                            onClick={() => deleteLink(projIndex, linkIndex)}
+                            className="w-3.5 h-3.5 text-red-400 cursor-pointer"
+                          />
+                        </label>
+                        <input
+                          className="auth-input"
+                          value={linkItem.title}
+                          onChange={(e) =>
+                            updateLink(
+                              projIndex,
+                              "title",
+                              e.target.value,
+                              linkIndex
+                            )
+                          }
+                          placeholder="Project Link Title (e.g. GitHub)"
+                        />
+                        <label className="text-xs font-medium text-[#6b6b6b]">
+                          Link URL
+                        </label>
+                        <input
+                          className="auth-input"
+                          value={linkItem.url}
+                          onChange={(e) =>
+                            updateLink(
+                              projIndex,
+                              "url",
+                              e.target.value,
+                              linkIndex
+                            )
+                          }
+                          placeholder="https://github.com/username/project"
+                        />
+                      </div>
+                    );
+                  })}
               </div>
 
               {/* Bullets */}

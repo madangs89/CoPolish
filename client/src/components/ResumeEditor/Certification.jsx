@@ -10,7 +10,9 @@ const Certification = ({
   setCheckedFields,
   handleIsAllFieldsFilled,
 }) => {
-  const isCompleted = handleIsAllFieldsFilled(resumeData.certifications);
+  const isCompleted =
+    resumeData.certifications.length > 0 &&
+    handleIsAllFieldsFilled(resumeData.certifications);
 
   const addCertification = () => {
     setResumeData((prev) => ({
@@ -22,6 +24,7 @@ const Certification = ({
           issuer: "",
           year: "",
           credentialUrl: "",
+          link: [{ title: "", url: "" }],
         },
       ],
     }));
@@ -37,6 +40,7 @@ const Certification = ({
       certifications: updated,
     }));
   };
+
   const updateCertification = (certIndex, field, value) => {
     const updated = [...resumeData.certifications];
 
@@ -51,16 +55,62 @@ const Certification = ({
     }));
   };
 
+  /* ===== LINK HANDLERS (ADDED ONLY) ===== */
+
+  const addLink = (certIndex) => {
+    const updated = [...resumeData.certifications];
+
+    updated[certIndex] = {
+      ...updated[certIndex],
+      link: [...updated[certIndex].link, { title: "", url: "" }],
+    };
+
+    setResumeData((prev) => ({
+      ...prev,
+      certifications: updated,
+    }));
+  };
+
+  const updateLink = (certIndex, field, value, linkIndex) => {
+    const updated = [...resumeData.certifications];
+
+    updated[certIndex] = {
+      ...updated[certIndex],
+      link: updated[certIndex].link.map((l, i) =>
+        i === linkIndex ? { ...l, [field]: value } : l
+      ),
+    };
+
+    setResumeData((prev) => ({
+      ...prev,
+      certifications: updated,
+    }));
+  };
+
+  const deleteLink = (certIndex, linkIndex) => {
+    const updated = [...resumeData.certifications];
+
+    updated[certIndex] = {
+      ...updated[certIndex],
+      link: updated[certIndex].link.filter((_, i) => i !== linkIndex),
+    };
+
+    setResumeData((prev) => ({
+      ...prev,
+      certifications: updated,
+    }));
+  };
+
   return (
     <div className="rounded-xl border border-[#e6e6e6] bg-white ">
       <div
         className={` px-3 py-3 flex justify-between items-center 
-    ${
-      selectedSection.includes("certifications")
-        ? "bg-white border  rounded-t-xl"
-        : "bg-white border border-gray-200 rounded-xl"
-    }
-    hover:bg-zinc-100 transition`}
+        ${
+          selectedSection.includes("certifications")
+            ? "bg-white border rounded-t-xl"
+            : "bg-white border border-gray-200 rounded-xl"
+        }
+        hover:bg-zinc-100 transition`}
       >
         {/* Left */}
         <div className="flex items-center gap-2">
@@ -123,19 +173,19 @@ const Certification = ({
 
       <div
         className={`grid overflow-hidden w-full grid-cols-1 gap-4
-    transition-all duration-300 ease-in-out
-    ${
-      selectedSection.includes("certifications")
-        ? " h-fit p-4  opacity-100"
-        : "max-h-0 opacity-0"
-    }`}
+        transition-all duration-300 ease-in-out
+        ${
+          selectedSection.includes("certifications")
+            ? " h-fit p-4 opacity-100"
+            : "max-h-0 opacity-0"
+        }`}
       >
         <div className="space-y-5">
-          {/* ===== EMPTY STATE ===== */}
+          {/* EMPTY STATE */}
           {resumeData.certifications.length === 0 && (
             <div
               className="rounded-xl border border-dashed border-[#d1d5db]
-                   bg-[#fafafa] p-6 text-center space-y-3"
+              bg-[#fafafa] p-6 text-center space-y-3"
             >
               <p className="text-sm font-medium text-[#1f2430]">
                 No certifications added yet
@@ -147,8 +197,7 @@ const Certification = ({
               <button
                 onClick={addCertification}
                 className="inline-flex items-center gap-2 px-4 py-2
-                     rounded-lg bg-[#025149] text-white
-                     text-sm hover:opacity-90 transition"
+                rounded-lg bg-[#025149] text-white text-sm"
               >
                 <Plus className="w-4 h-4" />
                 Add Certification
@@ -156,14 +205,13 @@ const Certification = ({
             </div>
           )}
 
-          {/* ===== CERTIFICATION LIST ===== */}
+          {/* CERTIFICATION LIST */}
           {resumeData.certifications.map((cert, certIndex) => (
             <div
               key={certIndex}
               className="rounded-xl border border-[#e6e6e6]
-                   bg-white p-5 space-y-4"
+              bg-white p-5 space-y-4"
             >
-              {/* Header */}
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-[#1f2430]">
                   Certification {certIndex + 1}
@@ -177,7 +225,7 @@ const Certification = ({
                 </button>
               </div>
 
-              {/* Certification Name */}
+              {/* Name */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-medium text-[#6b6b6b]">
                   Certification Name
@@ -241,16 +289,64 @@ const Certification = ({
                   />
                 </div>
               </div>
+
+              {/* LINKS (ADDED, DOES NOT AFFECT ABOVE) */}
+              <p
+                onClick={() => addLink(certIndex)}
+                className="text-xs cursor-pointer text-end font-medium text-[#6b6b6b]"
+              >
+                Add link
+              </p>
+
+              <div className="flex flex-col gap-1.5">
+                {cert.link.map((linkItem, linkIndex) => (
+                  <div key={linkIndex} className="flex flex-col gap-1.5">
+                    <label className="text-xs flex items-center justify-between font-medium text-[#6b6b6b]">
+                      Link Title
+                      <Trash2
+                        onClick={() => deleteLink(certIndex, linkIndex)}
+                        className="w-3.5 h-3.5 text-red-400 cursor-pointer"
+                      />
+                    </label>
+
+                    <input
+                      className="auth-input"
+                      value={linkItem.title}
+                      onChange={(e) =>
+                        updateLink(
+                          certIndex,
+                          "title",
+                          e.target.value,
+                          linkIndex
+                        )
+                      }
+                      placeholder="Credential / Verification Link"
+                    />
+
+                    <label className="text-xs font-medium text-[#6b6b6b]">
+                      Link URL
+                    </label>
+
+                    <input
+                      className="auth-input"
+                      value={linkItem.url}
+                      onChange={(e) =>
+                        updateLink(certIndex, "url", e.target.value, linkIndex)
+                      }
+                      placeholder="https://..."
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
 
-          {/* ===== ADD CERTIFICATION BUTTON ===== */}
           {resumeData.certifications.length > 0 && (
             <button
               onClick={addCertification}
               className="w-full py-2 flex items-center justify-center gap-2
-                   rounded-lg border border-dashed border-[#cbd5e1]
-                   text-sm text-[#025149] hover:bg-[#f0fdfa] transition"
+              rounded-lg border border-dashed border-[#cbd5e1]
+              text-sm text-[#025149] hover:bg-[#f0fdfa] transition"
             >
               <Plus className="w-4 h-4" />
               Add another certification

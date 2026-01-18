@@ -12,7 +12,7 @@ const isEmpty = (value) => {
   return false;
 };
 
-/* ================= GLOBAL SAFE TEXT ================= */
+/* ================= SAFE TEXT ================= */
 
 const textSafe = {
   overflowWrap: "break-word",
@@ -29,15 +29,14 @@ const baseText = (config) => ({
 
 const getListStyle = (config) => {
   switch (config.listStyle) {
-    case "Numbers":
+    case "numbers":
       return "decimal";
-    case "Dots":
+    case "dots":
       return "disc";
-    case "Bullets":
+    case "bullets":
       return "circle";
-    case "Dash":
-      return "none";
-    case "None":
+    case "dash":
+    case "none":
       return "none";
     default:
       return "decimal";
@@ -79,8 +78,6 @@ const LinkItem = ({ href, text, config }) => {
         fontSize: `${config.typography.fontSize.small}px`,
         color: config.colors.accent,
         textDecoration: "underline",
-        cursor: "pointer",
-        pointerEvents: "auto",
         ...textSafe,
       }}
     >
@@ -99,13 +96,14 @@ const CareerTimelineResume = ({ data, config }) => {
     if (section === "personal") return null;
     if (isEmpty(data[section])) return null;
 
+    const title =
+      section === "experience"
+        ? "Career Timeline"
+        : section.charAt(0).toUpperCase() + section.slice(1);
+
     const sectionTitle = (
       <SectionTitle
-        title={
-          section === "experience"
-            ? "Career Timeline"
-            : section.charAt(0).toUpperCase() + section.slice(1)
-        }
+        title={title}
         config={config}
         isFirst={!firstSectionRendered}
       />
@@ -114,24 +112,24 @@ const CareerTimelineResume = ({ data, config }) => {
     firstSectionRendered = true;
 
     switch (section) {
+      /* ---------- EXPERIENCE (TIMELINE) ---------- */
       case "experience":
         return (
           <>
             {sectionTitle}
 
-            <div style={{ position: "relative", marginLeft: 18 }}>
-              {config.decorations?.dividerStyle === "timeline" && (
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 6,
-                    top: 0,
-                    bottom: 0,
-                    width: 2,
-                    background: config.colors.line,
-                  }}
-                />
-              )}
+            <div style={{ position: "relative", marginLeft: 28 }}>
+              {/* Vertical timeline line */}
+              <div
+                style={{
+                  position: "absolute",
+                  left: 7,
+                  top: 0,
+                  bottom: 0,
+                  width: 2,
+                  background: config.colors.line,
+                }}
+              />
 
               {data.experience.map((exp, i) => (
                 <div
@@ -140,9 +138,10 @@ const CareerTimelineResume = ({ data, config }) => {
                     display: "flex",
                     gap: 16,
                     marginBottom: config.spacing.sectionGap,
+                    alignItems: "flex-start",
                   }}
                 >
-                  {/* Dot */}
+                  {/* 🔵 BLUE DOT (THIS IS THE ONE IN YOUR IMAGE) */}
                   <div
                     style={{
                       width: 14,
@@ -154,7 +153,7 @@ const CareerTimelineResume = ({ data, config }) => {
                     }}
                   />
 
-                  {/* Content */}
+                  {/* CONTENT */}
                   <div style={{ minWidth: 0 }}>
                     <div
                       style={{
@@ -166,9 +165,8 @@ const CareerTimelineResume = ({ data, config }) => {
                       <div
                         style={{
                           fontWeight: 600,
-                          fontFamily:
-                            config.typography.fontFamily.heading,
-                          ...baseText(config),
+                          fontFamily: config.typography.fontFamily.heading,
+                          fontSize: `${config.typography.fontSize.body}px`,
                         }}
                       >
                         {exp.role}
@@ -192,10 +190,9 @@ const CareerTimelineResume = ({ data, config }) => {
                       <ul
                         style={{
                           marginTop: 6,
-                          paddingLeft:
-                            config.listStyle === "None" ? 0 : 18,
+                          paddingLeft: config.listStyle === "none" ? 0 : 18,
                           listStyleType: getListStyle(config),
-                          ...baseText(config),
+                          fontSize: `${config.typography.fontSize.body}px`,
                         }}
                       >
                         {exp.description.map((d, j) => (
@@ -210,6 +207,7 @@ const CareerTimelineResume = ({ data, config }) => {
           </>
         );
 
+      /* ---------- PROJECTS ---------- */
       case "projects":
         return (
           <>
@@ -226,26 +224,51 @@ const CareerTimelineResume = ({ data, config }) => {
                   {p.title}
                 </div>
 
+                {!isEmpty(p.technologies) && (
+                  <div
+                    style={{
+                      fontSize: `${config.typography.fontSize.small}px`,
+                      color: config.colors.muted,
+                      margin: "2px 0 6px",
+                    }}
+                  >
+                    Tech: {p.technologies.join(", ")}
+                  </div>
+                )}
+
                 {!isEmpty(p.description) && (
                   <ul
                     style={{
-                      marginTop: 6,
-                      paddingLeft:
-                        config.listStyle === "None" ? 0 : 18,
+                      paddingLeft: config.listStyle === "none" ? 0 : 18,
                       listStyleType: getListStyle(config),
-                      ...baseText(config),
                     }}
                   >
                     {p.description.map((d, j) => (
-                      <li key={j}>{d}</li>
+                      <li key={j} style={baseText(config)}>
+                        {d}
+                      </li>
                     ))}
                   </ul>
                 )}
+
+                {!isEmpty(p.link) &&
+                  p.link.map(
+                    (l, idx) =>
+                      l?.url && (
+                        <LinkItem
+                          key={idx}
+                          href={l.url}
+                          text={l.title || l.url}
+                          config={config}
+                        />
+                      )
+                  )}
               </div>
             ))}
           </>
         );
 
+      /* ---------- SKILLS ---------- */
       case "skills":
         return (
           <>
@@ -256,6 +279,7 @@ const CareerTimelineResume = ({ data, config }) => {
           </>
         );
 
+      /* ---------- EDUCATION ---------- */
       case "education":
         return (
           <>
@@ -283,9 +307,72 @@ const CareerTimelineResume = ({ data, config }) => {
                     color: config.colors.muted,
                   }}
                 >
-                  {edu.from}
-                  {edu.to && ` – ${edu.to}`}
+                  {edu.from} {edu.to && `– ${edu.to}`}
                 </p>
+              </div>
+            ))}
+          </>
+        );
+
+      /* ---------- CERTIFICATIONS ---------- */
+      case "certifications":
+        return (
+          <>
+            {sectionTitle}
+            {data.certifications.map((c, i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                <div style={{ fontWeight: 600 }}>{c.name}</div>
+                <div
+                  style={{
+                    fontSize: `${config.typography.fontSize.small}px`,
+                    color: config.colors.muted,
+                  }}
+                >
+                  {c.issuer} {c.year && `· ${c.year}`}
+                </div>
+              </div>
+            ))}
+          </>
+        );
+
+      /* ---------- ACHIEVEMENTS ---------- */
+      case "achievements":
+        return (
+          <>
+            {sectionTitle}
+            <ul style={{ paddingLeft: 18 }}>
+              {data.achievements.map((a, i) => (
+                <li key={i} style={baseText(config)}>
+                  {a}
+                </li>
+              ))}
+            </ul>
+          </>
+        );
+
+      /* ---------- EXTRACURRICULAR ---------- */
+      case "extracurricular":
+        return (
+          <>
+            {sectionTitle}
+            {data.extracurricular.map((e, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <div style={{ fontWeight: 600 }}>
+                  {e.role} {e.activity && `· ${e.activity}`}
+                </div>
+                {e.year && (
+                  <div
+                    style={{
+                      fontSize: `${config.typography.fontSize.small}px`,
+                      color: config.colors.muted,
+                    }}
+                  >
+                    {e.year}
+                  </div>
+                )}
+                {e.description && (
+                  <p style={baseText(config)}>{e.description}</p>
+                )}
               </div>
             ))}
           </>
@@ -308,65 +395,59 @@ const CareerTimelineResume = ({ data, config }) => {
       }}
     >
       {/* HEADER */}
-      {!isEmpty(personal) && (
-        <div style={{ marginBottom: config.spacing.sectionGap }}>
-          <h1
+      <div style={{ marginBottom: config.spacing.sectionGap }}>
+        <h1
+          style={{
+            margin: 0,
+            fontSize: `${config.typography.fontSize.name}px`,
+            fontFamily: config.typography.fontFamily.heading,
+            fontWeight: 800,
+            color: config.colors.primary,
+          }}
+        >
+          {personal.name}
+        </h1>
+
+        {(personal.title || personal.address) && (
+          <p
             style={{
-              margin: 0,
-              fontSize: `${config.typography.fontSize.name}px`,
-              fontFamily: config.typography.fontFamily.heading,
-              fontWeight: 800,
-              color: config.colors.primary,
+              margin: "4px 0",
+              fontSize: `${config.typography.fontSize.body}px`,
+              color: config.colors.muted,
             }}
           >
-            {personal.name}
-          </h1>
+            {personal.title}
+            {personal.address && ` · ${personal.address}`}
+          </p>
+        )}
 
-          {(personal.title || personal.address) && (
-            <p
-              style={{
-                margin: "4px 0",
-                fontSize: `${config.typography.fontSize.body}px`,
-                color: config.colors.muted,
-              }}
-            >
-              {personal.title}
-              {personal.address && ` · ${personal.address}`}
-            </p>
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          {personal.email && (
+            <LinkItem
+              href={`mailto:${personal.email}`}
+              text={personal.email}
+              config={config}
+            />
           )}
-
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            {personal.email && (
-              <LinkItem
-                href={`mailto:${personal.email}`}
-                text={personal.email}
-                config={config}
-              />
-            )}
-            {personal.phone && (
-              <LinkItem
-                href={`tel:${personal.phone}`}
-                text={personal.phone}
-                config={config}
-              />
-            )}
-            {personal.github && (
-              <LinkItem
-                href={personal.github}
-                text="GitHub"
-                config={config}
-              />
-            )}
-            {personal.linkedin && (
-              <LinkItem
-                href={personal.linkedin}
-                text="LinkedIn"
-                config={config}
-              />
-            )}
-          </div>
+          {personal.phone && (
+            <LinkItem
+              href={`tel:${personal.phone}`}
+              text={personal.phone}
+              config={config}
+            />
+          )}
+          {personal.github && (
+            <LinkItem href={personal.github} text="GitHub" config={config} />
+          )}
+          {personal.linkedin && (
+            <LinkItem
+              href={personal.linkedin}
+              text="LinkedIn"
+              config={config}
+            />
+          )}
         </div>
-      )}
+      </div>
 
       {/* SUMMARY */}
       {personal?.summary && (
@@ -376,9 +457,7 @@ const CareerTimelineResume = ({ data, config }) => {
             config={config}
             isFirst={!firstSectionRendered}
           />
-          <p style={{ margin: 0, ...baseText(config) }}>
-            {personal.summary}
-          </p>
+          <p style={{ margin: 0, ...baseText(config) }}>{personal.summary}</p>
           {(firstSectionRendered = true)}
         </>
       )}

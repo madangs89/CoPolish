@@ -28,29 +28,34 @@ import {
   setCheckedField,
 } from "../redux/slice/resumeSlice";
 const ResumeEditor = () => {
-  const resumeSlice = useSelector((state) => state.resume);
-  const [resumeData, setResumeData] = useState(resumeSlice.currentResume);
-  const config = useSelector((state) => state.resume.currentResumeConfig);
-
   const dispatch = useDispatch();
 
-  const [resumeConfig, setResumeConfig] = useState(config);
+  const resumeSlice = useSelector((state) => state.resume);
+  const config = useSelector((state) => state.resume.currentResumeConfig);
+  const resumeData = useSelector((state) => state.resume.currentResume);
+  const resumeConfig = useSelector((state) => state.resume.currentResumeConfig);
 
   const [checkedFields, setCheckedFields] = useState(
     resumeSlice?.currentResume?.checkedFields || []
   );
-
   const [mobileModalState, setMobileModalState] = useState("");
-
   const [mobileEditorState, setMobileEditorState] = useState("preview");
 
-  useEffect(() => {
-    dispatch(setCurrentResume(resumeData));
-  }, [resumeData]);
+  const setResumeData = (updater) => {
+    if (typeof updater === "function") {
+      dispatch(setCurrentResume(updater(resumeData)));
+    } else {
+      dispatch(setCurrentResume(updater));
+    }
+  };
 
-  useEffect(() => {
-    dispatch(setCurrentResumeConfig(resumeConfig));
-  }, [resumeConfig]);
+  const setResumeConfig = (updater) => {
+    if (typeof updater === "function") {
+      dispatch(setCurrentResumeConfig(updater(resumeConfig)));
+    } else {
+      dispatch(setCurrentResumeConfig(updater));
+    }
+  };
 
   useEffect(() => {
     dispatch(setCheckedField(checkedFields));

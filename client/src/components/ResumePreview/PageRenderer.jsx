@@ -1,36 +1,40 @@
 import { useEffect, useRef, useState } from "react";
 
-const PageRenderer = ({ Component, data, config }) => {
+const PageRenderer = ({ Component, data, config, onPageCountChange }) => {
   const measureRef = useRef(null);
   const [pageCount, setPageCount] = useState(1);
 
   const { width, minHeight, padding, background } = config.page;
   const contentHeight = minHeight - padding * 2;
-  const contentWidth = width - padding * 2;
 
-  /* ---------- MEASURE CONTENT ---------- */
+  /* ---------- MEASURE CONTENT HEIGHT ---------- */
   useEffect(() => {
     if (!measureRef.current) return;
 
     const totalHeight = measureRef.current.scrollHeight;
-    setPageCount(Math.max(1, Math.ceil(totalHeight / contentHeight)));
-  }, [data, config, Component]);
+    const pages = Math.max(1, Math.ceil(totalHeight / contentHeight));
+
+    setPageCount(pages);
+    onPageCountChange?.(pages);
+  }, [data, config, Component, contentHeight, onPageCountChange]);
 
   return (
     <>
-      {/* HIDDEN MEASUREMENT (UNSCALED) */}
+      {/* 🔹 HIDDEN MEASUREMENT (FULL CONTENT) */}
       <div
         ref={measureRef}
         style={{
           position: "absolute",
           visibility: "hidden",
-          width: contentWidth,
+          width: width - padding * 2,
+          padding,
+          boxSizing: "border-box",
         }}
       >
         <Component data={data} config={config} />
       </div>
 
-      {/* REAL PAGES */}
+      {/* 🔹 REAL PAGINATED PAGES */}
       {Array.from({ length: pageCount }).map((_, pageIndex) => (
         <div
           key={pageIndex}

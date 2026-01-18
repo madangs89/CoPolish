@@ -12,25 +12,80 @@ const isEmpty = (value) => {
   return false;
 };
 
+const textSafe = {
+  overflowWrap: "break-word",
+  wordBreak: "break-word",
+  whiteSpace: "normal",
+};
+
+const baseText = (config) => ({
+  fontSize: `${config.typography.fontSize.body}px`,
+  lineHeight: config.typography.lineHeight,
+  color: config.colors.text,
+  ...textSafe,
+});
+
+const getListStyle = (config) => {
+  switch ((config.listStyle || "").toLowerCase()) {
+    case "numbers":
+      return "decimal";
+    case "dots":
+      return "disc";
+    case "bullets":
+      return "circle";
+    case "none":
+    case "dash":
+      return "none";
+    default:
+      return "decimal";
+  }
+};
+
 /* ================= COMPONENTS ================= */
 
 const SectionTitle = ({ title, config }) => (
   <h2
     style={{
-      fontSize: `${config.typography.fontSize.section}px`,
-      color: config.colors.primary,
-      marginBottom: 6,
       marginTop: config.spacing.sectionGap,
+      marginBottom: 6,
+      fontSize: `${config.typography.fontSize.section}px`,
+      fontFamily: config.typography.fontFamily.heading,
+      fontWeight: 700,
+      color: config.colors.primary,
+      ...textSafe,
     }}
   >
     {title}
   </h2>
 );
 
+const LinkItem = ({ href, text, config }) => {
+  const finalHref =
+    href?.startsWith("http") || href?.startsWith("mailto")
+      ? href
+      : `https://${href}`;
+
+  return (
+    <a
+      href={finalHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        fontSize: `${config.typography.fontSize.small}px`,
+        color: config.colors.accent,
+        textDecoration: "underline",
+        ...textSafe,
+      }}
+    >
+      {text}
+    </a>
+  );
+};
+
 /* ================= TEMPLATE ================= */
 
 const ResumeClassicV1 = ({ data, config }) => {
-  const { personal } = data;
+  const { personal = {} } = data;
 
   const renderSection = (section) => {
     if (section === "personal") return null;
@@ -41,35 +96,30 @@ const ResumeClassicV1 = ({ data, config }) => {
         return (
           <>
             <SectionTitle title="Work Experience" config={config} />
-            {data.experience.map((exp, idx) => (
-              <div key={idx} style={{ marginBottom: 12 }}>
-                <p
-                  style={{
-                    fontSize: `${config.typography.fontSize.body}px`,
-                    fontWeight: "bold",
-                    margin: 0,
-                  }}
-                >
+            {data.experience.map((exp, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <p style={{ fontWeight: 700, margin: 0 }}>
                   {exp.role} – {exp.company}
                 </p>
                 <p
                   style={{
                     fontSize: `${config.typography.fontSize.small}px`,
-                    margin: "2px 0 6px 0",
+                    margin: "2px 0 6px",
+                    color: config.colors.muted,
                   }}
                 >
                   {exp.duration}
                 </p>
-                <ul style={{ paddingLeft: 18, margin: 0 }}>
-                  {exp.description.map((point, i) => (
-                    <li
-                      key={i}
-                      style={{
-                        fontSize: `${config.typography.fontSize.body}px`,
-                      }}
-                    >
-                      {point}
-                    </li>
+
+                <ul
+                  style={{
+                    paddingLeft: 18,
+                    listStyleType: getListStyle(config),
+                    ...baseText(config),
+                  }}
+                >
+                  {exp.description.map((d, j) => (
+                    <li key={j}>{d}</li>
                   ))}
                 </ul>
               </div>
@@ -81,29 +131,47 @@ const ResumeClassicV1 = ({ data, config }) => {
         return (
           <>
             <SectionTitle title="Projects" config={config} />
-            {data.projects.map((proj, idx) => (
-              <div key={idx} style={{ marginBottom: 10 }}>
-                <p
+            {data.projects.map((p, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <p style={{ fontWeight: 700, margin: 0 }}>{p.title}</p>
+
+                {!isEmpty(p.technologies) && (
+                  <p
+                    style={{
+                      fontSize: `${config.typography.fontSize.small}px`,
+                      color: config.colors.muted,
+                      margin: "2px 0",
+                    }}
+                  >
+                    Tech: {p.technologies.join(", ")}
+                  </p>
+                )}
+
+                <ul
                   style={{
-                    fontSize: `${config.typography.fontSize.body}px`,
-                    fontWeight: "bold",
-                    margin: 0,
+                    paddingLeft: 18,
+                    listStyleType: getListStyle(config),
+                    ...baseText(config),
                   }}
                 >
-                  {proj.title}
-                </p>
-                <ul style={{ paddingLeft: 18, margin: 0 }}>
-                  {proj.description.map((point, i) => (
-                    <li
-                      key={i}
-                      style={{
-                        fontSize: `${config.typography.fontSize.body}px`,
-                      }}
-                    >
-                      {point}
-                    </li>
+                  {p.description.map((d, j) => (
+                    <li key={j}>{d}</li>
                   ))}
                 </ul>
+
+                {!isEmpty(p.link) &&
+                  p.link.map(
+                    (l, idx) =>
+                      l?.url && (
+                        <div key={idx}>
+                          <LinkItem
+                            href={l.url}
+                            text={l.title || l.url}
+                            config={config}
+                          />
+                        </div>
+                      )
+                  )}
               </div>
             ))}
           </>
@@ -113,9 +181,7 @@ const ResumeClassicV1 = ({ data, config }) => {
         return (
           <>
             <SectionTitle title="Skills" config={config} />
-            <p style={{ fontSize: `${config.typography.fontSize.body}px` }}>
-              {data.skills.join(", ")}
-            </p>
+            <p style={baseText(config)}>{data.skills.join(", ")}</p>
           </>
         );
 
@@ -123,20 +189,14 @@ const ResumeClassicV1 = ({ data, config }) => {
         return (
           <>
             <SectionTitle title="Education" config={config} />
-            {data.education.map((edu, idx) => (
-              <div key={idx}>
-                <p
-                  style={{
-                    fontSize: `${config.typography.fontSize.body}px`,
-                    margin: 0,
-                  }}
-                >
-                  {edu.degree}
-                </p>
+            {data.education.map((edu, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <p style={{ margin: 0 }}>{edu.degree}</p>
                 <p
                   style={{
                     fontSize: `${config.typography.fontSize.small}px`,
-                    margin: "2px 0 0 0",
+                    margin: "2px 0",
+                    color: config.colors.muted,
                   }}
                 >
                   {edu.institute} | {edu.from} – {edu.to}
@@ -147,36 +207,56 @@ const ResumeClassicV1 = ({ data, config }) => {
         );
 
       case "certifications":
-      case "achievements":
-      case "hobbies":
         return (
           <>
-            <SectionTitle title="Additional Information" config={config} />
+            <SectionTitle title="Certifications" config={config} />
+            {data.certifications.map((c, i) => (
+              <div key={i}>
+                <strong>{c.name}</strong>
+                <div style={{ color: config.colors.muted }}>
+                  {c.issuer} · {c.year}
+                </div>
+              </div>
+            ))}
+          </>
+        );
+
+      case "achievements":
+        return (
+          <>
+            <SectionTitle title="Achievements" config={config} />
             <ul
               style={{
                 paddingLeft: 18,
-                fontSize: `${config.typography.fontSize.body}px`,
+                listStyleType: getListStyle(config),
+                ...baseText(config),
               }}
             >
-              {data.certifications?.length > 0 && (
-                <li>
-                  <strong>Certificates:</strong>{" "}
-                  {data.certifications.map((c) => c.name).join(", ")}
-                </li>
-              )}
-              {data.achievements?.length > 0 && (
-                <li>
-                  <strong>Awards:</strong>{" "}
-                  {data.achievements.join(", ")}
-                </li>
-              )}
-              {data.hobbies?.length > 0 && (
-                <li>
-                  <strong>Interests:</strong>{" "}
-                  {data.hobbies.join(", ")}
-                </li>
-              )}
+              {data.achievements.map((a, i) => (
+                <li key={i}>{a}</li>
+              ))}
             </ul>
+          </>
+        );
+
+      case "extracurricular":
+        return (
+          <>
+            <SectionTitle title="Extracurricular" config={config} />
+            {data.extracurricular.map((e, i) => (
+              <div key={i}>
+                <strong>{e.role}</strong> – {e.activity} ({e.year})
+                {e.description && <p>{e.description}</p>}
+              </div>
+            ))}
+          </>
+        );
+
+      case "hobbies":
+        return (
+          <>
+            <SectionTitle title="Hobbies" config={config} />
+            <p>{data.hobbies.join(" · ")}</p>
           </>
         );
 
@@ -192,33 +272,31 @@ const ResumeClassicV1 = ({ data, config }) => {
       style={{
         width: `${config.page.width}px`,
         minHeight: `${config.page.minHeight}px`,
+        padding: config.page.padding,
         background: config.page.background,
-        color: config.colors.text,
-        padding: `${config.page.padding}px`,
-        boxSizing: "border-box",
         fontFamily: config.typography.fontFamily.body,
+        color: config.colors.text,
+        boxSizing: "border-box",
       }}
     >
-      {/* ===== HEADER ===== */}
+      {/* HEADER */}
       {!isEmpty(personal) && (
         <div style={{ marginBottom: config.spacing.sectionGap }}>
           <h1
             style={{
               fontSize: `${config.typography.fontSize.name}px`,
-              margin: "0 0 4px 0",
+              margin: 0,
             }}
           >
             {personal.name}
           </h1>
 
-          <p style={{ fontSize: `${config.typography.fontSize.body}px`, margin: 0 }}>
-            {personal.title}
-          </p>
+          <p style={{ margin: 0 }}>{personal.title}</p>
 
           <p
             style={{
               fontSize: `${config.typography.fontSize.small}px`,
-              margin: "6px 0 0 0",
+              marginTop: 6,
             }}
           >
             {personal.email} | {personal.phone} | {personal.address}
@@ -227,25 +305,39 @@ const ResumeClassicV1 = ({ data, config }) => {
           <p
             style={{
               fontSize: `${config.typography.fontSize.small}px`,
-              margin: "2px 0 0 0",
+              marginTop: 2,
             }}
           >
-            LinkedIn: {personal.linkedin} | GitHub: {personal.github}
+            {personal.linkedin && (
+              <>
+                <LinkItem
+                  href={personal.linkedin}
+                  text="LinkedIn"
+                  config={config}
+                />{" "}
+                |
+              </>
+            )}{" "}
+            {personal.github && (
+              <LinkItem
+                href={personal.github}
+                text="GitHub"
+                config={config}
+              />
+            )}
           </p>
         </div>
       )}
 
-      {/* ===== SUMMARY ===== */}
+      {/* SUMMARY */}
       {personal?.summary && (
         <>
           <SectionTitle title="Professional Summary" config={config} />
-          <p style={{ fontSize: `${config.typography.fontSize.body}px`, margin: 0 }}>
-            {personal.summary}
-          </p>
+          <p style={baseText(config)}>{personal.summary}</p>
         </>
       )}
 
-      {/* ===== BODY (ORDERED) ===== */}
+      {/* BODY */}
       {config.content.order.map((section) => (
         <div key={section}>{renderSection(section)}</div>
       ))}

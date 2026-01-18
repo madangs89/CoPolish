@@ -1,12 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import BalancedTwoColumnResume from "../../components/ResumeTemplates/BalancedTwoColumnResume";
-import CareerTimelineResume from "../../components/ResumeTemplates/CareerTimelineResume";
-import HarvardResume from "../../components/ResumeTemplates/HarvardResume";
-import ModernMinimalResume from "../../components/ResumeTemplates/ModernMinimalResume";
-import ProfessionalSidebarResume from "../../components/ResumeTemplates/ProfessionalSidebarResume";
-import ResumeClassicBlue from "../../components/ResumeTemplates/ResumeClassicBlue";
-import ResumeClassicV1 from "../../components/ResumeTemplates/ResumeClassicV1";
-import CleanProfessionalResume from "../../components/ResumeTemplates/CleanProfessionalResume";
+import { templateRegistry } from "../../config/templateRegistory";
 
 const resumeConfig = {
   content: {
@@ -24,14 +17,14 @@ const resumeConfig = {
   },
 
   layout: {
-    type: "single-column", // "two-column" | "timeline"
-    columnRatio: [2, 1], // only used for two-column
+    type: "single-column",
+    columnRatio: [2, 1],
   },
 
   page: {
     width: 794,
     minHeight: 1123,
-    padding: 12,
+    padding: 16,
     background: "#ffffff",
   },
 
@@ -42,8 +35,8 @@ const resumeConfig = {
     },
     fontSize: {
       name: 25,
-      section: 15,
-      body: 10,
+      section: 18,
+      body: 16,
       small: 13,
     },
     lineHeight: 1.2,
@@ -58,33 +51,16 @@ const resumeConfig = {
   },
 
   spacing: {
-    sectionGap: 10,
-    itemGap: 10,
+    sectionGap: 7,
+    itemGap: 6,
   },
 
   decorations: {
     showDividers: true,
-    dividerStyle: "line", // "dot" | "timeline"
+    dividerStyle: "line",
   },
 
   listStyle: "numbers",
-
-  meta: {
-    templateId: "balanced-two-column",
-    lastUpdated: new Date().toISOString(),
-  },
-};
-
-const templateMask = {
-  BalancedTwoColumnResume: "BalancedTwoColumnResume",
-  CareerTimelineResume: "CareerTimelineResume",
-  CleanProfessionalResume: "CleanProfessionalResume",
-  HarvardResume: "HarvardResume",
-  ModernMinimalResume: "ModernMinimalResume",
-  ProfessionalSidebarResume: "ProfessionalSidebarResume",
-  ResumeClassicBlue: "ResumeClassicBlue",
-  ResumeClassicV1: "ResumeClassicV1",
-  "default-template": "CleanProfessionalResume",
 };
 
 const initialState = {
@@ -168,7 +144,7 @@ const initialState = {
   },
   config: resumeConfig,
   currentResumeConfig: resumeConfig,
-  templates: templateMask,
+  templates: templateRegistry,
 };
 
 export const resumeSlice = createSlice({
@@ -185,6 +161,7 @@ export const resumeSlice = createSlice({
       state.currentResume = actions.payload;
     },
     setCurrentResumeConfig: (state, actions) => {
+      state.currentResume.config = actions.payload;
       state.currentResumeConfig = actions.payload;
     },
     setCurrentResumeTemplateId: (state, actions) => {

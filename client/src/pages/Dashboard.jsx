@@ -69,7 +69,7 @@ const Dashboard = () => {
           },
         };
 
-        dispatch(setCurrentResumeConfig(configData));
+        dispatch(setCurrentResumeConfig(data.resume.config || configData));
         dispatch(setCurrentResumeId(data?.resume?._id));
       }
       setResumeLoader(false);

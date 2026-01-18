@@ -12,6 +12,8 @@ const isEmpty = (value) => {
   return false;
 };
 
+/* ================= SAFE TEXT ================= */
+
 const textSafe = {
   overflowWrap: "break-word",
   wordBreak: "break-word",
@@ -27,7 +29,7 @@ const baseText = (config) => ({
 
 /* ================= LIST STYLE ================= */
 
-const normalizeListStyle = (style = "") => style.toLowerCase();
+const normalizeListStyle = (s = "") => s.toLowerCase();
 
 const getListStyle = (config) => {
   switch (normalizeListStyle(config.listStyle)) {
@@ -48,44 +50,21 @@ const getListStyle = (config) => {
 /* ================= COMPONENTS ================= */
 
 const SectionTitle = ({ title, config, isFirst }) => (
-  <div
+  <h2
     style={{
       marginTop: isFirst ? 0 : config.spacing.sectionGap,
       marginBottom: config.spacing.itemGap,
+      fontSize: `${config.typography.fontSize.section}px`,
+      fontFamily: config.typography.fontFamily.heading,
+      fontWeight: 700,
+      color: config.colors.primary,
+      textTransform: "uppercase",
+      letterSpacing: "0.6px",
+      ...textSafe,
     }}
   >
-    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-      <h2
-        style={{
-          margin: 0,
-          fontSize: `${config.typography.fontSize.section}px`,
-          fontFamily: config.typography.fontFamily.heading,
-          fontWeight: 700,
-          color: config.colors.primary,
-          textTransform: "uppercase",
-          letterSpacing: "0.6px",
-
-          /* 🔒 CRITICAL */
-          whiteSpace: "nowrap",
-          wordBreak: "normal",
-          overflowWrap: "normal",
-          flexShrink: 0,
-        }}
-      >
-        {title}
-      </h2>
-
-      {config.decorations?.showDividers && (
-        <div
-          style={{
-            height: 1,
-            background: config.colors.line,
-            width: "100%",
-          }}
-        />
-      )}
-    </div>
-  </div>
+    {title}
+  </h2>
 );
 
 const LinkItem = ({ href, text, config }) => {
@@ -103,7 +82,6 @@ const LinkItem = ({ href, text, config }) => {
         fontSize: `${config.typography.fontSize.small}px`,
         color: config.colors.accent,
         textDecoration: "underline",
-        cursor: "pointer",
         ...textSafe,
       }}
     >
@@ -167,30 +145,25 @@ const CleanProfessionalResume = ({ data, config }) => {
             {sectionTitle}
             {data.experience.map((exp, i) => (
               <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <div
-                    style={{
-                      fontFamily: config.typography.fontFamily.heading,
-                      fontWeight: 600,
-                      ...baseText(config),
-                    }}
-                  >
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <strong style={baseText(config)}>
                     {exp.role}
                     {exp.company && ` · ${exp.company}`}
-                  </div>
+                  </strong>
                   {exp.duration && (
-                    <div
+                    <span
                       style={{
                         fontSize: `${config.typography.fontSize.small}px`,
                         color: config.colors.muted,
                       }}
                     >
                       {exp.duration}
-                    </div>
+                    </span>
                   )}
                 </div>
-                {!isEmpty(exp.description) &&
-                  renderList(exp.description)}
+                {!isEmpty(exp.description) && renderList(exp.description)}
               </div>
             ))}
           </>
@@ -202,30 +175,21 @@ const CleanProfessionalResume = ({ data, config }) => {
             {sectionTitle}
             {data.projects.map((p, i) => (
               <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
-                <div
-                  style={{
-                    fontFamily: config.typography.fontFamily.heading,
-                    fontWeight: 600,
-                    ...baseText(config),
-                  }}
-                >
-                  {p.title}
-                </div>
+                <strong style={baseText(config)}>{p.title}</strong>
 
                 {!isEmpty(p.technologies) && (
                   <p
                     style={{
-                      margin: "4px 0",
                       fontSize: `${config.typography.fontSize.small}px`,
                       color: config.colors.muted,
+                      margin: "4px 0",
                     }}
                   >
                     Tech: {p.technologies.join(", ")}
                   </p>
                 )}
 
-                {!isEmpty(p.description) &&
-                  renderList(p.description)}
+                {!isEmpty(p.description) && renderList(p.description)}
 
                 {!isEmpty(p.link) &&
                   p.link.map(
@@ -248,22 +212,9 @@ const CleanProfessionalResume = ({ data, config }) => {
         return (
           <>
             {sectionTitle}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-              {data.skills.map((skill, i) => (
-                <span
-                  key={i}
-                  style={{
-                    fontSize: `${config.typography.fontSize.small}px`,
-                    padding: "6px 10px",
-                    border: `1px solid ${config.colors.line}`,
-                    borderRadius: 6,
-                    ...textSafe,
-                  }}
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
+            <p style={{ ...baseText(config), color: config.colors.muted }}>
+              {data.skills.join(", ")}
+            </p>
           </>
         );
 
@@ -273,28 +224,16 @@ const CleanProfessionalResume = ({ data, config }) => {
             {sectionTitle}
             {data.education.map((edu, i) => (
               <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <div
-                    style={{
-                      fontFamily: config.typography.fontFamily.heading,
-                      fontWeight: 600,
-                      ...baseText(config),
-                    }}
-                  >
-                    {edu.degree}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: `${config.typography.fontSize.small}px`,
-                      color: config.colors.muted,
-                    }}
-                  >
-                    {edu.from}
-                    {edu.to && ` – ${edu.to}`}
-                  </div>
-                </div>
-                <p style={{ margin: 0, ...baseText(config) }}>
-                  {edu.institute}
+                <strong style={baseText(config)}>{edu.degree}</strong>
+                <p style={{ margin: 0 }}>{edu.institute}</p>
+                <p
+                  style={{
+                    fontSize: `${config.typography.fontSize.small}px`,
+                    color: config.colors.muted,
+                    margin: 0,
+                  }}
+                >
+                  {edu.from} {edu.to && `– ${edu.to}`}
                 </p>
               </div>
             ))}
@@ -306,28 +245,39 @@ const CleanProfessionalResume = ({ data, config }) => {
           <>
             {sectionTitle}
             {data.certifications.map((c, i) => (
-              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
-                <div
-                  style={{
-                    fontFamily: config.typography.fontFamily.heading,
-                    fontWeight: 600,
-                    ...baseText(config),
-                  }}
-                >
-                  {c.name}
-                </div>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: `${config.typography.fontSize.small}px`,
-                    color: config.colors.muted,
-                  }}
-                >
-                  {c.issuer}
-                  {c.year && ` · ${c.year}`}
-                </p>
+              <p key={i} style={baseText(config)}>
+                {c.name} — {c.issuer} {c.year && `(${c.year})`}
+              </p>
+            ))}
+          </>
+        );
+
+      case "achievements":
+        return (
+          <>
+            {sectionTitle}
+            {renderList(data.achievements)}
+          </>
+        );
+
+      case "extracurricular":
+        return (
+          <>
+            {sectionTitle}
+            {data.extracurricular.map((e, i) => (
+              <div key={i} style={{ marginBottom: 6 }}>
+                <strong>{e.title}</strong>
+                {e.description && <p>{e.description}</p>}
               </div>
             ))}
+          </>
+        );
+
+      case "hobbies":
+        return (
+          <>
+            {sectionTitle}
+            <p>{data.hobbies.join(", ")}</p>
           </>
         );
 
@@ -349,7 +299,6 @@ const CleanProfessionalResume = ({ data, config }) => {
         <div style={{ marginBottom: config.spacing.sectionGap }}>
           <h1
             style={{
-              margin: 0,
               fontSize: `${config.typography.fontSize.name}px`,
               fontFamily: config.typography.fontFamily.heading,
               fontWeight: 800,
@@ -359,18 +308,10 @@ const CleanProfessionalResume = ({ data, config }) => {
             {personal.name}
           </h1>
 
-          {(personal.title || personal.address) && (
-            <p
-              style={{
-                margin: "4px 0",
-                fontSize: `${config.typography.fontSize.body}px`,
-                color: config.colors.muted,
-              }}
-            >
-              {personal.title}
-              {personal.address && ` · ${personal.address}`}
-            </p>
-          )}
+          <p style={{ color: config.colors.muted }}>
+            {personal.title}
+            {personal.address && ` · ${personal.address}`}
+          </p>
 
           <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
             {personal.email && (
@@ -388,11 +329,7 @@ const CleanProfessionalResume = ({ data, config }) => {
               />
             )}
             {personal.github && (
-              <LinkItem
-                href={personal.github}
-                text="GitHub"
-                config={config}
-              />
+              <LinkItem href={personal.github} text="GitHub" config={config} />
             )}
             {personal.linkedin && (
               <LinkItem
@@ -413,9 +350,7 @@ const CleanProfessionalResume = ({ data, config }) => {
             config={config}
             isFirst={!firstSectionRendered}
           />
-          <p style={{ margin: 0, ...baseText(config) }}>
-            {personal.summary}
-          </p>
+          <p>{personal.summary}</p>
           {(firstSectionRendered = true)}
         </>
       )}

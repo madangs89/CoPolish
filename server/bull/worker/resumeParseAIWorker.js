@@ -30,7 +30,7 @@ let config = {
   page: {
     width: 794,
     minHeight: 1123,
-    padding: 12,
+    padding: 16,
     background: "#ffffff",
   },
 
@@ -41,8 +41,8 @@ let config = {
     },
     fontSize: {
       name: 25,
-      section: 15,
-      body: 10,
+      section: 18,
+      body: 16,
       small: 13,
     },
     lineHeight: 1.2,
@@ -57,8 +57,8 @@ let config = {
   },
 
   spacing: {
-    sectionGap: 10,
-    itemGap: 10,
+    sectionGap: 7,
+    itemGap: 6,
   },
 
   decorations: {
@@ -108,7 +108,7 @@ const resumeParseAIWorker = new Worker(
       userId,
       resumeGroupId: uuidv4(),
       version: 1,
-      templateId: "default-template",
+      templateId: "ModernMinimalResume",
       scoreBefore: text?.resumeScore || 0,
       suggestions: text?.optimizationSuggestions || [],
 

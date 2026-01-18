@@ -48,31 +48,60 @@ const Editor = ({
   }, [resumeConfig, setResumeConfig]);
 
   const handleIsAllFieldsFilled = (section) => {
-    const isObj = (val) =>
-      val && typeof val === "object" && !Array.isArray(val);
-    const isArray = (val) => Array.isArray(val);
+    if (section === null || section === undefined) return false;
 
-    if (isObj(section)) {
-      return Object.values(section).every((value) => {
-        if (isArray(value)) {
-          return value.length > 0;
-        } else if (isObj(value)) {
-          return handleIsAllFieldsFilled(value);
-        } else {
-          return value !== "" && value !== null && value !== undefined;
+    // string
+    if (typeof section === "string") {
+      return section.trim() !== "";
+    }
+
+    // number / boolean
+    if (typeof section === "number" || typeof section === "boolean") {
+      return true;
+    }
+
+    // array
+    if (Array.isArray(section)) {
+      if (section.length === 0) return false;
+
+      return section.every((item) => handleIsAllFieldsFilled(item));
+    }
+
+    // object
+    if (typeof section === "object") {
+      // 🔹 SPECIAL CASE: PROJECT
+      if (
+        "title" in section &&
+        "description" in section &&
+        "technologies" in section
+      ) {
+        // title is mandatory
+        if (!section.title || section.title.trim() === "") {
+          return false;
         }
-      });
+
+        // links: validate ONLY if user added them
+        if (Array.isArray(section.link) && section.link.length > 0) {
+          const validLinks = section.link.every(
+            (l) => l.title?.trim() && l.url?.trim()
+          );
+          if (!validLinks) return false;
+        }
+
+        return true;
+      }
+
+      // 🔹 DEFAULT OBJECT CHECK
+      return Object.values(section).every((value) =>
+        handleIsAllFieldsFilled(value)
+      );
     }
 
-    if (isArray(section)) {
-      return section.length > 0;
-    }
-
-    return section !== "" && section !== null && section !== undefined;
+    return false;
   };
 
   return (
-    <div className="h-full w-full relative flex scrollbar-minimal flex-col bg-white border-l pt-1.5 overflow-y-auto">
+    <div className="h-full w-full relative flex scrollbar-minimal flex-col bg-white border-l  overflow-y-auto">
       {mobileModalState == "editor" && (
         <div
           onClick={() => setMobileModalState("")}
@@ -110,7 +139,6 @@ const Editor = ({
               checkedFields={checkedFields}
               setCheckedFields={setCheckedFields}
               handleIsAllFieldsFilled={handleIsAllFieldsFilled}
-
             />
 
             <Experience
@@ -121,7 +149,6 @@ const Editor = ({
               checkedFields={checkedFields}
               setCheckedFields={setCheckedFields}
               handleIsAllFieldsFilled={handleIsAllFieldsFilled}
-
             />
 
             <Skill
@@ -132,7 +159,6 @@ const Editor = ({
               checkedFields={checkedFields}
               setCheckedFields={setCheckedFields}
               handleIsAllFieldsFilled={handleIsAllFieldsFilled}
-
             />
 
             <Project
@@ -143,7 +169,6 @@ const Editor = ({
               checkedFields={checkedFields}
               setCheckedFields={setCheckedFields}
               handleIsAllFieldsFilled={handleIsAllFieldsFilled}
-
             />
 
             <Certification
@@ -154,7 +179,6 @@ const Editor = ({
               checkedFields={checkedFields}
               setCheckedFields={setCheckedFields}
               handleIsAllFieldsFilled={handleIsAllFieldsFilled}
-
             />
 
             <Achievement
@@ -164,7 +188,6 @@ const Editor = ({
               setSelectedSection={setSelectedSection}
               checkedFields={checkedFields}
               handleIsAllFieldsFilled={handleIsAllFieldsFilled}
-
               setCheckedFields={setCheckedFields}
             />
 
@@ -175,7 +198,6 @@ const Editor = ({
               setSelectedSection={setSelectedSection}
               checkedFields={checkedFields}
               handleIsAllFieldsFilled={handleIsAllFieldsFilled}
-
               setCheckedFields={setCheckedFields}
             />
 
@@ -187,18 +209,19 @@ const Editor = ({
               checkedFields={checkedFields}
               setCheckedFields={setCheckedFields}
               handleIsAllFieldsFilled={handleIsAllFieldsFilled}
-
             />
           </div>
         </>
       )}
 
       {editorState === "designer" && (
-        <ResumeConfigEditor
-          config={resumeConfig}
-          resumeData={currentResume}
-          setConfig={setResumeConfig}
-        />
+        <div className="p-3">
+          <ResumeConfigEditor
+            config={resumeConfig}
+            resumeData={currentResume}
+            setConfig={setResumeConfig}
+          />
+        </div>
       )}
       {editorState === "template" && <TemplateShower />}
     </div>

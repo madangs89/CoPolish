@@ -124,13 +124,13 @@ const Experience = ({
         <div className="flex items-center gap-2">
           <input
             type="checkbox"
-            checked={checkedFields.includes("Experience")}
+            checked={checkedFields.includes("experience")}
             onChange={(e) => {
               if (e.target.checked) {
-                setCheckedFields((prev) => [...prev, "Experience"]);
+                setCheckedFields((prev) => [...prev, "experience"]);
               } else {
                 setCheckedFields((prev) =>
-                  prev.filter((f) => f !== "Experience")
+                  prev.filter((f) => f !== "experience")
                 );
               }
             }}

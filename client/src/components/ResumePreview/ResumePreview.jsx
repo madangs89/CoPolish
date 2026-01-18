@@ -10,14 +10,16 @@ const ResumePreview = ({ resumeData, checkedFields }) => {
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1);
   const [open, setOpen] = useState(false);
+  const [pageCount, setPageCount] = useState(1);
 
   const currentResume = useSelector((s) => s.resume.currentResume);
   const config = useSelector((s) => s.resume.currentResumeConfig);
 
-  const Component = templateRegistry["ResumeClassicBlue"];
+  const Component =
+    templateRegistry[currentResume.templateId] ||
+    templateRegistry["ModernMinimalResume"];
 
-  // templateRegistry[currentResume.templateId] ||
-  /* ---------- FILTER DATA BASED ON CHECKED FIELDS ---------- */
+  /* ---------- FILTER DATA ---------- */
   const filteredData = useMemo(() => {
     const result = {};
     Object.keys(resumeData).forEach((key) => {
@@ -42,23 +44,24 @@ const ResumePreview = ({ resumeData, checkedFields }) => {
   return (
     <div
       ref={containerRef}
-      className="w-full h-full relative flex justify-center overflow-y-auto p-3"
+      className="w-full h-full relative bg-gray-300 flex justify-center overflow-y-scroll scrollbar-minimal overflow-x-hidden p-3"
     >
-      {/* PAGE COUNT */}
-      <div className="absolute top-2 right-14 z-50 px-3 py-1 bg-white shadow text-xs rounded">
-        Preview
+      {/* PAGE COUNT BADGE */}
+      <div className="absolute top-4 right-14 z-50 px-3 py-1 bg-white shadow text-xs rounded">
+        {pageCount} Page{pageCount > 1 ? "s" : ""}
       </div>
 
       {/* EXPAND */}
       {!open && (
         <Maximize
           onClick={() => setOpen(true)}
-          className="absolute top-3 right-7 w-4 h-4 cursor-pointer text-gray-600 z-50"
+          className="absolute top-5 right-7 w-4 h-4 cursor-pointer text-gray-600 z-50"
         />
       )}
 
       {/* PREVIEW */}
       <div
+      className=""
         style={{
           transform: `scale(${scale})`,
           transformOrigin: "top center",
@@ -68,17 +71,18 @@ const ResumePreview = ({ resumeData, checkedFields }) => {
           Component={Component}
           data={filteredData}
           config={config}
+          onPageCountChange={setPageCount}
         />
       </div>
 
-      {/* FULLSCREEN MODAL (SAME RENDERER) */}
+      {/* FULLSCREEN */}
       {open && (
         <div className="fixed inset-0 z-50 bg-black/60">
           <div className="flex justify-center overflow-y-auto py-6">
             <div className="relative">
               <button
                 onClick={() => setOpen(false)}
-                className="absolute -top-10 right-0 bg-white px-3 py-1 shadow rounded text-sm"
+                className="absolute -top-6 right-0 bg-white px-3 py-1 shadow rounded text-sm"
               >
                 Close
               </button>
@@ -88,6 +92,7 @@ const ResumePreview = ({ resumeData, checkedFields }) => {
                   Component={Component}
                   data={filteredData}
                   config={config}
+                  onPageCountChange={setPageCount}
                 />
               </MobileResumeWrapper>
             </div>
