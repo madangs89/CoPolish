@@ -10,6 +10,7 @@ await connectDB();
 let config = {
   content: {
     order: [
+      "summary",
       "skills",
       "projects",
       "experience",
