@@ -8,7 +8,10 @@ const Experience = ({
   setSelectedSection,
   checkedFields,
   setCheckedFields,
+  handleIsAllFieldsFilled,
 }) => {
+  const isCompleted = handleIsAllFieldsFilled(resumeData.experience);
+
   const [newBullet, setNewBullet] = useState({});
 
   const updateExperienceBullet = (expIndex, bulletIndex, value) => {
@@ -159,8 +162,14 @@ const Experience = ({
           }}
           className="flex gap-1 items-center cursor-pointer"
         >
-          <span className="text-xs font-medium text-[#374151] bg-[#F3F4F6] px-2 py-0.5 rounded-full">
-            Completed
+          <span
+            className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+              isCompleted
+                ? "text-blue-500 bg-blue-100"
+                : "text-red-700 bg-red-100"
+            }`}
+          >
+            {isCompleted ? "Completed" : "Incomplete"}
           </span>
           {selectedSection.includes("Experience") ? (
             <ChevronDown className="w-4 h-4" />

@@ -12,89 +12,175 @@ const isEmpty = (value) => {
   return false;
 };
 
+/* ================= GLOBAL SAFE TEXT ================= */
+
+const textSafe = {
+  overflowWrap: "break-word",
+  wordBreak: "break-word",
+  whiteSpace: "normal",
+};
+
+/* ================= LIST STYLE ================= */
+
+const getListStyle = (config) => {
+  switch (config.listStyle) {
+    case "Numbers":
+      return "decimal";
+    case "Dots":
+      return "disc";
+    case "Bullets":
+      return "circle";
+    case "Dash":
+      return "none";
+    case "None":
+      return "none";
+    default:
+      return "decimal";
+  }
+};
+
+/* ================= BASE TEXT ================= */
+
+const baseText = (config) => ({
+  fontSize: `${config.typography.fontSize.body}px`,
+  lineHeight: config.typography.lineHeight,
+  color: config.colors.text,
+  ...textSafe,
+});
+
 /* ================= COMPONENTS ================= */
 
-const SectionTitle = ({ title, config }) => (
+const SectionTitle = ({ title, config, isFirst }) => (
   <div
     style={{
-      marginTop: config.spacing.sectionGap,
-      marginBottom: config.spacing.itemGap / 1.5,
+      marginTop: isFirst ? 0 : config.spacing.sectionGap,
+      marginBottom: config.spacing.itemGap,
     }}
   >
     <h2
       style={{
+        margin: 0,
         fontSize: `${config.typography.fontSize.section}px`,
+        fontFamily: config.typography.fontFamily.heading,
         fontWeight: 700,
         color: config.colors.primary,
         textTransform: "uppercase",
         letterSpacing: "0.8px",
-        marginBottom: "6px",
+        ...textSafe,
       }}
     >
       {title}
     </h2>
-    <div
-      style={{
-        height: "1px",
-        background: config.colors.line,
-      }}
-    />
+
+    {config.decorations?.showDividers && (
+      <div
+        style={{
+          height: 1,
+          background: config.colors.line,
+          marginTop: 6,
+        }}
+      />
+    )}
   </div>
 );
 
-const LinkItem = ({ href, text, config }) => (
-  <a
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    style={{
-      color: config.colors.accent,
-      textDecoration: "none",
-      fontSize: `${config.typography.fontSize.small}px`,
-    }}
-  >
-    {text}
-  </a>
-);
+const LinkItem = ({ href, text, config }) => {
+  const finalHref =
+    href?.startsWith("http") || href?.startsWith("mailto")
+      ? href
+      : `https://${href}`;
+
+  return (
+    <a
+      href={finalHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        fontSize: `${config.typography.fontSize.small}px`,
+        color: config.colors.accent,
+        textDecoration: "underline",
+        cursor: "pointer",
+        pointerEvents: "auto",
+        overflowWrap: "anywhere",
+      }}
+    >
+      {text}
+    </a>
+  );
+};
 
 /* ================= TEMPLATE ================= */
 
 const ModernMinimalResume = ({ data, config }) => {
-  const { personal } = data;
+  const { personal = {} } = data;
+  let firstSectionRendered = false;
 
   const renderSection = (section) => {
     if (section === "personal") return null;
     if (isEmpty(data[section])) return null;
 
+    const sectionTitle = (
+      <SectionTitle
+        title={section.charAt(0).toUpperCase() + section.slice(1)}
+        config={config}
+        isFirst={!firstSectionRendered}
+      />
+    );
+
+    firstSectionRendered = true;
+
     switch (section) {
       case "experience":
         return (
           <>
-            <SectionTitle title="Experience" config={config} />
+            {sectionTitle}
             {data.experience.map((exp, i) => (
               <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
                 <div
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
-                    fontWeight: 600,
+                    gap: 12,
                   }}
                 >
-                  <span>
-                    {exp.role} — {exp.company}
-                  </span>
-                  <span style={{ color: config.colors.muted }}>
-                    {exp.duration}
-                  </span>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontFamily: config.typography.fontFamily.heading,
+                      ...baseText(config),
+                    }}
+                  >
+                    {exp.role}
+                    {exp.company && ` — ${exp.company}`}
+                  </div>
+
+                  {exp.duration && (
+                    <div
+                      style={{
+                        fontSize: `${config.typography.fontSize.small}px`,
+                        color: config.colors.muted,
+                      }}
+                    >
+                      {exp.duration}
+                    </div>
+                  )}
                 </div>
-                <ul
-                  className="list-decimal"
-                  style={{ paddingLeft: "18px", marginTop: "6px" }}
-                >
-                  {exp.description.map((d, j) => (
-                    <li key={j}>{d}</li>
-                  ))}
-                </ul>
+
+                {!isEmpty(exp.description) && (
+                  <ul
+                    style={{
+                      marginTop: 6,
+                      paddingLeft:
+                        config.listStyle === "None" ? 0 : 18,
+                      listStyleType: getListStyle(config),
+                      ...baseText(config),
+                    }}
+                  >
+                    {exp.description.map((d, j) => (
+                      <li key={j}>{d}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             ))}
           </>
@@ -103,18 +189,48 @@ const ModernMinimalResume = ({ data, config }) => {
       case "projects":
         return (
           <>
-            <SectionTitle title="Projects" config={config} />
+            {sectionTitle}
             {data.projects.map((p, i) => (
               <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
-                <strong>{p.title}</strong>
-                <ul
-                  className="list-decimal"
-                  style={{ paddingLeft: "18px", marginTop: "6px" }}
+                <div
+                  style={{
+                    fontWeight: 600,
+                    fontFamily: config.typography.fontFamily.heading,
+                    ...baseText(config),
+                  }}
                 >
-                  {p.description.map((d, j) => (
-                    <li key={j}>{d}</li>
-                  ))}
-                </ul>
+                  {p.title}
+                </div>
+
+                {!isEmpty(p.description) && (
+                  <ul
+                    style={{
+                      marginTop: 6,
+                      paddingLeft:
+                        config.listStyle === "None" ? 0 : 18,
+                      listStyleType: getListStyle(config),
+                      ...baseText(config),
+                    }}
+                  >
+                    {p.description.map((d, j) => (
+                      <li key={j}>{d}</li>
+                    ))}
+                  </ul>
+                )}
+
+                {!isEmpty(p.link) &&
+                  p.link.map(
+                    (l, idx) =>
+                      l?.url && (
+                        <div key={idx}>
+                          <LinkItem
+                            href={l.url}
+                            text={l.title || l.url}
+                            config={config}
+                          />
+                        </div>
+                      )
+                  )}
               </div>
             ))}
           </>
@@ -123,8 +239,8 @@ const ModernMinimalResume = ({ data, config }) => {
       case "skills":
         return (
           <>
-            <SectionTitle title="Skills" config={config} />
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            {sectionTitle}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {data.skills.map((skill, i) => (
                 <span
                   key={i}
@@ -132,7 +248,8 @@ const ModernMinimalResume = ({ data, config }) => {
                     fontSize: `${config.typography.fontSize.small}px`,
                     background: "#f3f4f6",
                     padding: "4px 8px",
-                    borderRadius: "4px",
+                    borderRadius: 4,
+                    ...textSafe,
                   }}
                 >
                   {skill}
@@ -145,22 +262,40 @@ const ModernMinimalResume = ({ data, config }) => {
       case "education":
         return (
           <>
-            <SectionTitle title="Education" config={config} />
+            {sectionTitle}
             {data.education.map((edu, i) => (
               <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
                 <div
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
-                    fontWeight: 600,
+                    gap: 12,
                   }}
                 >
-                  <span>{edu.degree}</span>
-                  <span style={{ color: config.colors.muted }}>
-                    {edu.from} – {edu.to}
-                  </span>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontFamily: config.typography.fontFamily.heading,
+                      ...baseText(config),
+                    }}
+                  >
+                    {edu.degree}
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: `${config.typography.fontSize.small}px`,
+                      color: config.colors.muted,
+                    }}
+                  >
+                    {edu.from}
+                    {edu.to && ` – ${edu.to}`}
+                  </div>
                 </div>
-                <p>{edu.institute}</p>
+
+                <p style={{ margin: 0, ...baseText(config) }}>
+                  {edu.institute}
+                </p>
               </div>
             ))}
           </>
@@ -169,13 +304,43 @@ const ModernMinimalResume = ({ data, config }) => {
       case "certifications":
         return (
           <>
-            <SectionTitle title="Certifications" config={config} />
+            {sectionTitle}
             {data.certifications.map((c, i) => (
               <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
-                <strong>{c.name}</strong>
-                <p style={{ color: config.colors.muted }}>
-                  {c.issuer} {c.year && `· ${c.year}`}
+                <div
+                  style={{
+                    fontWeight: 600,
+                    fontFamily: config.typography.fontFamily.heading,
+                    ...baseText(config),
+                  }}
+                >
+                  {c.name}
+                </div>
+
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: `${config.typography.fontSize.small}px`,
+                    color: config.colors.muted,
+                  }}
+                >
+                  {c.issuer}
+                  {c.year && ` · ${c.year}`}
                 </p>
+
+                {!isEmpty(c.link) &&
+                  c.link.map(
+                    (l, idx) =>
+                      l?.url && (
+                        <div key={idx}>
+                          <LinkItem
+                            href={l.url}
+                            text={l.title || l.url}
+                            config={config}
+                          />
+                        </div>
+                      )
+                  )}
               </div>
             ))}
           </>
@@ -184,8 +349,15 @@ const ModernMinimalResume = ({ data, config }) => {
       case "achievements":
         return (
           <>
-            <SectionTitle title="Achievements" config={config} />
-            <ul>
+            {sectionTitle}
+            <ul
+              style={{
+                paddingLeft:
+                  config.listStyle === "None" ? 0 : 18,
+                listStyleType: getListStyle(config),
+                ...baseText(config),
+              }}
+            >
               {data.achievements.map((a, i) => (
                 <li key={i}>{a}</li>
               ))}
@@ -196,14 +368,35 @@ const ModernMinimalResume = ({ data, config }) => {
       case "extracurricular":
         return (
           <>
-            <SectionTitle title="Extracurricular" config={config} />
+            {sectionTitle}
             {data.extracurricular.map((e, i) => (
               <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
-                <strong>{e.role}</strong>
-                <p style={{ color: config.colors.muted }}>
-                  {e.activity} {e.year && `· ${e.year}`}
+                <div
+                  style={{
+                    fontWeight: 600,
+                    fontFamily: config.typography.fontFamily.heading,
+                    ...baseText(config),
+                  }}
+                >
+                  {e.role}
+                </div>
+
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: `${config.typography.fontSize.small}px`,
+                    color: config.colors.muted,
+                  }}
+                >
+                  {e.activity}
+                  {e.year && ` · ${e.year}`}
                 </p>
-                {e.description && <p>{e.description}</p>}
+
+                {e.description && (
+                  <p style={{ margin: 0, ...baseText(config) }}>
+                    {e.description}
+                  </p>
+                )}
               </div>
             ))}
           </>
@@ -212,8 +405,8 @@ const ModernMinimalResume = ({ data, config }) => {
       case "hobbies":
         return (
           <>
-            <SectionTitle title="Hobbies" config={config} />
-            <p style={{ color: config.colors.muted }}>
+            {sectionTitle}
+            <p style={{ margin: 0, ...baseText(config) }}>
               {data.hobbies.join(" · ")}
             </p>
           </>
@@ -228,24 +421,21 @@ const ModernMinimalResume = ({ data, config }) => {
 
   return (
     <div
-      id="resume-export"
       style={{
-        width: `${config.page.width}px`,
-        minHeight: `${config.page.minHeight}px`,
-        padding: `${config.page.padding}px`,
-        background: config.page.background,
         fontFamily: config.typography.fontFamily.body,
         color: config.colors.text,
         lineHeight: config.typography.lineHeight,
-      
+        ...textSafe,
       }}
     >
-      {/* ================= HEADER ================= */}
+      {/* HEADER */}
       {!isEmpty(personal) && (
         <div style={{ marginBottom: config.spacing.sectionGap }}>
           <h1
             style={{
+              margin: 0,
               fontSize: `${config.typography.fontSize.name}px`,
+              fontFamily: config.typography.fontFamily.heading,
               fontWeight: 800,
               color: config.colors.primary,
             }}
@@ -253,11 +443,20 @@ const ModernMinimalResume = ({ data, config }) => {
             {personal.name}
           </h1>
 
-          <p style={{ color: config.colors.muted }}>
-            {personal.title} · {personal.address}
-          </p>
+          {(personal.title || personal.address) && (
+            <p
+              style={{
+                margin: "4px 0",
+                fontSize: `${config.typography.fontSize.body}px`,
+                color: config.colors.muted,
+              }}
+            >
+              {personal.title}
+              {personal.address && ` · ${personal.address}`}
+            </p>
+          )}
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
             {personal.email && (
               <LinkItem
                 href={`mailto:${personal.email}`}
@@ -274,15 +473,22 @@ const ModernMinimalResume = ({ data, config }) => {
             )}
             {personal.github && (
               <LinkItem
-                href={`https://${personal.github}`}
+                href={personal.github}
                 text="GitHub"
                 config={config}
               />
             )}
             {personal.linkedin && (
               <LinkItem
-                href={`https://${personal.linkedin}`}
+                href={personal.linkedin}
                 text="LinkedIn"
+                config={config}
+              />
+            )}
+            {personal.hackerRank && (
+              <LinkItem
+                href={personal.hackerRank}
+                text="HackerRank"
                 config={config}
               />
             )}
@@ -290,15 +496,22 @@ const ModernMinimalResume = ({ data, config }) => {
         </div>
       )}
 
-      {/* ================= SUMMARY ================= */}
+      {/* SUMMARY */}
       {personal?.summary && (
         <>
-          <SectionTitle title="Summary" config={config} />
-          <p>{personal.summary}</p>
+          <SectionTitle
+            title="Summary"
+            config={config}
+            isFirst={!firstSectionRendered}
+          />
+          <p style={{ margin: 0, ...baseText(config) }}>
+            {personal.summary}
+          </p>
+          {(firstSectionRendered = true)}
         </>
       )}
 
-      {/* ================= BODY (ORDERED) ================= */}
+      {/* BODY */}
       {config.content.order.map((section) => (
         <div key={section}>{renderSection(section)}</div>
       ))}

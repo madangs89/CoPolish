@@ -97,7 +97,11 @@ const ApprovePage = () => {
           { withCredentials: true }
         );
         if (response.data.success) {
-          navigate("/dashboard");
+          navigate("/dashboard", {
+            state: {
+              id: response.data.resume._id,
+            },
+          });
           toast.success("Resume approved. Redirecting to dashboard");
         }
       }

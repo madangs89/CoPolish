@@ -53,6 +53,26 @@ const ALL_OPERATION_ORDER = [
   "personal",
 ];
 
+function normalizeResume(ai) {
+  // Fix project links
+  ai.projects?.forEach((project) => {
+    project.link = (project.link || []).map((l) => ({
+      title: l.title ?? l.type ?? null,
+      url: typeof l.url === "string" ? l.url : null,
+    }));
+  });
+
+  // Fix certification links
+  ai.certifications?.forEach((cert) => {
+    cert.link = (cert.link || []).map((l) => ({
+      title: l.title ?? l.type ?? null,
+      url: typeof l.url === "string" ? l.url : null,
+    }));
+  });
+
+  return ai;
+}
+
 const getResumeFromDb = async (resumeId, operation) => {
   try {
     const resumeData = await ResumeTemplate.findById(resumeId);
@@ -212,10 +232,12 @@ export const aiResumeParser = async (text) => {
       .replace(/^\s*```json\s*/, "")
       .replace(/\s*```\s*$/, "");
 
-    console.log(response.usageMetadata);
-    console.log(newText);
+    // console.log(response.usageMetadata);
+    // console.log(newText);
 
-    const isValid = validateLLMResponse("parsed", JSON.parse(newText));
+    const normalized = normalizeResume(JSON.parse(newText));
+
+    const isValid = validateLLMResponse("parsed", normalized);
 
     const { isValid: valid, errors } = isValid;
 

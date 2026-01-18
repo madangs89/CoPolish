@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy } from "react";
+import React, { useState, Suspense, lazy, useEffect } from "react";
 
 const EditorScoreBox = lazy(() => import("../components/EditorScoreBox"));
 const ResumePreview = lazy(
@@ -19,21 +19,42 @@ import {
   Search,
   Target,
 } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import ResumeConfigEditor from "../components/ResumeConfigEditor";
 import TemplateShower from "../components/TemplateShower";
+import {
+  setCurrentResume,
+  setCurrentResumeConfig,
+  setCheckedField,
+} from "../redux/slice/resumeSlice";
 const ResumeEditor = () => {
   const resumeSlice = useSelector((state) => state.resume);
   const [resumeData, setResumeData] = useState(resumeSlice.currentResume);
   const config = useSelector((state) => state.resume.currentResumeConfig);
 
+  const dispatch = useDispatch();
+
   const [resumeConfig, setResumeConfig] = useState(config);
 
-  const [checkedFields, setCheckedFields] = useState([]);
+  const [checkedFields, setCheckedFields] = useState(
+    resumeSlice?.currentResume?.checkedFields || []
+  );
 
   const [mobileModalState, setMobileModalState] = useState("");
 
   const [mobileEditorState, setMobileEditorState] = useState("preview");
+
+  useEffect(() => {
+    dispatch(setCurrentResume(resumeData));
+  }, [resumeData]);
+
+  useEffect(() => {
+    dispatch(setCurrentResumeConfig(resumeConfig));
+  }, [resumeConfig]);
+
+  useEffect(() => {
+    dispatch(setCheckedField(checkedFields));
+  }, [checkedFields]);
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -70,13 +91,19 @@ const ResumeEditor = () => {
         {/* Next Section */}
         {/* Here handles both big and small screen */}
         <div className="h-full   px-3 md:w-[50%] w-full overflow-hidden ">
-          <div className="shadow-xl  md:flex hidden items-center justify-center h-full bg-white relative overflow-hidden">
-            <ResumePreview resumeData={resumeData} />
+          <div className="shadow-xl  md:flex hidden items-center justify-center h-full   relative overflow-hidden">
+            <ResumePreview
+              resumeData={resumeData}
+              checkedFields={checkedFields}
+            />
           </div>
 
           {mobileEditorState === "preview" ? (
             <div className="h-full flex md:hidden  items-center justify-center shadow-xl bg-white relative overflow-hidden">
-              <ResumePreview resumeData={resumeData} />
+              <ResumePreview
+                resumeData={resumeData}
+                checkedFields={checkedFields}
+              />
             </div>
           ) : mobileEditorState === "editor" ? (
             <>

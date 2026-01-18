@@ -6,6 +6,79 @@ import ResumeTemplate from "../../models/resume.model.js";
 import User from "../../models/user.model.js";
 import { connectDB } from "../../config/connectDB.js";
 await connectDB();
+
+let config = {
+  content: {
+    order: [
+      "skills",
+      "projects",
+      "experience",
+      "education",
+      "certifications",
+      "achievements",
+      "extracurricular",
+      "hobbies",
+      "personal",
+    ],
+  },
+
+  layout: {
+    type: "single-column",
+    columnRatio: [2, 1],
+  },
+
+  page: {
+    width: 794,
+    minHeight: 1123,
+    padding: 12,
+    background: "#ffffff",
+  },
+
+  typography: {
+    fontFamily: {
+      heading: "Inter, system-ui, sans-serif",
+      body: "Inter, system-ui, sans-serif",
+    },
+    fontSize: {
+      name: 25,
+      section: 15,
+      body: 10,
+      small: 13,
+    },
+    lineHeight: 1.2,
+  },
+
+  colors: {
+    primary: "#111827",
+    accent: "#2563eb",
+    text: "#1f2937",
+    muted: "#6b7280",
+    line: "#e5e7eb",
+  },
+
+  spacing: {
+    sectionGap: 10,
+    itemGap: 10,
+  },
+
+  decorations: {
+    showDividers: true,
+    dividerStyle: "line",
+  },
+
+  listStyle: "numbers",
+};
+let checkedFields = [
+  "skills",
+  "projects",
+  "experience",
+  "education",
+  "certifications",
+  "achievements",
+  "extracurricular",
+  "hobbies",
+  "personal",
+];
 const resumeParseAIWorker = new Worker(
   "resume-parse-ai",
   async (job) => {
@@ -15,11 +88,21 @@ const resumeParseAIWorker = new Worker(
     const { text, usage, error, isError } = res;
 
     if (isError) {
-      console.error("Error in AI resume parsing:", error);
+      await pubClient.publish(
+        "resume:events",
+        JSON.stringify({
+          event: "RESUME_PARSE_AI_COMPLETED",
+          jobId: job.id,
+          userId,
+          parsedNewResume: "",
+          userUpdateCurrentResumeId: "",
+          usage: 0,
+          isError: true,
+          error: error,
+        })
+      );
       throw error;
     }
-    // console.log(text);
-    // console.log(usage);
 
     const payload = {
       userId,
@@ -28,18 +111,28 @@ const resumeParseAIWorker = new Worker(
       templateId: "default-template",
       scoreBefore: text?.resumeScore || 0,
       suggestions: text?.optimizationSuggestions || [],
+
+      // AI output FIRST
       ...text,
+
+      // Manual control LAST (always wins)
+      config,
+      checkedFields,
     };
 
     let parsedNewResume;
     let userUpdateCurrentResumeId;
     try {
       payload.jobKey = jobKey;
+
       parsedNewResume = await ResumeTemplate.findOne({ jobKey });
 
       if (!parsedNewResume) {
         try {
-          parsedNewResume = await ResumeTemplate.create(payload);
+          console.log("payload to create:", payload);
+          parsedNewResume = await ResumeTemplate.create({
+            ...payload,
+          });
         } catch (err) {
           // Handle race condition
           parsedNewResume = await ResumeTemplate.findOne({ jobKey });
@@ -69,9 +162,13 @@ const resumeParseAIWorker = new Worker(
 resumeParseAIWorker.on("completed", async (job) => {
   console.log(`Job ${job.id} has completed!`);
 
-  const data = job?.returnvalue || {};
+  const data = job.returnValue || job.returnvalue;
 
-  console.log("completed", data);
+  if (!data) {
+    console.warn("Completed job has no return value", job.id);
+    return;
+  }
+
   await pubClient.publish(
     "resume:events",
     JSON.stringify({
@@ -85,29 +182,24 @@ resumeParseAIWorker.on("completed", async (job) => {
       error: null,
     })
   );
-  console.log("completed", data);
 });
 
 resumeParseAIWorker.on("failed", async (job, err) => {
-  console.log(`Job ${job.id} has failed with error ${err.message}`);
+  console.error(`Job ${job.id} failed`, err.message);
 
-  const data = job.returnvalue;
-  const attemptsMade = job.attemptsMade;
-  const maxAttempts = job.opts.attempts ?? 1;
+  const { userId, jobKey } = job.data || {};
 
-  if (attemptsMade >= maxAttempts) {
-    await pubClient.publish(
-      "resume:events",
-      JSON.stringify({
-        event: "RESUME_PARSE_AI_COMPLETED",
-        jobId: job.id,
-        userId: data.userId,
-        parsedNewResume: data.parsedNewResume,
-        userUpdateCurrentResumeId: data.userUpdateCurrentResumeId,
-        usage: data.usage,
-        isError: true,
-        error: err?.message,
-      })
-    );
-  }
+  await pubClient.publish(
+    "resume:events",
+    JSON.stringify({
+      event: "RESUME_PARSE_AI_COMPLETED",
+      jobId: job.id,
+      userId: userId ?? null,
+      parsedNewResume: null,
+      userUpdateCurrentResumeId: null,
+      usage: 0,
+      isError: true,
+      error: err?.message ?? "Unknown error",
+    })
+  );
 });

@@ -131,6 +131,130 @@ const resumeTemplateSchema = new mongoose.Schema(
       ],
       default: [],
     },
+    checkedFields: {
+      type: [String],
+      required: true,
+    },
+
+    config: {
+      content: {
+        order: {
+          type: [String],
+          required: true,
+        },
+      },
+      layout: {
+        type: {
+          type: String,
+          default: "single-column",
+          enum: ["single-column", "two-column", "sidebar"],
+        },
+        columnRatio: {
+          type: Array,
+          default: [2, 1],
+        },
+      },
+      page: {
+        width: {
+          type: Number,
+          default: 794,
+        },
+        minHeight: {
+          type: Number,
+          default: 1123,
+        },
+        padding: {
+          type: Number,
+          default: 12,
+        },
+        background: {
+          type: String,
+          default: "#ffffff",
+        },
+      },
+      typography: {
+        fontFamily: {
+          heading: {
+            type: String,
+            default: "Inter, system-ui, sans-serif",
+          },
+          body: {
+            type: String,
+            default: "Inter, system-ui, sans-serif",
+          },
+        },
+        fontSize: {
+          name: {
+            type: Number,
+            default: 25,
+          },
+          section: {
+            type: Number,
+            default: 15,
+          },
+          body: {
+            type: Number,
+            default: 10,
+          },
+          small: {
+            type: Number,
+            default: 13,
+          },
+        },
+        lineHeight: {
+          type: Number,
+          default: 1.2,
+        },
+      },
+      colors: {
+        primary: {
+          type: String,
+          default: "#111827",
+        },
+        accent: {
+          type: String,
+          default: "#2563eb",
+        },
+        text: {
+          type: String,
+          default: "#1f2937",
+        },
+        muted: {
+          type: String,
+          default: "#6b7280",
+        },
+        line: {
+          type: String,
+          default: "#e5e7eb",
+        },
+      },
+      spacing: {
+        sectionGap: {
+          type: Number,
+          default: 10,
+        },
+        itemGap: {
+          type: Number,
+          default: 10,
+        },
+      },
+      decorations: {
+        showDividers: {
+          type: Boolean,
+          default: true,
+        },
+        dividerStyle: {
+          type: String,
+          default: "line",
+          enum: ["line", "dot", "timeline"],
+        },
+      },
+      listStyle: {
+        type: String,
+        default: "numbers",
+        enum: ["bullets", "numbers", "none", "dash"],
+      },
+    },
   },
   { timestamps: true }
 );

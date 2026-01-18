@@ -2,6 +2,78 @@ import { pubClient } from "../config/redis.js";
 import ResumeTemplate from "../models/resume.model.js";
 import User from "../models/user.model.js";
 
+let config = {
+  content: {
+    order: [
+      "skills",
+      "projects",
+      "experience",
+      "education",
+      "certifications",
+      "achievements",
+      "extracurricular",
+      "hobbies",
+      "personal",
+    ],
+  },
+
+  layout: {
+    type: "single-column",
+    columnRatio: [2, 1],
+  },
+
+  page: {
+    width: 794,
+    minHeight: 1123,
+    padding: 12,
+    background: "#ffffff",
+  },
+
+  typography: {
+    fontFamily: {
+      heading: "Inter, system-ui, sans-serif",
+      body: "Inter, system-ui, sans-serif",
+    },
+    fontSize: {
+      name: 25,
+      section: 15,
+      body: 10,
+      small: 13,
+    },
+    lineHeight: 1.2,
+  },
+
+  colors: {
+    primary: "#111827",
+    accent: "#2563eb",
+    text: "#1f2937",
+    muted: "#6b7280",
+    line: "#e5e7eb",
+  },
+
+  spacing: {
+    sectionGap: 10,
+    itemGap: 10,
+  },
+
+  decorations: {
+    showDividers: true,
+    dividerStyle: "line",
+  },
+
+  listStyle: "numbers",
+};
+let checkedFields = [
+  "skills",
+  "projects",
+  "experience",
+  "education",
+  "certifications",
+  "achievements",
+  "extracurricular",
+  "hobbies",
+  "personal",
+];
 export const getResumeById = async (req, res) => {
   try {
     const resumeId = req.params.id;
@@ -56,7 +128,7 @@ export const markApprovedAndUpdate = async (req, res) => {
 
     const updatedResume = await ResumeTemplate.findByIdAndUpdate(
       resumeId,
-      { ...resumeData },
+      { ...resumeData, config, checkedFields },
       { new: true }
     );
 
@@ -100,7 +172,11 @@ export const markApproveAndCreateNew = async (req, res) => {
       });
     }
 
-    const createResume = await ResumeTemplate.create(resumeData);
+    const createResume = await ResumeTemplate.create({
+      ...resumeData,
+      config,
+      checkedFields,
+    });
 
     if (!createResume) {
       return res.status(500).json({
@@ -190,8 +266,6 @@ export const optimizeResume = async (req, res) => {
     });
   }
 };
-
-
 
 // import { Worker } from "bullmq";
 // import { bullClient, pubClient } from "../../config/redis.js";

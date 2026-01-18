@@ -8,7 +8,10 @@ const Personal = ({
   setSelectedSection,
   checkedFields,
   setCheckedFields,
+  handleIsAllFieldsFilled,
 }) => {
+  const isCompleted = handleIsAllFieldsFilled(resumeData.personal);
+
   return (
     <div className="rounded-xl border border-[#e6e6e6] bg-white ">
       <div
@@ -62,8 +65,14 @@ const Personal = ({
           }}
           className="flex gap-1 items-center cursor-pointer"
         >
-          <span className="text-xs font-medium text-[#374151] bg-[#F3F4F6] px-2 py-0.5 rounded-full">
-            Completed
+          <span
+            className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+              isCompleted
+                ? "text-blue-500 bg-blue-100"
+                : "text-red-700 bg-red-100"
+            }`}
+          >
+            {isCompleted ? "Completed" : "Incomplete"}
           </span>
           {selectedSection.includes("personal") ? (
             <ChevronDown className="w-4 h-4" />

@@ -1,261 +1,87 @@
 import React from "react";
 
-const SKILL_CATEGORIES = {
-  Languages: [
-    "JavaScript",
-    "TypeScript",
-    "Python",
-    "Java",
-    "C",
-    "C++",
-    "C#",
-    "Go",
-    "Rust",
-    "PHP",
-    "Ruby",
-    "Swift",
-    "Kotlin",
-    "Dart",
-    "R",
-    "MATLAB",
-    "Scala",
-    "Perl",
-  ],
-
-  "Frameworks & Libraries": [
-    // Frontend
-    "React",
-    "Next.js",
-    "Vue.js",
-    "Nuxt.js",
-    "Angular",
-    "Svelte",
-    "Redux",
-    "Redux Toolkit",
-    "Zustand",
-    "Recoil",
-    "React Query",
-    "TanStack Query",
-    "GSAP",
-    "Three.js",
-
-    // Backend
-    "Node.js",
-    "Express.js",
-    "NestJS",
-    "Django",
-    "Flask",
-    "FastAPI",
-    "Spring Boot",
-    "Spring MVC",
-    "Laravel",
-    "Ruby on Rails",
-    "ASP.NET Core",
-
-    // Mobile
-    "React Native",
-    "Flutter",
-    "SwiftUI",
-  ],
-
-  Databases: [
-    "MongoDB",
-    "PostgreSQL",
-    "MySQL",
-    "SQLite",
-    "MariaDB",
-    "Oracle",
-    "Microsoft SQL Server",
-    "Redis",
-    "Cassandra",
-    "DynamoDB",
-    "Firebase Firestore",
-    "Supabase",
-  ],
-
-  "DevOps & Cloud": [
-    "Docker",
-    "Docker Compose",
-    "Kubernetes",
-    "AWS",
-    "EC2",
-    "S3",
-    "Lambda",
-    "CloudFront",
-    "RDS",
-    "GCP",
-    "Azure",
-    "Terraform",
-    "Ansible",
-    "Jenkins",
-    "GitHub Actions",
-    "CI/CD",
-  ],
-
-  "Tools & Platforms": [
-    "Git",
-    "GitHub",
-    "GitLab",
-    "Bitbucket",
-    "Postman",
-    "Jira",
-    "Confluence",
-    "Trello",
-    "Slack",
-    "Vite",
-    "Webpack",
-    "Babel",
-    "ESLint",
-    "Prettier",
-    "npm",
-    "yarn",
-    "pnpm",
-  ],
-
-  "Concepts & Architecture": [
-    "REST APIs",
-    "GraphQL",
-    "WebSockets",
-    "Socket.IO",
-    "gRPC",
-    "Microservices",
-    "Monolithic Architecture",
-    "Event-Driven Architecture",
-    "Scalable Systems",
-    "Caching",
-    "Rate Limiting",
-    "Authentication",
-    "Authorization",
-    "JWT",
-    "OAuth",
-    "OAuth 2.0",
-    "HTTPS",
-    "CORS",
-    "OWASP",
-  ],
-
-  "Soft Skills": [
-    "Problem Solving",
-    "Critical Thinking",
-    "Communication",
-    "Team Collaboration",
-    "Leadership",
-    "Time Management",
-    "Adaptability",
-    "Mentoring",
-  ],
-};
-
 /* ================= HELPERS ================= */
 
 const isEmpty = (value) => {
   if (!value) return true;
   if (Array.isArray(value)) return value.length === 0;
   if (typeof value === "object")
-    return Object.values(value).every((v) => !v || v.length === 0);
+    return Object.values(value).every(
+      (v) => v === null || v === "" || (Array.isArray(v) && v.length === 0)
+    );
   return false;
 };
 
-const SKILL_ALIASES = {
-  javascript: ["js", "javascript es6", "javascript es6+"],
-  react: ["reactjs", "context api"],
-  node: ["nodejs"],
-  "socket io": ["socketio"],
-  "rest apis": ["restful apis", "rest api"],
-  sql: ["mysql", "postgresql", "postgres"],
+const textSafe = {
+  overflowWrap: "break-word",
+  wordBreak: "break-word",
+  whiteSpace: "normal",
+};
+
+const baseText = (config) => ({
+  fontSize: `${config.typography.fontSize.body}px`,
+  lineHeight: config.typography.lineHeight,
+  color: config.colors.text,
+  ...textSafe,
+});
+
+const getListStyle = (config) => {
+  switch (config.listStyle) {
+    case "Numbers":
+      return "decimal";
+    case "Dots":
+      return "disc";
+    case "Bullets":
+      return "circle";
+    case "Dash":
+      return "none";
+    case "None":
+      return "none";
+    default:
+      return "decimal";
+  }
+};
+
+/* ================= SKILL GROUPING (UNCHANGED LOGIC) ================= */
+
+const SKILL_CATEGORIES = {
+  Languages: ["JavaScript", "TypeScript", "Python", "Java", "C", "C++"],
+  "Frameworks & Libraries": ["React", "Next.js", "Node.js", "Express.js"],
+  Databases: ["MongoDB", "PostgreSQL", "MySQL", "Redis"],
+  "DevOps & Cloud": ["Docker", "AWS", "GCP", "Azure"],
+  "Tools & Platforms": ["Git", "GitHub", "Postman"],
+  "Concepts & Architecture": ["REST APIs", "Microservices", "JWT"],
 };
 
 const normalize = (str = "") =>
   str
     .toLowerCase()
-    .replace(/\(.*?\)/g, "") // remove (ES6+), (Moderate)
-    .replace(/\.js/g, "") // react.js → react
     .replace(/[^a-z0-9+ ]/g, "")
-    .replace(/\s+/g, " ")
     .trim();
-
-const resolveSkill = (skill) => {
-  const n = normalize(skill);
-
-  for (const [base, aliases] of Object.entries(SKILL_ALIASES)) {
-    if (n === base) return base;
-    if (aliases.some((a) => n.includes(a))) return base;
-  }
-
-  return n;
-};
 
 const groupSkills = (skills = [], maxCategories = 4) => {
   const grouped = {};
   const used = new Set();
 
   for (const [category, categorySkills] of Object.entries(SKILL_CATEGORIES)) {
-    const normalizedCategorySkills = categorySkills.map((s) =>
-      normalize(resolveSkill(s))
-    );
+    const normalized = categorySkills.map(normalize);
 
-    for (const rawSkill of skills) {
-      const resolved = resolveSkill(rawSkill);
-
-      // 🔴 IMPORTANT: skip if already assigned
-      if (used.has(resolved)) continue;
-
-      if (normalizedCategorySkills.includes(normalize(resolved))) {
+    for (const raw of skills) {
+      const n = normalize(raw);
+      if (used.has(n)) continue;
+      if (normalized.includes(n)) {
         if (!grouped[category]) grouped[category] = [];
-        grouped[category].push(rawSkill);
-        used.add(resolved);
+        grouped[category].push(raw);
+        used.add(n);
       }
     }
-
     if (Object.keys(grouped).length >= maxCategories) break;
   }
 
-  // Remaining → Other
-  const others = skills.filter((s) => !used.has(resolveSkill(s)));
-
-  if (others.length && Object.keys(grouped).length < maxCategories + 1) {
-    grouped["Other"] = others;
-  }
+  const others = skills.filter((s) => !used.has(normalize(s)));
+  if (others.length) grouped["Other"] = others;
 
   return grouped;
-};
-
-const renderGroupedSkills = (skills = [], config) => {
-  const groupedSkills = groupSkills(skills);
-
-  return Object.entries(groupedSkills).map(([category, items]) => (
-    <div
-      className="flex"
-      key={category}
-      style={{
-        marginBottom: `${config.spacing.itemGap}px`,
-      }}
-    >
-      {/* Category */}
-      <div
-        className="mr-2"
-        style={{
-          fontWeight: 600,
-          fontSize: `${config.typography.fontSize.small}px`,
-          marginBottom: "4px",
-          color: config.colors.primary,
-        }}
-      >
-        {category}:
-      </div>
-
-      {/* Skills */}
-      <div
-        style={{
-          fontSize: `${config.typography.fontSize.small}px`,
-          color: config.colors.text,
-          lineHeight: config.typography.lineHeight,
-        }}
-      >
-        {items.join(", ")}
-      </div>
-    </div>
-  ));
 };
 
 /* ================= COMPONENTS ================= */
@@ -263,38 +89,49 @@ const renderGroupedSkills = (skills = [], config) => {
 const SectionTitle = ({ title, config }) => (
   <h2
     style={{
+      margin: 0,
+      marginBottom: config.spacing.itemGap,
       fontSize: `${config.typography.fontSize.section}px`,
+      fontFamily: config.typography.fontFamily.heading,
       fontWeight: 700,
-      marginBottom: `${config.spacing.itemGap}px`,
       color: config.colors.primary,
+      textTransform: "uppercase",
+      ...textSafe,
     }}
   >
     {title}
   </h2>
 );
 
-const LinkItem = ({ href, text, config }) => (
-  <a
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    style={{
-      color: config.colors.accent,
-      textDecoration: "none",
-      fontSize: `${config.typography.fontSize.small}px`,
-      display: "block",
-      marginBottom: "6px",
-    }}
-  >
-    {text}
-  </a>
-);
+const LinkItem = ({ href, text, config }) => {
+  const finalHref =
+    href?.startsWith("http") || href?.startsWith("mailto")
+      ? href
+      : `https://${href}`;
+
+  return (
+    <a
+      href={finalHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        fontSize: `${config.typography.fontSize.small}px`,
+        color: config.colors.accent,
+        textDecoration: "underline",
+        cursor: "pointer",
+        pointerEvents: "auto",
+        ...textSafe,
+      }}
+    >
+      {text}
+    </a>
+  );
+};
 
 /* ================= TEMPLATE ================= */
 
 const BalancedTwoColumnResume = ({ data, config }) => {
-  const { personal } = data;
-  console.log(config);
+  const { personal = {} } = data;
 
   const renderSection = (section) => {
     if (isEmpty(data[section])) return null;
@@ -303,28 +140,53 @@ const BalancedTwoColumnResume = ({ data, config }) => {
       case "experience":
         return (
           <>
-            <SectionTitle title="Work Experience" config={config} />
+            <SectionTitle title="Experience" config={config} />
             {data.experience.map((exp, i) => (
               <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
                 <div
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
-                    fontWeight: 600,
+                    gap: 12,
                   }}
                 >
-                  <span>
-                    {exp.role} · {exp.company}
-                  </span>
-                  <span style={{ color: config.colors.muted }}>
-                    {exp.duration}
-                  </span>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontFamily: config.typography.fontFamily.heading,
+                      ...baseText(config),
+                    }}
+                  >
+                    {exp.role}
+                    {exp.company && ` · ${exp.company}`}
+                  </div>
+
+                  {exp.duration && (
+                    <div
+                      style={{
+                        fontSize: `${config.typography.fontSize.small}px`,
+                        color: config.colors.muted,
+                      }}
+                    >
+                      {exp.duration}
+                    </div>
+                  )}
                 </div>
-                <ul style={{ paddingLeft: "18px", marginTop: "6px" }}>
-                  {exp.description.map((d, j) => (
-                    <li key={j}>{d}</li>
-                  ))}
-                </ul>
+
+                {!isEmpty(exp.description) && (
+                  <ul
+                    style={{
+                      marginTop: 6,
+                      paddingLeft: config.listStyle === "None" ? 0 : 18,
+                      listStyleType: getListStyle(config),
+                      ...baseText(config),
+                    }}
+                  >
+                    {exp.description.map((d, j) => (
+                      <li key={j}>{d}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             ))}
           </>
@@ -336,12 +198,30 @@ const BalancedTwoColumnResume = ({ data, config }) => {
             <SectionTitle title="Projects" config={config} />
             {data.projects.map((p, i) => (
               <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
-                <strong>{p.title}</strong>
-                <ul style={{ paddingLeft: "18px", marginTop: "6px" }}>
-                  {p.description.map((d, j) => (
-                    <li key={j}>{d}</li>
-                  ))}
-                </ul>
+                <div
+                  style={{
+                    fontWeight: 600,
+                    fontFamily: config.typography.fontFamily.heading,
+                    ...baseText(config),
+                  }}
+                >
+                  {p.title}
+                </div>
+
+                {!isEmpty(p.description) && (
+                  <ul
+                    style={{
+                      marginTop: 6,
+                      paddingLeft: config.listStyle === "None" ? 0 : 18,
+                      listStyleType: getListStyle(config),
+                      ...baseText(config),
+                    }}
+                  >
+                    {p.description.map((d, j) => (
+                      <li key={j}>{d}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             ))}
           </>
@@ -353,10 +233,29 @@ const BalancedTwoColumnResume = ({ data, config }) => {
             <SectionTitle title="Education" config={config} />
             {data.education.map((edu, i) => (
               <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
-                <strong>{edu.degree}</strong>
-                <p style={{ color: config.colors.muted }}>{edu.institute}</p>
-                <p style={{ color: config.colors.muted }}>
-                  {edu.from} – {edu.to}
+                <div
+                  style={{
+                    fontWeight: 600,
+                    fontFamily: config.typography.fontFamily.heading,
+                    ...baseText(config),
+                  }}
+                >
+                  {edu.degree}
+                </div>
+
+                <p style={{ margin: 0, ...baseText(config) }}>
+                  {edu.institute}
+                </p>
+
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: `${config.typography.fontSize.small}px`,
+                    color: config.colors.muted,
+                  }}
+                >
+                  {edu.from}
+                  {edu.to && ` – ${edu.to}`}
                 </p>
               </div>
             ))}
@@ -367,7 +266,22 @@ const BalancedTwoColumnResume = ({ data, config }) => {
         return (
           <>
             <SectionTitle title="Skills" config={config} />
-            {renderGroupedSkills(data.skills, config)}
+            {Object.entries(groupSkills(data.skills)).map(
+              ([category, items]) => (
+                <div key={category} style={{ marginBottom: 6 }}>
+                  <span
+                    style={{
+                      fontWeight: 600,
+                      fontSize: `${config.typography.fontSize.small}px`,
+                      color: config.colors.primary,
+                    }}
+                  >
+                    {category}:
+                  </span>{" "}
+                  <span style={baseText(config)}>{items.join(", ")}</span>
+                </div>
+              )
+            )}
           </>
         );
 
@@ -380,36 +294,42 @@ const BalancedTwoColumnResume = ({ data, config }) => {
 
   return (
     <div
-      id="resume-export"
       style={{
-        width: `${config.page.width}px`,
-        minHeight: `${config.page.minHeight}px`,
-        padding: `${config.page.padding}px`,
-        background: config.page.background,
         fontFamily: config.typography.fontFamily.body,
         color: config.colors.text,
         lineHeight: config.typography.lineHeight,
-        boxSizing: "border-box",
-        border: `1px solid ${config.colors.line}`,
+        ...textSafe,
       }}
     >
-      {/* ================= HEADER ================= */}
+      {/* HEADER */}
       {!isEmpty(personal) && (
         <div style={{ marginBottom: config.spacing.sectionGap }}>
           <h1
             style={{
+              margin: 0,
               fontSize: `${config.typography.fontSize.name}px`,
+              fontFamily: config.typography.fontFamily.heading,
               fontWeight: 800,
+              color: config.colors.primary,
             }}
           >
             {personal.name}
           </h1>
 
-          <p style={{ color: config.colors.muted }}>
-            {personal.title} · {personal.address}
-          </p>
+          {(personal.title || personal.address) && (
+            <p
+              style={{
+                margin: "4px 0",
+                fontSize: `${config.typography.fontSize.body}px`,
+                color: config.colors.muted,
+              }}
+            >
+              {personal.title}
+              {personal.address && ` · ${personal.address}`}
+            </p>
+          )}
 
-          <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
             {personal.email && (
               <LinkItem
                 href={`mailto:${personal.email}`}
@@ -425,15 +345,11 @@ const BalancedTwoColumnResume = ({ data, config }) => {
               />
             )}
             {personal.github && (
-              <LinkItem
-                href={`https://${personal.github}`}
-                text="GitHub"
-                config={config}
-              />
+              <LinkItem href={personal.github} text="GitHub" config={config} />
             )}
             {personal.linkedin && (
               <LinkItem
-                href={`https://${personal.linkedin}`}
+                href={personal.linkedin}
                 text="LinkedIn"
                 config={config}
               />
@@ -442,13 +358,7 @@ const BalancedTwoColumnResume = ({ data, config }) => {
         </div>
       )}
 
-      {personal?.summary && (
-        <p style={{ marginBottom: config.spacing.sectionGap }}>
-          {personal.summary}
-        </p>
-      )}
-
-      {/* ================= BODY ================= */}
+      {/* BODY */}
       <div
         style={{
           display: "grid",

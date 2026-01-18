@@ -6,9 +6,13 @@ export const personalSchema = {
       type: "object",
       additionalProperties: false,
       properties: {
-        name: { type: ["string", "null"], minLength: 1 },
+        name: {
+          anyOf: [{ type: "string", minLength: 1 }, { type: "null" }],
+        },
         title: { type: ["string", "null"] },
-        email: { type: ["string", "null"], format: "email" },
+        email: {
+          anyOf: [{ type: "string", format: "email" }, { type: "null" }],
+        },
         phone: {
           type: ["string", "null"],
           pattern: "^[0-9+\\-()\\s]{7,20}$",
@@ -34,8 +38,8 @@ export const educationSchema = {
         properties: {
           degree: { type: ["string", "null"] },
           institute: { type: ["string", "null"] },
-          from: { type: ["string", "null"] },
-          to: { type: ["string", "null"] },
+          from: { type: ["string", "null", "number"] },
+          to: { type: ["string", "null", "number"] },
         },
       },
     },
@@ -54,9 +58,9 @@ export const experienceSchema = {
         properties: {
           role: { type: ["string", "null"] },
           company: { type: ["string", "null"] },
-          from: { type: ["string", "null"] },
-          to: { type: ["string", "null"] },
-          duration: { type: ["string", "null"] },
+          from: { type: ["string", "null", "number"] },
+          to: { type: ["string", "null", "number"] },
+          duration: { type: ["string", "null", "number"] },
           description: {
             type: "array",
             default: [],
@@ -97,8 +101,10 @@ export const projectsSchema = {
               type: "object",
               additionalProperties: false,
               properties: {
-                title: { type: "string" },
-                url: { type: "string", format: "uri" },
+                title: { type: ["string", "null"] },
+                url: {
+                  anyOf: [{ type: "string", format: "uri" }, { type: "null" }],
+                },
               },
             },
           },
@@ -133,8 +139,10 @@ export const certificationsSchema = {
         properties: {
           name: { type: ["string", "null"] },
           issuer: { type: ["string", "null"] },
-          year: { type: ["string", "null"] },
-          credentialUrl: { type: ["string", "null"], format: "uri" },
+          year: { type: ["string", "null", "number"] },
+          credentialUrl: {
+            anyOf: [{ type: "string", format: "uri" }, { type: "null" }],
+          },
           link: {
             type: "array",
             default: [],
@@ -142,8 +150,10 @@ export const certificationsSchema = {
               type: "object",
               additionalProperties: false,
               properties: {
-                title: { type: "string" },
-                url: { type: "string", format: "uri" },
+                title: { type: ["string", "null"] },
+                url: {
+                  anyOf: [{ type: "string", format: "uri" }, { type: "null" }],
+                },
               },
             },
           },
@@ -160,7 +170,7 @@ export const achievementsSchema = {
     achievements: {
       type: "array",
       default: [],
-      items: { type: "string" },
+      items: { type: ["string", "null"] },
     },
   },
 };
@@ -190,7 +200,7 @@ export const extracurricularSchema = {
         properties: {
           role: { type: ["string", "null"] },
           activity: { type: ["string", "null"] },
-          year: { type: ["string", "null"] },
+          year: { type: ["string", "null", "number"] },
           description: { type: ["string", "null"] },
         },
       },
@@ -225,7 +235,9 @@ export const parseResumeSchema = {
       properties: {
         name: { type: ["string", "null"] },
         title: { type: ["string", "null"] },
-        email: { type: ["string", "null"], format: "email" },
+        email: {
+          anyOf: [{ type: "string", format: "email" }, { type: "null" }],
+        },
         phone: {
           type: ["string", "null"],
           pattern: "^[0-9+\\-()\\s]{7,20}$",
@@ -248,8 +260,8 @@ export const parseResumeSchema = {
         properties: {
           degree: { type: ["string", "null"] },
           institute: { type: ["string", "null"] },
-          from: { type: ["string", "null"] },
-          to: { type: ["string", "null"] },
+          from: { type: ["string", "null", "number"] },
+          to: { type: ["string", "null", "number"] },
         },
       },
     },
@@ -265,9 +277,9 @@ export const parseResumeSchema = {
         properties: {
           role: { type: ["string", "null"] },
           company: { type: ["string", "null"] },
-          from: { type: ["string", "null"] },
-          to: { type: ["string", "null"] },
-          duration: { type: ["string", "null"] },
+          from: { type: ["string", "null", "number"] },
+          to: { type: ["string", "null", "number"] },
+          duration: { type: ["string", "null", "number"] },
           description: {
             type: "array",
             items: { type: "string" },
@@ -308,8 +320,10 @@ export const parseResumeSchema = {
               type: "object",
               additionalProperties: false,
               properties: {
-                title: { type: "string" },
-                url: { type: "string", format: "uri" },
+                title: { type: ["string", "null"] },
+                url: {
+                  anyOf: [{ type: "string", format: "uri" }, { type: "null" }],
+                },
               },
             },
           },
@@ -328,16 +342,21 @@ export const parseResumeSchema = {
         properties: {
           name: { type: ["string", "null"] },
           issuer: { type: ["string", "null"] },
-          year: { type: ["string", "null"] },
-          credentialUrl: { type: ["string", "null"], format: "uri" },
+          year: { type: ["string", "null", "number"] },
+
+          credentialUrl: {
+            anyOf: [{ type: "string", format: "uri" }, { type: "null" }],
+          },
           link: {
             type: "array",
             items: {
               type: "object",
               additionalProperties: false,
               properties: {
-                title: { type: "string" },
-                url: { type: "string", format: "uri" },
+                title: { type: ["string", "null"] },
+                url: {
+                  anyOf: [{ type: "string", format: "uri" }, { type: "null" }],
+                },
               },
             },
           },
@@ -372,7 +391,7 @@ export const parseResumeSchema = {
         properties: {
           role: { type: ["string", "null"] },
           activity: { type: ["string", "null"] },
-          year: { type: ["string", "null"] },
+          year: { type: ["string", "null", "number"] },
           description: { type: ["string", "null"] },
         },
       },
@@ -382,9 +401,11 @@ export const parseResumeSchema = {
     // RESUME SCORE
     // ───────────────────
     resumeScore: {
-      type: "number",
-      minimum: 0,
-      maximum: 100,
+      anyOf: [
+        { type: "number", minimum: 0, maximum: 100 },
+        { type: "string", pattern: "^[0-9]{1,3}$" },
+        { type: "null" },
+      ],
     },
 
     // ───────────────────
@@ -392,8 +413,8 @@ export const parseResumeSchema = {
     // ───────────────────
     optimizationSuggestions: {
       type: "array",
-      minItems: 5,
-      maxItems: 8,
+      minItems: 1,
+      maxItems: 10,
       items: { type: "string" },
     },
   },

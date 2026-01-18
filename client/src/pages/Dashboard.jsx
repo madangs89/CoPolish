@@ -3,15 +3,20 @@ import { Linkedin, FileText } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { formatDistanceToNow } from "date-fns";
 import axios from "axios";
-import { setCurrentResume } from "../redux/slice/resumeSlice";
+import {
+  setCurrentResume,
+  setCurrentResumeConfig,
+  setCurrentResumeId,
+} from "../redux/slice/resumeSlice";
 import SkeletonLoader from "../components/Loaders/SkeletonLoader";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 let nowTime = new Date();
 
 const Dashboard = () => {
   const userDetails = useSelector((state) => state.auth.user);
   const resumeSlice = useSelector((state) => state.resume);
+  const location = useLocation();
 
   const [resumeLoader, setResumeLoader] = useState(false);
 
@@ -38,17 +43,38 @@ const Dashboard = () => {
     (async () => {
       setResumeLoader(true);
       const { data } = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/${userDetails?.currentResumeId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/${location.state?.id || userDetails?.currentResumeId}`,
         {
           withCredentials: true,
         }
       );
       if (data.success) {
-        dispatch(setCurrentResume(data.resume));
+        dispatch(setCurrentResume(data?.resume));
+
+        const configData = {
+          ...data?.resume?.config,
+          content: {
+            ...(data?.resume?.config?.content || {}),
+            order: [
+              "skills",
+              "projects",
+              "experience",
+              "education",
+              "certifications",
+              "achievements",
+              "extracurricular",
+              "hobbies",
+              "personal",
+            ],
+          },
+        };
+
+        dispatch(setCurrentResumeConfig(configData));
+        dispatch(setCurrentResumeId(data?.resume?._id));
       }
       setResumeLoader(false);
     })();
-  }, [userDetails?.currentResumeId]);
+  }, [userDetails?.currentResumeId, location.state?.id, dispatch]);
 
   return (
     <div className="min-h-screen mt-10 bg-[#f7f7f7] px-6 md:px-14 py-10">

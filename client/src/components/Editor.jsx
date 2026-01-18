@@ -47,6 +47,30 @@ const Editor = ({
     dispatch(setCurrentResumeConfig(resumeConfig));
   }, [resumeConfig, setResumeConfig]);
 
+  const handleIsAllFieldsFilled = (section) => {
+    const isObj = (val) =>
+      val && typeof val === "object" && !Array.isArray(val);
+    const isArray = (val) => Array.isArray(val);
+
+    if (isObj(section)) {
+      return Object.values(section).every((value) => {
+        if (isArray(value)) {
+          return value.length > 0;
+        } else if (isObj(value)) {
+          return handleIsAllFieldsFilled(value);
+        } else {
+          return value !== "" && value !== null && value !== undefined;
+        }
+      });
+    }
+
+    if (isArray(section)) {
+      return section.length > 0;
+    }
+
+    return section !== "" && section !== null && section !== undefined;
+  };
+
   return (
     <div className="h-full w-full relative flex scrollbar-minimal flex-col bg-white border-l pt-1.5 overflow-y-auto">
       {mobileModalState == "editor" && (
@@ -75,6 +99,7 @@ const Editor = ({
               setSelectedSection={setSelectedSection}
               checkedFields={checkedFields}
               setCheckedFields={setCheckedFields}
+              handleIsAllFieldsFilled={handleIsAllFieldsFilled}
             />
 
             <Education
@@ -84,6 +109,8 @@ const Editor = ({
               setSelectedSection={setSelectedSection}
               checkedFields={checkedFields}
               setCheckedFields={setCheckedFields}
+              handleIsAllFieldsFilled={handleIsAllFieldsFilled}
+
             />
 
             <Experience
@@ -93,6 +120,8 @@ const Editor = ({
               setSelectedSection={setSelectedSection}
               checkedFields={checkedFields}
               setCheckedFields={setCheckedFields}
+              handleIsAllFieldsFilled={handleIsAllFieldsFilled}
+
             />
 
             <Skill
@@ -102,6 +131,8 @@ const Editor = ({
               setSelectedSection={setSelectedSection}
               checkedFields={checkedFields}
               setCheckedFields={setCheckedFields}
+              handleIsAllFieldsFilled={handleIsAllFieldsFilled}
+
             />
 
             <Project
@@ -111,6 +142,8 @@ const Editor = ({
               setSelectedSection={setSelectedSection}
               checkedFields={checkedFields}
               setCheckedFields={setCheckedFields}
+              handleIsAllFieldsFilled={handleIsAllFieldsFilled}
+
             />
 
             <Certification
@@ -120,6 +153,8 @@ const Editor = ({
               setSelectedSection={setSelectedSection}
               checkedFields={checkedFields}
               setCheckedFields={setCheckedFields}
+              handleIsAllFieldsFilled={handleIsAllFieldsFilled}
+
             />
 
             <Achievement
@@ -128,6 +163,8 @@ const Editor = ({
               selectedSection={selectedSection}
               setSelectedSection={setSelectedSection}
               checkedFields={checkedFields}
+              handleIsAllFieldsFilled={handleIsAllFieldsFilled}
+
               setCheckedFields={setCheckedFields}
             />
 
@@ -137,6 +174,8 @@ const Editor = ({
               selectedSection={selectedSection}
               setSelectedSection={setSelectedSection}
               checkedFields={checkedFields}
+              handleIsAllFieldsFilled={handleIsAllFieldsFilled}
+
               setCheckedFields={setCheckedFields}
             />
 
@@ -147,6 +186,8 @@ const Editor = ({
               setSelectedSection={setSelectedSection}
               checkedFields={checkedFields}
               setCheckedFields={setCheckedFields}
+              handleIsAllFieldsFilled={handleIsAllFieldsFilled}
+
             />
           </div>
         </>

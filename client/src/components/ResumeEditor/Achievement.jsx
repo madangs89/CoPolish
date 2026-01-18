@@ -8,8 +8,10 @@ const Achievement = ({
   setSelectedSection,
   checkedFields,
   setCheckedFields,
+  handleIsAllFieldsFilled,
 }) => {
   const [input, setInput] = useState("");
+  const isCompleted = handleIsAllFieldsFilled(resumeData.achievements);
 
   /* ---------- ADD ACHIEVEMENT ---------- */
   const addAchievement = () => {
@@ -99,8 +101,14 @@ const Achievement = ({
           }}
           className="flex gap-1 items-center cursor-pointer"
         >
-          <span className="text-xs font-medium text-[#374151] bg-[#F3F4F6] px-2 py-0.5 rounded-full">
-            Completed
+          <span
+            className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+              isCompleted
+                ? "text-blue-500 bg-blue-100"
+                : "text-red-700 bg-red-100"
+            }`}
+          >
+            {isCompleted ? "Completed" : "Incomplete"}
           </span>
           {selectedSection.includes("achievements") ? (
             <ChevronDown className="w-4 h-4" />

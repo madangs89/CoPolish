@@ -8,8 +8,11 @@ const Hobbies = ({
   setSelectedSection,
   checkedFields,
   setCheckedFields,
+  handleIsAllFieldsFilled,
 }) => {
   const [input, setInput] = useState("");
+
+  const isCompleted = handleIsAllFieldsFilled(resumeData.hobbies);
 
   /* ---------- ADD HOBBY ---------- */
   const addHobby = () => {
@@ -52,7 +55,7 @@ const Hobbies = ({
         className={` px-3 py-3 flex justify-between items-center 
     ${
       selectedSection.includes("hobbies")
-       ? "bg-white border  rounded-t-xl"
+        ? "bg-white border  rounded-t-xl"
         : "bg-white border border-gray-200 rounded-xl"
     }
     hover:bg-zinc-100 transition`}
@@ -97,8 +100,14 @@ const Hobbies = ({
           }}
           className="flex gap-1 items-center cursor-pointer"
         >
-          <span className="text-xs font-medium text-[#374151] bg-[#F3F4F6] px-2 py-0.5 rounded-full">
-            Completed
+          <span
+            className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+              isCompleted
+                ? "text-blue-500 bg-blue-100"
+                : "text-red-700 bg-red-100"
+            }`}
+          >
+            {isCompleted ? "Completed" : "Incomplete"}
           </span>
           {selectedSection.includes("hobbies") ? (
             <ChevronDown className="w-4 h-4" />

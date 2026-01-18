@@ -12,156 +12,105 @@ const isEmpty = (value) => {
   return false;
 };
 
+const textSafe = {
+  overflowWrap: "break-word",
+  wordBreak: "break-word",
+  whiteSpace: "normal",
+};
+
+const baseText = (config) => ({
+  fontSize: `${config.typography.fontSize.body}px`,
+  lineHeight: config.typography.lineHeight,
+  color: config.colors.text,
+  ...textSafe,
+});
+
+const getListStyle = (config) => {
+  switch ((config.listStyle || "").toLowerCase()) {
+    case "numbers":
+      return "decimal";
+    case "dots":
+      return "disc";
+    case "bullets":
+      return "circle";
+    case "none":
+    case "dash":
+      return "none";
+    default:
+      return "decimal";
+  }
+};
+
 /* ================= COMPONENTS ================= */
 
-const SidebarSectionTitle = ({ title, config }) => (
+const SectionTitle = ({ title, config }) => (
   <div style={{ marginTop: config.spacing.sectionGap, marginBottom: 10 }}>
     <h3
       style={{
+        margin: 0,
         fontSize: `${config.typography.fontSize.section}px`,
+        fontFamily: config.typography.fontFamily.heading,
         fontWeight: 700,
-        letterSpacing: "0.8px",
         textTransform: "uppercase",
         color: config.colors.primary,
-        marginBottom: "6px",
+        whiteSpace: "nowrap",
       }}
     >
       {title}
     </h3>
-    <div style={{ height: "1px", background: config.colors.line }} />
+    {config.decorations?.showDividers && (
+      <div style={{ height: 1, background: config.colors.line, marginTop: 6 }} />
+    )}
   </div>
 );
 
-const SidebarLink = ({ href, text, config }) => (
-  <a
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    style={{
-      display: "block",
-      fontSize: `${config.typography.fontSize.small}px`,
-      color: config.colors.accent,
-      textDecoration: "none",
-      marginBottom: "6px",
-    }}
-  >
-    {text}
-  </a>
-);
+const LinkItem = ({ href, text, config }) => {
+  const finalHref =
+    href?.startsWith("http") || href?.startsWith("mailto")
+      ? href
+      : `https://${href}`;
+
+  return (
+    <a
+      href={finalHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: "block",
+        fontSize: `${config.typography.fontSize.small}px`,
+        color: config.colors.accent,
+        textDecoration: "underline",
+        marginBottom: 6,
+      }}
+    >
+      {text}
+    </a>
+  );
+};
 
 /* ================= TEMPLATE ================= */
 
 const ProfessionalSidebarResume = ({ data, config }) => {
-  const { personal } = data;
-
-  const renderMainSection = (section) => {
-    if (isEmpty(data[section])) return null;
-
-    switch (section) {
-      case "experience":
-        return (
-          <>
-            <SidebarSectionTitle title="Experience" config={config} />
-            {data.experience.map((exp, i) => (
-              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontWeight: 600,
-                  }}
-                >
-                  <span>
-                    {exp.role} — {exp.company}
-                  </span>
-                  <span style={{ color: config.colors.muted }}>
-                    {exp.duration}
-                  </span>
-                </div>
-                <ul style={{ paddingLeft: "18px", marginTop: "6px" }}>
-                  {exp.description.map((d, j) => (
-                    <li key={j}>{d}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </>
-        );
-
-      case "projects":
-        return (
-          <>
-            <SidebarSectionTitle title="Projects" config={config} />
-            {data.projects.map((p, i) => (
-              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
-                <strong>{p.title}</strong>
-                <ul style={{ paddingLeft: "18px", marginTop: "6px" }}>
-                  {p.description.map((d, j) => (
-                    <li key={j}>{d}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </>
-        );
-
-      case "education":
-        return (
-          <>
-            <SidebarSectionTitle title="Education" config={config} />
-            {data.education.map((edu, i) => (
-              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <strong>{edu.degree}</strong>
-                  <span style={{ color: config.colors.muted }}>
-                    {edu.from} – {edu.to}
-                  </span>
-                </div>
-                <p>{edu.institute}</p>
-              </div>
-            ))}
-          </>
-        );
-
-      case "achievements":
-        return (
-          <>
-            <SidebarSectionTitle title="Achievements" config={config} />
-            <ul style={{ paddingLeft: "18px" }}>
-              {data.achievements.map((a, i) => (
-                <li key={i}>{a}</li>
-              ))}
-            </ul>
-          </>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  /* ================= RENDER ================= */
+  const { personal = {} } = data;
 
   return (
     <div
-      id="resume-export"
       style={{
         width: `${config.page.width}px`,
         minHeight: `${config.page.minHeight}px`,
         display: "flex",
-        background: config.page.background,
         fontFamily: config.typography.fontFamily.body,
-        color: config.colors.text,
+        background: config.page.background,
         boxSizing: "border-box",
-        boxShadow: `0 0 0 1px ${config.colors.line}`,
       }}
     >
       {/* ===== SIDEBAR ===== */}
       <div
         style={{
-          width: `${config.layout.columnRatio?.[0] || 260}px`,
+          width: "210px",
+          flexShrink: 0,
           background: "#f3f4f6",
-          padding: `${config.page.padding}px`,
+          padding: config.page.padding,
           boxSizing: "border-box",
         }}
       >
@@ -169,9 +118,11 @@ const ProfessionalSidebarResume = ({ data, config }) => {
           <>
             <h1
               style={{
+                margin: 0,
                 fontSize: `${config.typography.fontSize.name}px`,
+                fontFamily: config.typography.fontFamily.heading,
                 fontWeight: 800,
-                marginBottom: "4px",
+                whiteSpace: "nowrap",
               }}
             >
               {personal.name}
@@ -181,37 +132,38 @@ const ProfessionalSidebarResume = ({ data, config }) => {
               style={{
                 fontSize: `${config.typography.fontSize.small}px`,
                 color: config.colors.muted,
-                marginBottom: "16px",
+                marginBottom: 16,
               }}
             >
               {personal.title}
             </p>
 
-            <SidebarSectionTitle title="Contact" config={config} />
+            <SectionTitle title="Contact" config={config} />
+
             {personal.email && (
-              <SidebarLink
+              <LinkItem
                 href={`mailto:${personal.email}`}
                 text={personal.email}
                 config={config}
               />
             )}
             {personal.phone && (
-              <SidebarLink
+              <LinkItem
                 href={`tel:${personal.phone}`}
                 text={personal.phone}
                 config={config}
               />
             )}
             {personal.github && (
-              <SidebarLink
-                href={`https://${personal.github}`}
+              <LinkItem
+                href={personal.github}
                 text="GitHub"
                 config={config}
               />
             )}
             {personal.linkedin && (
-              <SidebarLink
-                href={`https://${personal.linkedin}`}
+              <LinkItem
+                href={personal.linkedin}
                 text="LinkedIn"
                 config={config}
               />
@@ -221,16 +173,10 @@ const ProfessionalSidebarResume = ({ data, config }) => {
 
         {!isEmpty(data.skills) && (
           <>
-            <SidebarSectionTitle title="Skills" config={config} />
-            {data.skills.map((skill, i) => (
-              <div
-                key={i}
-                style={{
-                  fontSize: `${config.typography.fontSize.small}px`,
-                  marginBottom: "6px",
-                }}
-              >
-                {skill}
+            <SectionTitle title="Skills" config={config} />
+            {data.skills.map((s, i) => (
+              <div key={i} style={{ fontSize: config.typography.fontSize.small }}>
+                {s}
               </div>
             ))}
           </>
@@ -241,21 +187,149 @@ const ProfessionalSidebarResume = ({ data, config }) => {
       <div
         style={{
           flex: 1,
-          padding: `${config.page.padding}px`,
+          padding: config.page.padding,
           boxSizing: "border-box",
-          lineHeight: config.typography.lineHeight,
         }}
       >
         {personal?.summary && (
           <>
-            <SidebarSectionTitle title="Summary" config={config} />
-            <p>{personal.summary}</p>
+            <SectionTitle title="Summary" config={config} />
+            <p style={baseText(config)}>{personal.summary}</p>
           </>
         )}
 
-        {config.content.order.map((section) => (
-          <div key={section}>{renderMainSection(section)}</div>
-        ))}
+        {/* EXPERIENCE */}
+        {!isEmpty(data.experience) && (
+          <>
+            <SectionTitle title="Experience" config={config} />
+            {data.experience.map((exp, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <strong>{exp.role} · {exp.company}</strong>
+                  <span style={{ color: config.colors.muted }}>
+                    {exp.duration}
+                  </span>
+                </div>
+                <ul
+                  style={{
+                    paddingLeft: 18,
+                    listStyleType: getListStyle(config),
+                    ...baseText(config),
+                  }}
+                >
+                  {exp.description.map((d, j) => (
+                    <li key={j}>{d}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* PROJECTS */}
+        {!isEmpty(data.projects) && (
+          <>
+            <SectionTitle title="Projects" config={config} />
+            {data.projects.map((p, i) => (
+              <div key={i} style={{ marginBottom: config.spacing.itemGap }}>
+                <strong>{p.title}</strong>
+
+                {!isEmpty(p.technologies) && (
+                  <p style={{ color: config.colors.muted }}>
+                    Tech: {p.technologies.join(", ")}
+                  </p>
+                )}
+
+                <ul
+                  style={{
+                    paddingLeft: 18,
+                    listStyleType: getListStyle(config),
+                    ...baseText(config),
+                  }}
+                >
+                  {p.description.map((d, j) => (
+                    <li key={j}>{d}</li>
+                  ))}
+                </ul>
+
+                {!isEmpty(p.link) &&
+                  p.link.map(
+                    (l, idx) =>
+                      l?.url && (
+                        <LinkItem
+                          key={idx}
+                          href={l.url}
+                          text={l.title || l.url}
+                          config={config}
+                        />
+                      )
+                  )}
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* EDUCATION */}
+        {!isEmpty(data.education) && (
+          <>
+            <SectionTitle title="Education" config={config} />
+            {data.education.map((edu, i) => (
+              <div key={i}>
+                <strong>{edu.degree}</strong>
+                <div style={{ color: config.colors.muted }}>
+                  {edu.institute} · {edu.from} – {edu.to}
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* CERTIFICATIONS */}
+        {!isEmpty(data.certifications) && (
+          <>
+            <SectionTitle title="Certifications" config={config} />
+            {data.certifications.map((c, i) => (
+              <div key={i}>
+                <strong>{c.name}</strong>
+                <div style={{ color: config.colors.muted }}>
+                  {c.issuer} · {c.year}
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* ACHIEVEMENTS */}
+        {!isEmpty(data.achievements) && (
+          <>
+            <SectionTitle title="Achievements" config={config} />
+            <ul style={{ paddingLeft: 18 }}>
+              {data.achievements.map((a, i) => (
+                <li key={i}>{a}</li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        {/* EXTRACURRICULAR */}
+        {!isEmpty(data.extracurricular) && (
+          <>
+            <SectionTitle title="Extracurricular" config={config} />
+            {data.extracurricular.map((e, i) => (
+              <div key={i}>
+                <strong>{e.role}</strong> – {e.activity} ({e.year})
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* HOBBIES */}
+        {!isEmpty(data.hobbies) && (
+          <>
+            <SectionTitle title="Hobbies" config={config} />
+            <p>{data.hobbies.join(" · ")}</p>
+          </>
+        )}
       </div>
     </div>
   );

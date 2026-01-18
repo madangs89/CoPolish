@@ -31,7 +31,7 @@ const resumeConfig = {
   page: {
     width: 794,
     minHeight: 1123,
-    padding: 36,
+    padding: 12,
     background: "#ffffff",
   },
 
@@ -41,12 +41,12 @@ const resumeConfig = {
       body: "Inter, system-ui, sans-serif",
     },
     fontSize: {
-      name: 30,
+      name: 25,
       section: 15,
-      body: 14,
+      body: 10,
       small: 13,
     },
-    lineHeight: 1.55,
+    lineHeight: 1.2,
   },
 
   colors: {
@@ -58,14 +58,16 @@ const resumeConfig = {
   },
 
   spacing: {
-    sectionGap: 28,
-    itemGap: 14,
+    sectionGap: 10,
+    itemGap: 10,
   },
 
   decorations: {
     showDividers: true,
     dividerStyle: "line", // "dot" | "timeline"
   },
+
+  listStyle: "numbers",
 
   meta: {
     templateId: "balanced-two-column",
@@ -161,6 +163,8 @@ const initialState = {
     scoreBefore: 0,
     scoreAfter: 0,
     suggestions: [],
+    checkedFields: [],
+    config: resumeConfig,
   },
   config: resumeConfig,
   currentResumeConfig: resumeConfig,
@@ -186,6 +190,9 @@ export const resumeSlice = createSlice({
     setCurrentResumeTemplateId: (state, actions) => {
       state.currentResume.templateId = actions.payload;
     },
+    setCheckedField: (state, actions) => {
+      state.currentResume.checkedFields = actions.payload;
+    },
   },
 });
 
@@ -195,6 +202,7 @@ export const {
   setCurrentResume,
   setCurrentResumeConfig,
   setCurrentResumeTemplateId,
+  setCheckedField,
 } = resumeSlice.actions;
 const resumeReducer = resumeSlice.reducer;
 

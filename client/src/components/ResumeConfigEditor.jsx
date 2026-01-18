@@ -178,11 +178,11 @@ const ResumeConfigEditor = ({ config, setConfig, resumeData }) => {
         <label className="text-xs text-gray-500">Body Font Size</label>
         <input
           type="number"
-          min={11}
+          min={8}
           max={18}
           value={config.typography.fontSize.body}
           onChange={(e) =>
-            set("typography.fontSize.body", clamp(+e.target.value, 11, 18))
+            set("typography.fontSize.body", clamp(+e.target.value, 8, 18))
           }
           className="border rounded px-3 py-2 w-full mb-3"
         />
@@ -191,11 +191,11 @@ const ResumeConfigEditor = ({ config, setConfig, resumeData }) => {
         <input
           type="number"
           step="0.05"
-          min={1.2}
+          min={1}
           max={2}
           value={config.typography.lineHeight}
           onChange={(e) =>
-            set("typography.lineHeight", clamp(+e.target.value, 1.2, 2))
+            set("typography.lineHeight", clamp(+e.target.value, 1, 2))
           }
           className="border rounded px-3 py-2 w-full"
         />
@@ -225,11 +225,11 @@ const ResumeConfigEditor = ({ config, setConfig, resumeData }) => {
         <label className="text-xs text-gray-500">Section Gap</label>
         <input
           type="number"
-          min={12}
+          min={8}
           max={48}
           value={config.spacing.sectionGap}
           onChange={(e) =>
-            set("spacing.sectionGap", clamp(+e.target.value, 12, 48))
+            set("spacing.sectionGap", clamp(+e.target.value, 8, 48))
           }
           className="border rounded px-3 py-2 w-full mb-3"
         />
@@ -248,7 +248,7 @@ const ResumeConfigEditor = ({ config, setConfig, resumeData }) => {
       </section>
 
       {/* ================= DECORATIONS ================= */}
-      <section>
+      {/* <section>
         <h3 className="text-sm font-semibold mb-2">Decorations</h3>
 
         <label className="flex items-center gap-2 text-sm mb-3">
@@ -274,6 +274,24 @@ const ResumeConfigEditor = ({ config, setConfig, resumeData }) => {
             </select>
           </>
         )}
+      </section> */}
+
+      {/* List Style */}
+
+      <section>
+        <h3 className="text-sm font-semibold mb-2">List Style</h3>
+        <label className="text-xs text-gray-500">List Style</label>
+        <select
+          value={config.listStyle}
+          onChange={(e) => set("listStyle", e.target.value)}
+          className="border rounded px-3 py-2 w-full text-sm"
+        >
+          <option value="numbers">Numbers</option>
+          <option value="dots">Dots</option>
+          <option value="bullets">Bullets</option>
+          <option value="dash">Dash</option>
+          <option value="none">None</option>
+        </select>
       </section>
     </div>
   );
