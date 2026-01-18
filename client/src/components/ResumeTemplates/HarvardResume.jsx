@@ -143,7 +143,7 @@ const HarvardResume = ({ data, config }) => {
   };
 
   const renderSection = (section) => {
-    if (section === "personal") return null;
+    // if (section === "personal") return null;
     if (isEmpty(data[section])) return null;
 
     switch (section) {
@@ -152,7 +152,7 @@ const HarvardResume = ({ data, config }) => {
           <>
             <SectionTitle title="Summary" config={config} />
             <p style={{ margin: 0, ...baseText(config) }}>
-              {data.summary}
+              {data.personal.summary}
             </p>
           </>
         );
@@ -177,9 +177,7 @@ const HarvardResume = ({ data, config }) => {
                     {edu.from} – {edu.to}
                   </span>
                 </div>
-                <p style={{ margin: 0, ...baseText(config) }}>
-                  {edu.degree}
-                </p>
+                <p style={{ margin: 0, ...baseText(config) }}>{edu.degree}</p>
               </div>
             ))}
           </>
@@ -205,7 +203,13 @@ const HarvardResume = ({ data, config }) => {
                     {exp.duration}
                   </span>
                 </div>
-                <p style={{ margin: "2px 0", fontStyle: "italic", ...baseText(config) }}>
+                <p
+                  style={{
+                    margin: "2px 0",
+                    fontStyle: "italic",
+                    ...baseText(config),
+                  }}
+                >
                   {exp.role}
                 </p>
                 {!isEmpty(exp.description) && renderList(exp.description)}

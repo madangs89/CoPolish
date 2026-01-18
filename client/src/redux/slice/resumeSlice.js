@@ -144,7 +144,7 @@ const initialState = {
   },
   config: resumeConfig,
   currentResumeConfig: resumeConfig,
-  templates: templateRegistry,
+  // templates: templateRegistry,
 };
 
 export const resumeSlice = createSlice({

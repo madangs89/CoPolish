@@ -326,7 +326,7 @@ const Project = ({
                 </label>
                 <input
                   className="auth-input"
-                  value={proj.title}
+                  value={proj.title ?? ""}
                   onChange={(e) =>
                     updateProject(projIndex, "title", e.target.value)
                   }
@@ -355,7 +355,7 @@ const Project = ({
                         </label>
                         <input
                           className="auth-input"
-                          value={linkItem.title}
+                          value={linkItem.title ?? ""}
                           onChange={(e) =>
                             updateLink(
                               projIndex,
@@ -371,7 +371,7 @@ const Project = ({
                         </label>
                         <input
                           className="auth-input"
-                          value={linkItem.url}
+                          value={linkItem.url ?? ""}
                           onChange={(e) =>
                             updateLink(
                               projIndex,
@@ -397,7 +397,7 @@ const Project = ({
                   <div key={bulletIndex} className="flex gap-2 items-center">
                     <input
                       className="auth-input flex-1"
-                      value={bullet}
+                      value={bullet ?? ""}
                       onChange={(e) =>
                         updateProjectBullet(
                           projIndex,
@@ -428,7 +428,7 @@ const Project = ({
                        px-3 py-2 text-sm focus:outline-none
                        focus:ring-2 focus:ring-[#025149]/20"
                   placeholder="Add a project highlight"
-                  value={projectBulletState[projIndex] || ""}
+                  value={projectBulletState[projIndex] ?? ""}
                   onChange={(e) =>
                     setProjectBulletState((prev) => ({
                       ...prev,
@@ -477,7 +477,7 @@ const Project = ({
                   <input
                     className="auth-input flex-1"
                     placeholder="Add technology (e.g. React)"
-                    value={projectTechState[projIndex] || ""}
+                    value={projectTechState[projIndex] ?? ""}
                     onChange={(e) =>
                       setProjectTechState((prev) => ({
                         ...prev,

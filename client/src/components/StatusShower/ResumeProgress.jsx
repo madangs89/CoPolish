@@ -9,6 +9,7 @@ import {
 } from "../../redux/slice/resumeSlice";
 import toast from "react-hot-toast";
 import { setJobSeenJobs } from "../../redux/slice/jobSlice";
+import { useRef } from "react";
 
 export default function ResumeProgress({
   status,
@@ -29,6 +30,7 @@ export default function ResumeProgress({
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const seenRef = useRef(new Set());
 
   useEffect(() => {
     if (!socket || !user?._id) return;
@@ -37,15 +39,20 @@ export default function ResumeProgress({
       const { userId, event, jobId, isError } = JSON.parse(data);
       const newId = `${event}:${jobId}:${userId}`;
 
+      if (seenRef.current.has(newId)) return;
       if (jobs[newId] == true) {
         return;
       }
+
+      if (userId !== user._id) return;
+      seenRef.current.add(newId);
+
       if (
-        (event === "RESUME_PARSE_COMPLETED" &&
-          userId === user._id &&
-          jobs[newId] == undefined) ||
-        jobs[newId] == null ||
-        jobs[newId] == false
+        event === "RESUME_PARSE_COMPLETED" &&
+        userId === user._id &&
+        (jobs[newId] == undefined ||
+          jobs[newId] == null ||
+          jobs[newId] == false)
       ) {
         dispatch(setJobSeenJobs({ id: newId, data: isError }));
         setstatus((prev) =>
@@ -62,16 +69,21 @@ export default function ResumeProgress({
 
       const newId = `${event}:${jobId}:${userId}`;
 
+      if (seenRef.current.has(newId)) return;
+
       if (jobs[newId] == true) {
         return;
       }
 
+      if (userId !== user._id) return;
+      seenRef.current.add(newId);
+
       if (
-        (event === "RESUME_PARSE_AI_COMPLETED" &&
-          userId === user._id &&
-          jobs[newId] == undefined) ||
-        jobs[newId] == null ||
-        jobs[newId] == false
+        event === "RESUME_PARSE_AI_COMPLETED" &&
+        userId === user._id &&
+        (jobs[newId] == undefined ||
+          jobs[newId] == null ||
+          jobs[newId] == false)
       ) {
         setstatus((prev) => {
           let newStatus = [...prev];
@@ -97,31 +109,78 @@ export default function ResumeProgress({
     };
 
     const onParsedError = (data) => {
-      const { userId, isError, error } = JSON.parse(data);
+      const { userId, isError, error, event, jobId } = JSON.parse(data);
 
-      if (userId === user._id && isError) {
+      const newId = `${event}:${jobId}:${userId}`;
+
+      if (seenRef.current.has(newId)) return;
+
+      if (jobs[newId] == true) {
+        return;
+      }
+      if (userId !== user._id || !isError) return;
+      seenRef.current.add(newId);
+      if (
+        userId === user._id &&
+        isError &&
+        (jobs[newId] == undefined ||
+          jobs[newId] == null ||
+          jobs[newId] == false)
+      ) {
+        const safeMessage =
+          typeof error === "string"
+            ? error
+            : error?.message
+              ? error.message
+              : JSON.stringify(error);
         setErrorStates((prev) => [
           ...prev,
-          { type: "parsing", message: error },
+          { type: "parsing", message: safeMessage },
         ]);
 
+        console.log("PARSE ERROR:", error);
         toast.error(
-          error || "There was an error parsing your resume. Please try again."
+          safeMessage ||
+            "There was an error parsing your resume. Please try again."
         );
       }
     };
 
     const onAIParsedError = (data) => {
-      const { userId, isError, error } = JSON.parse(data);
+      const { userId, isError, error, event, jobId } = JSON.parse(data);
 
-      if (userId === user._id && isError) {
+      const newId = `${event}:${jobId}:${userId}`;
+      console.log("got error", newId, jobs, jobs[newId]);
+
+      if (seenRef.current.has(newId)) return;
+
+      if (jobs[newId] == true) {
+        return;
+      }
+
+      if (userId !== user._id || !isError) return;
+      seenRef.current.add(newId);
+      if (
+        userId === user._id &&
+        isError &&
+        (jobs[newId] == undefined ||
+          jobs[newId] == null ||
+          jobs[newId] == false)
+      ) {
+        const safeMessage =
+          typeof error === "string"
+            ? error
+            : error?.message
+              ? error.message
+              : JSON.stringify(error);
         setErrorStates((prev) => [
           ...prev,
-          { type: "analysis", message: error },
+          { type: "analysis", message: safeMessage },
         ]);
 
         toast.error(
-          error || "There was an error analyzing your resume. Please try again."
+          safeMessage ||
+            "There was an error analyzing your resume. Please try again."
         );
       }
     };
@@ -191,11 +250,18 @@ export default function ResumeProgress({
               Something went wrong
             </h4>
             <ul className="list-disc pl-5 text-sm text-red-700 space-y-1">
-              {errorStates.map((err, index) => (
-                <li key={index}>
-                  <strong>{err.type}:</strong> {err.message}
-                </li>
-              ))}
+              {errorStates.map((err, index) => {
+                const message =
+                  typeof err.message === "string"
+                    ? err.message
+                    : JSON.stringify(err.message);
+
+                return (
+                  <li key={index}>
+                    <strong>{err.type}:</strong> {message}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
@@ -225,10 +291,10 @@ function ProgressStep({
           hasError
             ? "bg-red-500"
             : active
-            ? color === "blue"
-              ? "bg-blue-600"
-              : "bg-green-500"
-            : "bg-gray-300"
+              ? color === "blue"
+                ? "bg-blue-600"
+                : "bg-green-500"
+              : "bg-gray-300"
         }`}
       >
         {hasError ? (
@@ -248,10 +314,10 @@ function ProgressStep({
             hasError
               ? "text-red-600"
               : active
-              ? color === "blue"
-                ? "text-blue-600"
-                : "text-green-600"
-              : "text-gray-500"
+                ? color === "blue"
+                  ? "text-blue-600"
+                  : "text-green-600"
+                : "text-gray-500"
           }`}
         >
           {title}

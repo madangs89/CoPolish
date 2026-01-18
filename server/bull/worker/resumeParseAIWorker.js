@@ -185,7 +185,7 @@ resumeParseAIWorker.on("completed", async (job) => {
 });
 
 resumeParseAIWorker.on("failed", async (job, err) => {
-  console.error(`Job ${job.id} failed`, err.message);
+  console.error(`Job ${job.id} failed`);
 
   const { userId, jobKey } = job.data || {};
 

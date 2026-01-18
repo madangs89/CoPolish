@@ -161,7 +161,6 @@ const fakeResumeData = {
 // templateRegistry
 
 const TemplateShower = () => {
-  const templates = useSelector((state) => state.resume.templates);
   const config = useSelector((state) => state.resume.config);
   const currentTemplateId = useSelector(
     (state) => state.resume.currentResume.templateId
@@ -171,7 +170,7 @@ const TemplateShower = () => {
 
   return (
     <div className="w-full px-2 h-screen flex flex-col gap-4  ">
-      {Object.keys(templates).map((key) => {
+      {Object.keys(templateRegistry).map((key) => {
         const TemplateComponent = templateRegistry[key];
 
         if (!TemplateComponent) return null; // safety

@@ -197,7 +197,7 @@ const Extracurricular = ({
                   </label>
                   <input
                     className="auth-input"
-                    value={item.role}
+                    value={item.role ?? ""}
                     onChange={(e) =>
                       updateActivity(index, "role", e.target.value)
                     }
@@ -211,7 +211,7 @@ const Extracurricular = ({
                   </label>
                   <input
                     className="auth-input"
-                    value={item.activity}
+                    value={item.activity ?? "" }
                     onChange={(e) =>
                       updateActivity(index, "activity", e.target.value)
                     }
@@ -227,7 +227,7 @@ const Extracurricular = ({
                 </label>
                 <input
                   className="auth-input"
-                  value={item.year}
+                  value={item.year ?? ""}
                   onChange={(e) =>
                     updateActivity(index, "year", e.target.value)
                   }
@@ -245,7 +245,7 @@ const Extracurricular = ({
                   className="w-full rounded-lg border border-[#e5e7eb]
                          px-3 py-2 text-sm focus:outline-none
                          focus:ring-2 focus:ring-[#025149]/20"
-                  value={item.description}
+                  value={item.description ?? ""}
                   onChange={(e) =>
                     updateActivity(index, "description", e.target.value)
                   }

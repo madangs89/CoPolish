@@ -100,7 +100,7 @@ const Personal = ({
 
             {/* Input – same, just slightly refined */}
             <input
-              value={value}
+              value={value ?? ""}
               onChange={(e) => {
                 setResumeData((prev) => ({
                   ...prev,

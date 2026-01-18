@@ -232,7 +232,7 @@ const Certification = ({
                 </label>
                 <input
                   className="auth-input"
-                  value={cert.name}
+                  value={cert.name ?? ""}
                   onChange={(e) =>
                     updateCertification(certIndex, "name", e.target.value)
                   }
@@ -247,7 +247,7 @@ const Certification = ({
                 </label>
                 <input
                   className="auth-input"
-                  value={cert.issuer}
+                  value={cert.issuer ?? ""}
                   onChange={(e) =>
                     updateCertification(certIndex, "issuer", e.target.value)
                   }
@@ -263,7 +263,7 @@ const Certification = ({
                   </label>
                   <input
                     className="auth-input"
-                    value={cert.year}
+                    value={cert.year ?? ""}
                     onChange={(e) =>
                       updateCertification(certIndex, "year", e.target.value)
                     }
@@ -277,7 +277,7 @@ const Certification = ({
                   </label>
                   <input
                     className="auth-input"
-                    value={cert.credentialUrl}
+                    value={cert.credentialUrl ?? ""}
                     onChange={(e) =>
                       updateCertification(
                         certIndex,
@@ -311,7 +311,7 @@ const Certification = ({
 
                     <input
                       className="auth-input"
-                      value={linkItem.title}
+                      value={linkItem.title ?? ""}
                       onChange={(e) =>
                         updateLink(
                           certIndex,
@@ -329,7 +329,7 @@ const Certification = ({
 
                     <input
                       className="auth-input"
-                      value={linkItem.url}
+                      value={linkItem.url ?? ""}
                       onChange={(e) =>
                         updateLink(certIndex, "url", e.target.value, linkIndex)
                       }

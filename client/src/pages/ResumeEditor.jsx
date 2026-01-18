@@ -27,6 +27,7 @@ import {
   setCurrentResumeConfig,
   setCheckedField,
 } from "../redux/slice/resumeSlice";
+import { useRef } from "react";
 const ResumeEditor = () => {
   const dispatch = useDispatch();
 
@@ -40,6 +41,23 @@ const ResumeEditor = () => {
   );
   const [mobileModalState, setMobileModalState] = useState("");
   const [mobileEditorState, setMobileEditorState] = useState("preview");
+  const timer = useRef(null);
+
+  let debounceFunction = (func, delay) => {
+    return (...args) => {
+      if (timer.current) {
+        clearTimeout(timer.current);
+      }
+      timer.current = setTimeout(() => {
+        func();
+      }, delay);
+    };
+  };
+
+  const updateDbAFterDebounce = () => {
+    //API call to update db
+    console.log("Updating DB with ");
+  };
 
   const setResumeData = (updater) => {
     if (typeof updater === "function") {
@@ -47,6 +65,8 @@ const ResumeEditor = () => {
     } else {
       dispatch(setCurrentResume(updater));
     }
+    const debouncedUpdate = debounceFunction(updateDbAFterDebounce, 1000);
+    debouncedUpdate();
   };
 
   const setResumeConfig = (updater) => {
@@ -55,6 +75,8 @@ const ResumeEditor = () => {
     } else {
       dispatch(setCurrentResumeConfig(updater));
     }
+    const debouncedUpdate = debounceFunction(updateDbAFterDebounce, 1000);
+    debouncedUpdate();
   };
 
   useEffect(() => {

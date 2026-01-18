@@ -64,6 +64,7 @@ let config = {
   listStyle: "numbers",
 };
 let checkedFields = [
+  "summary",
   "skills",
   "projects",
   "experience",
@@ -83,6 +84,22 @@ export const getResumeById = async (req, res) => {
         message: "Resume ID is required",
       });
     }
+
+    const key = `resume-edit-cache:${resumeId}:${req.user._id}`;
+
+    const cachedResume = await pubClient.get(key);
+
+    if (cachedResume) {
+      console.log("got from cache");
+
+      const { resumeData } = JSON.parse(cachedResume);
+      return res.status(200).json({
+        success: true,
+        message: "Resume fetched from cache",
+        resume: resumeData,
+      });
+    }
+
     const resume = await ResumeTemplate.findById(resumeId);
 
     if (!resume) {
@@ -91,6 +108,19 @@ export const getResumeById = async (req, res) => {
         message: "Resume not found",
       });
     }
+
+    let objectifiedResume = resume.toObject();
+
+    let payload = {
+      resumeData: objectifiedResume,
+      userId: req.user._id,
+      resumeId: resume._id,
+      cachedTime: new Date(),
+      updatedTime: null,
+      isUpdated: false,
+    };
+
+    await pubClient.setex(key, 60 * 5, JSON.stringify(payload));
 
     return res.status(200).json({
       success: true,
