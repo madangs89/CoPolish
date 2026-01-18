@@ -108,7 +108,7 @@ const resumeParseAIWorker = new Worker(
       userId,
       resumeGroupId: uuidv4(),
       version: 1,
-      templateId: "ModernMinimalResume",
+      templateId: "HarvardResume",
       scoreBefore: text?.resumeScore || 0,
       suggestions: text?.optimizationSuggestions || [],
 
