@@ -33,7 +33,7 @@ const Personal = ({
                 setCheckedFields((prev) => [...prev, "personal"]);
               } else {
                 setCheckedFields((prev) =>
-                  prev.filter((f) => f !== "personal")
+                  prev.filter((f) => f !== "personal"),
                 );
               }
             }}
@@ -45,7 +45,7 @@ const Personal = ({
               setSelectedSection((prev) =>
                 prev.includes("personal")
                   ? prev.filter((s) => s !== "personal")
-                  : [...prev, "personal"]
+                  : [...prev, "personal"],
               );
             }}
             className="text-sm font-medium cursor-pointer text-[#1f2430]"
@@ -60,7 +60,7 @@ const Personal = ({
             setSelectedSection((prev) =>
               prev.includes("personal")
                 ? prev.filter((s) => s !== "personal")
-                : [...prev, "personal"]
+                : [...prev, "personal"],
             );
           }}
           className="flex gap-1 items-center cursor-pointer"

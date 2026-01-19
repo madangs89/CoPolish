@@ -246,76 +246,66 @@ export const updateResume = async (req, res) => {
         message: "Resume ID and data are required",
       });
     }
+
     const key = `resume-edit-cache:${resumeId}:${req.user._id}`;
-
     const cachedResume = await pubClient.get(key);
-    if (cachedResume) {
-      console.log("got from cache");
-      const { resumeData, resumeId, updatedTime, cachedTime, isUpdated } =
-        JSON.parse(cachedResume);
 
-      let payload = {
-        resumeData: req.body.resumeData,
+    // ──────────────
+    // UPDATE CACHE
+    // ──────────────
+    if (cachedResume) {
+      const { cachedTime } = JSON.parse(cachedResume);
+      resumeData.updatedAt = new Date();
+      const payload = {
+        resumeData,
         userId: req.user._id,
-        resumeId: resumeData._id,
-        cachedTime: cachedTime,
+        resumeId,
+        cachedTime,
         updatedTime: new Date(),
         isUpdated: true,
       };
 
-      await pubClient.setex(key, 60 * 5, JSON.stringify(payload));
+      await pubClient.setex(key, 60 * 15, JSON.stringify(payload));
+
       return res.status(200).json({
         success: true,
         message: "Resume updated in cache",
         resume: resumeData,
       });
-    } else {
-      const updateTemplate = await ResumeTemplate.findOneAndUpdate(
-        { _id: resumeId, userId: req.user._id }, // FIND condition
-        {
-          $set: {
-            personal: resumeData.personal,
-            education: resumeData.education,
-            experience: resumeData.experience,
-            skills: resumeData.skills,
-            projects: resumeData.projects,
-            certifications: resumeData.certifications,
-            achievements: resumeData.achievements,
-            hobbies: resumeData.hobbies,
-            extracurricular: resumeData.extracurricular,
-            templateId: resumeData.templateId,
-            changes: resumeData.changes,
-            config: resumeData.config,
-            checkedFields: resumeData.checkedFields,
-            scoreBefore: resumeData.scoreBefore,
-            scoreAfter: resumeData.scoreAfter,
-          },
-        }, // UPDATE
-        { new: true }, // RETURN updated document
-      );
-      if (!updateTemplate) {
-        return res.status(404).json({
-          success: false,
-          message: "Resume not found",
-        });
-      }
+    }
 
-      const payload = {
-        resumeData: updateTemplate,
-        userId: req.user._id,
-        resumeId: updateTemplate._id,
-        updatedTime: new Date(),
-        cachedTime: new Date(),
-        isUpdated: true,
-      };
-      await pubClient.setex(key, 60 * 5, JSON.stringify(payload));
+    // ──────────────
+    // UPDATE DB
+    // ──────────────
+    const updateTemplate = await ResumeTemplate.findOneAndUpdate(
+      { _id: resumeId, userId: req.user._id },
+      { $set: resumeData },
+      { new: true },
+    );
 
-      return res.status(200).json({
-        success: true,
-        message: "Resume updated and cached",
-        resume: updatedUser,
+    if (!updateTemplate) {
+      return res.status(404).json({
+        success: false,
+        message: "Resume not found",
       });
     }
+
+    const payload = {
+      resumeData: updateTemplate.toObject(),
+      userId: req.user._id,
+      resumeId,
+      updatedTime: new Date(),
+      cachedTime: new Date(),
+      isUpdated: true,
+    };
+
+    await pubClient.setex(key, 60 * 15, JSON.stringify(payload));
+
+    return res.status(200).json({
+      success: true,
+      message: "Resume updated and cached",
+      resume: updateTemplate.toObject(),
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({

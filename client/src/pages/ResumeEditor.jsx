@@ -1,5 +1,6 @@
 import React, { useState, Suspense, lazy, useEffect } from "react";
-
+import { toast } from "react-hot-toast";
+import axios from "axios";
 const EditorScoreBox = lazy(() => import("../components/EditorScoreBox"));
 const ResumePreview = lazy(
   () => import("../components/ResumePreview/ResumePreview"),
@@ -37,54 +38,95 @@ const ResumeEditor = () => {
   const resumeData = useSelector((state) => state.resume.currentResume);
   const resumeConfig = useSelector((state) => state.resume.currentResumeConfig);
 
-  const [checkedFields, setCheckedFields] = useState(
-    resumeSlice?.currentResume?.checkedFields || [],
+  const checkedFields = useSelector(
+    (state) => state.resume.currentResume.checkedFields,
   );
+
   const [mobileModalState, setMobileModalState] = useState("");
   const [mobileEditorState, setMobileEditorState] = useState("preview");
   const timer = useRef(null);
 
   const [open, setOpen] = useState(false);
 
-  let debounceFunction = (func, delay) => {
-    return (...args) => {
-      if (timer.current) {
-        clearTimeout(timer.current);
-      }
-      timer.current = setTimeout(() => {
-        func();
-      }, delay);
-    };
+  const updateDbAFterDebounce = async (latestResumeData) => {
+    try {
+      console.log("Saving resume:", latestResumeData);
+
+      const response = await axios.put(
+        `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/update/${latestResumeData._id}`,
+        { resumeData: latestResumeData },
+        { withCredentials: true },
+      );
+
+      console.log("Auto saved to db", response.data);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to save changes to the server.");
+    }
   };
 
-  const updateDbAFterDebounce = () => {
-    //API call to update db
-    console.log("Updating DB with ");
+  const debounceSave = (data, delay = 3000) => {
+    if (timer.current) clearTimeout(timer.current);
+
+    timer.current = setTimeout(() => {
+      updateDbAFterDebounce(data);
+    }, delay);
   };
 
   const setResumeData = (updater) => {
+    let updated;
+
     if (typeof updater === "function") {
-      dispatch(setCurrentResume(updater(resumeData)));
+      updated = updater(resumeData);
     } else {
-      dispatch(setCurrentResume(updater));
+      updated = updater;
     }
-    const debouncedUpdate = debounceFunction(updateDbAFterDebounce, 1000);
-    debouncedUpdate();
+
+    dispatch(setCurrentResume(updated));
+    debounceSave(updated, 3000);
   };
 
   const setResumeConfig = (updater) => {
+    let updated;
+
     if (typeof updater === "function") {
-      dispatch(setCurrentResumeConfig(updater(resumeConfig)));
+      updated = updater(resumeConfig);
     } else {
-      dispatch(setCurrentResumeConfig(updater));
+      updated = updater;
     }
-    const debouncedUpdate = debounceFunction(updateDbAFterDebounce, 1000);
-    debouncedUpdate();
+
+    dispatch(setCurrentResumeConfig(updated));
+
+    debounceSave({ ...resumeData, config: updated }, 3000);
+  };
+
+  const setCheckedFields = (updater) => {
+    const updatedCheckedFields =
+      typeof updater === "function"
+        ? updater(resumeData.checkedFields)
+        : updater;
+
+    const updatedResume = {
+      ...resumeData,
+      checkedFields: updatedCheckedFields,
+    };
+    dispatch(setCheckedField(updatedCheckedFields));
+    debounceSave(updatedResume, 3000);
   };
 
   useEffect(() => {
-    dispatch(setCheckedField(checkedFields));
-  }, [checkedFields]);
+    const handleBeforeUnload = () => {
+      if (timer.current) {
+        clearTimeout(timer.current);
+      }
+      updateDbAFterDebounce(resumeData);
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
