@@ -161,7 +161,7 @@ const fakeResumeData = {
 
 // templateRegistry
 
-const TemplateShower = () => {
+const TemplateShower = ({ setResumeTemplate }) => {
   const config = useSelector((state) => state.resume.config);
   const currentResume = useSelector((state) => state.resume.currentResume);
   const currentTemplateId = useSelector(
@@ -181,7 +181,7 @@ const TemplateShower = () => {
           <div
             key={key}
             onClick={() => {
-              dispatch(setCurrentResumeTemplateId(key));
+              setResumeTemplate(key);
             }}
             className={`w-full ${currentTemplateId === key ? "border-2 border-blue-500" : "border"} cursor-pointer bg-gray-100 flex h-[600px] items-start flex-col  rounded-lg p-4 `}
           >

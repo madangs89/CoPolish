@@ -78,31 +78,51 @@ const ResumeEditor = () => {
   };
 
   const setResumeData = (updater) => {
-    dispatch(
-      setCurrentResume(
-        typeof updater === "function" ? updater(resumeData) : updater,
-      ),
-    );
+    const updated =
+      typeof updater === "function" ? updater(resumeData) : updater;
+
+    latestResumeRef.current = updated;
+
+    dispatch(setCurrentResume(updated));
     setChangeCounter((prev) => prev + 1);
   };
 
   const setResumeConfig = (updater) => {
-    dispatch(
-      setCurrentResumeConfig(
-        typeof updater === "function" ? updater(resumeConfig) : updater,
-      ),
-    );
+    const updatedConfig =
+      typeof updater === "function" ? updater(resumeConfig) : updater;
+
+    latestResumeRef.current = {
+      ...latestResumeRef.current,
+      resumeConfig: updatedConfig,
+    };
+
+    dispatch(setCurrentResumeConfig(updatedConfig));
     setChangeCounter((prev) => prev + 1);
   };
 
   const setCheckedFields = (updater) => {
-    dispatch(
-      setCheckedField(
-        typeof updater === "function"
-          ? updater(resumeData.checkedFields)
-          : updater,
-      ),
-    );
+    const updatedCheckedFields =
+      typeof updater === "function"
+        ? updater(resumeData.checkedFields)
+        : updater;
+
+    latestResumeRef.current = {
+      ...latestResumeRef.current,
+      checkedFields: updatedCheckedFields,
+    };
+
+    dispatch(setCheckedField(updatedCheckedFields));
+    setChangeCounter((prev) => prev + 1);
+  };
+
+  const setResumeTemplate = (templateId) => {
+    const updated = {
+      ...latestResumeRef.current,
+      templateId,
+    };
+
+    latestResumeRef.current = updated;
+    dispatch(setCurrentResume(updated));
     setChangeCounter((prev) => prev + 1);
   };
 
@@ -213,6 +233,7 @@ const ResumeEditor = () => {
             <>
               <Editor
                 resumeData={resumeData}
+                setResumeTemplate={setResumeTemplate}
                 mobileModalState={mobileModalState}
                 setMobileModalState={setMobileModalState}
                 setResumeData={setResumeData}
@@ -229,11 +250,14 @@ const ResumeEditor = () => {
         <div className="h-full w-[30%] hidden md:flex ">
           <Editor
             resumeData={resumeData}
+            setResumeTemplate={setResumeTemplate}
+            mobileModalState={mobileModalState}
+            setMobileModalState={setMobileModalState}
             setResumeData={setResumeData}
             checkedFields={checkedFields}
+            setCheckedFields={setCheckedFields}
             resumeConfig={resumeConfig}
             setResumeConfig={setResumeConfig}
-            setCheckedFields={setCheckedFields}
           />
         </div>
 
@@ -244,6 +268,7 @@ const ResumeEditor = () => {
         >
           <Editor
             resumeData={resumeData}
+            setResumeTemplate={setResumeTemplate}
             mobileModalState={mobileModalState}
             setMobileModalState={setMobileModalState}
             setResumeData={setResumeData}
@@ -485,7 +510,7 @@ const ResumeEditor = () => {
                 : "translate-y-full"
             } min-h-screen relative px-2`}
           >
-            <TemplateShower />
+            <TemplateShower setResumeTemplate={setResumeTemplate} />
           </div>
         </div>
 

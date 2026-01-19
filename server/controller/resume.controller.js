@@ -319,6 +319,8 @@ export const updateResume = async (req, res) => {
 };
 
 export const updateResumeBeacon = async (req, res) => {
+  console.log("got request on beacon");
+  
   try {
     const resumeId = req.params.id;
     const { resumeData, userId } = req.body;
@@ -397,7 +399,8 @@ export const updateResumeBeacon = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Resume update accepted",
+      message: "Resume update accepted via beacon",
+      resume: resumeData,
     });
   } catch (error) {
     console.error(error);

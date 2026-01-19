@@ -36,6 +36,7 @@ const Editor = ({
   mobileModalState,
   resumeConfig,
   setResumeConfig,
+  setResumeTemplate,
 }) => {
   const [editorState, setEditorState] = useState("editor");
   const [selectedSection, setSelectedSection] = useState([]);
@@ -83,7 +84,7 @@ const Editor = ({
         // links: validate ONLY if user added them
         if (Array.isArray(section.link) && section.link.length > 0) {
           const validLinks = section.link.every(
-            (l) => l.title?.trim() && l.url?.trim()
+            (l) => l.title?.trim() && l.url?.trim(),
           );
           if (!validLinks) return false;
         }
@@ -93,7 +94,7 @@ const Editor = ({
 
       // 🔹 DEFAULT OBJECT CHECK
       return Object.values(section).every((value) =>
-        handleIsAllFieldsFilled(value)
+        handleIsAllFieldsFilled(value),
       );
     }
 
@@ -223,7 +224,9 @@ const Editor = ({
           />
         </div>
       )}
-      {editorState === "template" && <TemplateShower />}
+      {editorState === "template" && (
+        <TemplateShower setResumeTemplate={setResumeTemplate} />
+      )}
     </div>
   );
 };
