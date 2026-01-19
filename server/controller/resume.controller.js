@@ -78,6 +78,8 @@ let checkedFields = [
 export const getResumeById = async (req, res) => {
   try {
     const resumeId = req.params.id;
+    const userId = req.user._id;
+
     if (!resumeId) {
       return res.status(400).json({
         success: false,
@@ -85,22 +87,35 @@ export const getResumeById = async (req, res) => {
       });
     }
 
-    const key = `resume-edit-cache:${resumeId}:${req.user._id}`;
+    const key = `resume:${resumeId}:${userId}`;
 
-    const cachedResume = await pubClient.get(key);
+    /* --------------------------------
+       REDIS: EXISTS
+       Checks if the key is present
+       -------------------------------- */
+    const exists = await pubClient.exists(key);
 
-    if (cachedResume) {
-      console.log("got from cache");
+    if (exists) {
+      /* --------------------------------
+         REDIS: HGET
+         Gets one field from HASH
+         -------------------------------- */
+      const resumeData = await pubClient.hget(key, "data");
 
-      const { resumeData } = JSON.parse(cachedResume);
       return res.status(200).json({
         success: true,
         message: "Resume fetched from cache",
-        resume: resumeData,
+        resume: JSON.parse(resumeData),
       });
     }
 
-    const resume = await ResumeTemplate.findById(resumeId);
+    /* --------------------------------
+       MongoDB fallback
+       -------------------------------- */
+    const resume = await ResumeTemplate.findOne({
+      _id: resumeId,
+      userId,
+    });
 
     if (!resume) {
       return res.status(404).json({
@@ -109,18 +124,22 @@ export const getResumeById = async (req, res) => {
       });
     }
 
-    let objectifiedResume = resume.toObject();
+    /* --------------------------------
+       REDIS: HSET
+       Stores resume + metadata in HASH
+       -------------------------------- */
+    await pubClient.hset(key, {
+      data: JSON.stringify(resume.toObject()),
+      isDirty: 0, // not edited yet
+      firstEditAt: "", // editing not started
+      lastEditAt: "", // editing not started
+    });
 
-    let payload = {
-      resumeData: objectifiedResume,
-      userId: req.user._id,
-      resumeId: resume._id,
-      cachedTime: new Date(),
-      updatedTime: null,
-      isUpdated: false,
-    };
-
-    await pubClient.setex(key, 60 * 5, JSON.stringify(payload));
+    /* --------------------------------
+       REDIS: EXPIRE
+       Auto-delete after 30 min if unused
+       -------------------------------- */
+    await pubClient.expire(key, 60 * 30);
 
     return res.status(200).json({
       success: true,
@@ -238,6 +257,7 @@ export const markApproveAndCreateNew = async (req, res) => {
 export const updateResume = async (req, res) => {
   try {
     const resumeId = req.params.id;
+    const userId = req.user._id;
     const { resumeData } = req.body;
 
     if (!resumeId || !resumeData) {
@@ -247,64 +267,69 @@ export const updateResume = async (req, res) => {
       });
     }
 
-    const key = `resume-edit-cache:${resumeId}:${req.user._id}`;
-    const cachedResume = await pubClient.get(key);
+    const key = `resume:${resumeId}:${userId}`;
+    const now = Date.now();
 
-    // ──────────────
-    // UPDATE CACHE
-    // ──────────────
-    if (cachedResume) {
-      const { cachedTime } = JSON.parse(cachedResume);
-      resumeData.updatedAt = new Date();
-      const payload = {
-        resumeData,
-        userId: req.user._id,
-        resumeId,
-        cachedTime,
-        updatedTime: new Date(),
-        isUpdated: true,
-      };
+    /* --------------------------------
+       REDIS: HGET
+       Get firstEditAt if exists
+       -------------------------------- */
+    let firstEditAt = await pubClient.hget(key, "firstEditAt");
 
-      await pubClient.setex(key, 60 * 15, JSON.stringify(payload));
-
-      return res.status(200).json({
-        success: true,
-        message: "Resume updated in cache",
-        resume: resumeData,
-      });
+    if (!firstEditAt) {
+      firstEditAt = now;
     }
 
-    // ──────────────
-    // UPDATE DB
-    // ──────────────
-    const updateTemplate = await ResumeTemplate.findOneAndUpdate(
-      { _id: resumeId, userId: req.user._id },
-      { $set: resumeData },
-      { new: true },
+    /* --------------------------------
+       REDIS: PIPELINE
+       Groups commands into ONE network call
+       -------------------------------- */
+    const pipe = pubClient.pipeline();
+
+    /* --------------------------------
+       REDIS: HSET
+       Updates only fields (cheap)
+       -------------------------------- */
+    pipe.hset(key, {
+      data: JSON.stringify(resumeData),
+      isDirty: 1, // mark as changed
+      lastEditAt: now, // last keystroke time
+      firstEditAt, // session start
+    });
+
+    /* --------------------------------
+       REDIS: EXPIRE
+       Sliding TTL (reset on every edit)
+       -------------------------------- */
+    pipe.expire(key, 60 * 30);
+
+    /* --------------------------------
+       Compute WHEN this resume should
+       be flushed to DB
+       -------------------------------- */
+    const idleTime = Math.min(5 * 60 * 1000, (60 * 30 * 1000) / 2);
+
+    const flushAt = Math.min(
+      now + idleTime, // idle-based save
+      now + 25 * 60 * 1000, // TTL safety buffer
+      firstEditAt + 10 * 60 * 1000, // hard session limit
     );
 
-    if (!updateTemplate) {
-      return res.status(404).json({
-        success: false,
-        message: "Resume not found",
-      });
-    }
+    /* --------------------------------
+       REDIS: ZADD
+       Add resume to flush queue
+       -------------------------------- */
+    pipe.zadd("resume:flush_index", flushAt, key);
 
-    const payload = {
-      resumeData: updateTemplate.toObject(),
-      userId: req.user._id,
-      resumeId,
-      updatedTime: new Date(),
-      cachedTime: new Date(),
-      isUpdated: true,
-    };
-
-    await pubClient.setex(key, 60 * 15, JSON.stringify(payload));
+    /* --------------------------------
+       Execute pipeline
+       -------------------------------- */
+    await pipe.exec();
 
     return res.status(200).json({
       success: true,
-      message: "Resume updated and cached",
-      resume: updateTemplate.toObject(),
+      message: "Resume updated in cache",
+      resume: resumeData,
     });
   } catch (error) {
     console.error(error);
@@ -436,3 +461,81 @@ export const optimizeResume = async (req, res) => {
 //     concurrency: 2,
 //   }
 // );
+
+// | Command         | Meaning                           |
+// | --------------- | --------------------------------- |
+// | `HSET`          | Store/update fields inside a HASH |
+// | `HGET`          | Read one field from HASH          |
+// | `HGETALL`       | Read all fields from HASH         |
+// | `EXPIRE`        | Set auto-delete time              |
+// | `ZADD`          | Add item to sorted queue          |
+// | `ZRANGEBYSCORE` | Get items ready by time           |
+// | `ZREM`          | Remove item from queue            |
+// | `PIPELINE`      | Batch Redis commands              |
+// | `EXISTS`        | Check key existence               |
+
+// setInterval(async () => {
+//   const now = Date.now();
+
+//   /* --------------------------------
+//      REDIS: ZRANGEBYSCORE
+//      Get resumes READY to save
+//      -------------------------------- */
+//   const keys = await pubClient.zrangebyscore(
+//     "resume:flush_index",
+//     0,
+//     now,
+//     "LIMIT",
+//     0,
+//     50,
+//   );
+
+//   if (!keys.length) return;
+
+//   const bulkOps = [];
+
+//   for (const key of keys) {
+//     /* --------------------------------
+//        REDIS: HGETALL
+//        Fetch full HASH
+//        -------------------------------- */
+//     const data = await pubClient.hgetall(key);
+
+//     if (!data || data.isDirty !== "1") {
+//       await pubClient.zrem("resume:flush_index", key);
+//       continue;
+//     }
+
+//     const [, resumeId, userId] = key.split(":");
+
+//     bulkOps.push({
+//       updateOne: {
+//         filter: { _id: resumeId, userId },
+//         update: JSON.parse(data.data),
+//       },
+//     });
+
+//     /* --------------------------------
+//        REDIS: HSET
+//        Mark clean after DB save
+//        -------------------------------- */
+//     await pubClient.hset(key, {
+//       isDirty: 0,
+//       firstEditAt: "",
+//       lastEditAt: "",
+//     });
+
+//     /* --------------------------------
+//        REDIS: ZREM
+//        Remove from flush queue
+//        -------------------------------- */
+//     await pubClient.zrem("resume:flush_index", key);
+//   }
+
+//   /* --------------------------------
+//      MongoDB: BULK WRITE
+//      -------------------------------- */
+//   if (bulkOps.length) {
+//     await ResumeTemplate.bulkWrite(bulkOps);
+//   }
+// }, 5000);

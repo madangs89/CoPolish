@@ -10,6 +10,7 @@ import ResumeClassicBlue from "./ResumeTemplates/ResumeClassicBlue";
 import ResumeClassicV1 from "./ResumeTemplates/ResumeClassicV1";
 import { setCurrentResumeTemplateId } from "../redux/slice/resumeSlice";
 import { templateRegistry } from "../config/templateRegistory";
+import { useEffect } from "react";
 
 const fakeResumeData = {
   personal: {
@@ -162,8 +163,9 @@ const fakeResumeData = {
 
 const TemplateShower = () => {
   const config = useSelector((state) => state.resume.config);
+  const currentResume = useSelector((state) => state.resume.currentResume);
   const currentTemplateId = useSelector(
-    (state) => state.resume.currentResume.templateId
+    (state) => state.resume.currentResume.templateId,
   );
 
   const dispatch = useDispatch();
@@ -178,7 +180,9 @@ const TemplateShower = () => {
         return (
           <div
             key={key}
-            onClick={() => dispatch(setCurrentResumeTemplateId(key))}
+            onClick={() => {
+              dispatch(setCurrentResumeTemplateId(key));
+            }}
             className={`w-full ${currentTemplateId === key ? "border-2 border-blue-500" : "border"} cursor-pointer bg-gray-100 flex h-[600px] items-start flex-col  rounded-lg p-4 `}
           >
             <h1 className="text-sm  font-semibold mb-2">{key}</h1>

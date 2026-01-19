@@ -37,6 +37,7 @@ const ResumeEditor = () => {
   const config = useSelector((state) => state.resume.currentResumeConfig);
   const resumeData = useSelector((state) => state.resume.currentResume);
   const resumeConfig = useSelector((state) => state.resume.currentResumeConfig);
+  const isFirstRender = useRef(true);
 
   const checkedFields = useSelector(
     (state) => state.resume.currentResume.checkedFields,
@@ -45,8 +46,10 @@ const ResumeEditor = () => {
   const [mobileModalState, setMobileModalState] = useState("");
   const [mobileEditorState, setMobileEditorState] = useState("preview");
   const timer = useRef(null);
+  const latestResumeRef = useRef(resumeData);
 
   const [open, setOpen] = useState(false);
+  const [changeCounter, setChangeCounter] = useState(0);
 
   const updateDbAFterDebounce = async (latestResumeData) => {
     try {
@@ -74,54 +77,66 @@ const ResumeEditor = () => {
   };
 
   const setResumeData = (updater) => {
-    let updated;
-
-    if (typeof updater === "function") {
-      updated = updater(resumeData);
-    } else {
-      updated = updater;
-    }
-
-    dispatch(setCurrentResume(updated));
-    debounceSave(updated, 3000);
+    dispatch(
+      setCurrentResume(
+        typeof updater === "function" ? updater(resumeData) : updater,
+      ),
+    );
+    setChangeCounter((prev) => prev + 1);
   };
 
   const setResumeConfig = (updater) => {
-    let updated;
-
-    if (typeof updater === "function") {
-      updated = updater(resumeConfig);
-    } else {
-      updated = updater;
-    }
-
-    dispatch(setCurrentResumeConfig(updated));
-
-    debounceSave({ ...resumeData, config: updated }, 3000);
+    dispatch(
+      setCurrentResumeConfig(
+        typeof updater === "function" ? updater(resumeConfig) : updater,
+      ),
+    );
+    setChangeCounter((prev) => prev + 1);
   };
 
   const setCheckedFields = (updater) => {
-    const updatedCheckedFields =
-      typeof updater === "function"
-        ? updater(resumeData.checkedFields)
-        : updater;
-
-    const updatedResume = {
-      ...resumeData,
-      checkedFields: updatedCheckedFields,
-    };
-    dispatch(setCheckedField(updatedCheckedFields));
-    debounceSave(updatedResume, 3000);
+    dispatch(
+      setCheckedField(
+        typeof updater === "function"
+          ? updater(resumeData.checkedFields)
+          : updater,
+      ),
+    );
+    setChangeCounter((prev) => prev + 1);
   };
+
+  useEffect(() => {
+    latestResumeRef.current = resumeData;
+  }, [resumeData]);
+
+  useEffect(() => {
+    if (!resumeData?._id) return;
+    if (changeCounter === 0) return;
+    // if (isFirstRender.current) {
+    //   isFirstRender.current = false;
+    //   return;
+    // }
+
+    if (timer.current) clearTimeout(timer.current);
+
+    timer.current = setTimeout(() => {
+      updateDbAFterDebounce(latestResumeRef.current);
+      setChangeCounter(0);
+    }, 2000);
+
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, [changeCounter]);
 
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (timer.current) {
         clearTimeout(timer.current);
       }
-      updateDbAFterDebounce(resumeData);
+      updateDbAFterDebounce(latestResumeRef.current);
+      window.alert("Changes saved!");
     };
-
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
