@@ -89,17 +89,9 @@ export const getResumeById = async (req, res) => {
 
     const key = `resume:${resumeId}:${userId}`;
 
-    /* --------------------------------
-       REDIS: EXISTS
-       Checks if the key is present
-       -------------------------------- */
     const exists = await pubClient.exists(key);
 
     if (exists) {
-      /* --------------------------------
-         REDIS: HGET
-         Gets one field from HASH
-         -------------------------------- */
       const resumeData = await pubClient.hget(key, "data");
 
       return res.status(200).json({
@@ -109,9 +101,6 @@ export const getResumeById = async (req, res) => {
       });
     }
 
-    /* --------------------------------
-       MongoDB fallback
-       -------------------------------- */
     const resume = await ResumeTemplate.findOne({
       _id: resumeId,
       userId,
@@ -124,10 +113,6 @@ export const getResumeById = async (req, res) => {
       });
     }
 
-    /* --------------------------------
-       REDIS: HSET
-       Stores resume + metadata in HASH
-       -------------------------------- */
     await pubClient.hset(key, {
       data: JSON.stringify(resume.toObject()),
       isDirty: 0, // not edited yet
@@ -135,10 +120,6 @@ export const getResumeById = async (req, res) => {
       lastEditAt: "", // editing not started
     });
 
-    /* --------------------------------
-       REDIS: EXPIRE
-       Auto-delete after 30 min if unused
-       -------------------------------- */
     await pubClient.expire(key, 60 * 30);
 
     return res.status(200).json({
@@ -270,60 +251,57 @@ export const updateResume = async (req, res) => {
     const key = `resume:${resumeId}:${userId}`;
     const now = Date.now();
 
-    /* --------------------------------
-       REDIS: HGET
-       Get firstEditAt if exists
-       -------------------------------- */
-    let firstEditAt = await pubClient.hget(key, "firstEditAt");
+    const exists = await pubClient.exists(key);
 
-    if (!firstEditAt) {
-      firstEditAt = now;
+    if (!exists) {
+      const resumeFromDb = await ResumeTemplate.findOne({
+        _id: resumeId,
+        userId,
+      });
+
+      if (!resumeFromDb) {
+        return res.status(404).json({
+          success: false,
+          message: "Resume not found",
+        });
+      }
+
+      // Create fresh cache
+      await pubClient.hset(key, {
+        data: JSON.stringify(resumeFromDb.toObject()),
+        isDirty: 0,
+        firstEditAt: "",
+        lastEditAt: "",
+      });
+
+      await pubClient.expire(key, 60 * 30);
     }
 
-    /* --------------------------------
-       REDIS: PIPELINE
-       Groups commands into ONE network call
-       -------------------------------- */
+    let firstEditAt = await pubClient.hget(key, "firstEditAt");
+    if (!firstEditAt) firstEditAt = now;
+
     const pipe = pubClient.pipeline();
 
-    /* --------------------------------
-       REDIS: HSET
-       Updates only fields (cheap)
-       -------------------------------- */
+    resumeData.updatedAt = new Date();
     pipe.hset(key, {
       data: JSON.stringify(resumeData),
-      isDirty: 1, // mark as changed
-      lastEditAt: now, // last keystroke time
-      firstEditAt, // session start
+      isDirty: 1,
+      lastEditAt: now,
+      firstEditAt,
     });
 
-    /* --------------------------------
-       REDIS: EXPIRE
-       Sliding TTL (reset on every edit)
-       -------------------------------- */
     pipe.expire(key, 60 * 30);
 
-    /* --------------------------------
-       Compute WHEN this resume should
-       be flushed to DB
-       -------------------------------- */
     const idleTime = Math.min(5 * 60 * 1000, (60 * 30 * 1000) / 2);
 
     const flushAt = Math.min(
-      now + idleTime, // idle-based save
-      now + 25 * 60 * 1000, // TTL safety buffer
-      firstEditAt + 10 * 60 * 1000, // hard session limit
+      now + idleTime,
+      now + 25 * 60 * 1000,
+      firstEditAt + 10 * 60 * 1000,
     );
 
-    /* --------------------------------
-       REDIS: ZADD
-       Add resume to flush queue
-       -------------------------------- */
     pipe.zadd("resume:flush_index", flushAt, key);
 
-    /* --------------------------------
-       Execute pipeline
-       -------------------------------- */
     await pipe.exec();
 
     return res.status(200).json({
@@ -340,8 +318,95 @@ export const updateResume = async (req, res) => {
   }
 };
 
-// import { resumeOptimizeQueue } from "../bull/jobs/bullJobs.js";
-// import { pubClient } from "../config/redis.js";
+export const updateResumeBeacon = async (req, res) => {
+  try {
+    const resumeId = req.params.id;
+    const { resumeData, userId } = req.body;
+
+    if (!resumeId || !resumeData || !userId) {
+      return res.status(400).json({
+        success: false,
+        message: "Resume ID, userId and resume data are required",
+      });
+    }
+
+    const existsInDb = await ResumeTemplate.exists({
+      _id: resumeId,
+      userId,
+    });
+
+    if (!existsInDb) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized resume update",
+      });
+    }
+
+    const key = `resume:${resumeId}:${userId}`;
+    const now = Date.now();
+
+    const cacheExists = await pubClient.exists(key);
+
+    if (!cacheExists) {
+      const resumeFromDb = await ResumeTemplate.findOne({
+        _id: resumeId,
+        userId,
+      });
+
+      if (!resumeFromDb) {
+        return res.status(404).json({
+          success: false,
+          message: "Resume not found",
+        });
+      }
+
+      await pubClient.hset(key, {
+        data: JSON.stringify(resumeFromDb.toObject()),
+        isDirty: 0,
+        firstEditAt: "",
+        lastEditAt: "",
+      });
+
+      await pubClient.expire(key, 60 * 30);
+    }
+
+    let firstEditAt = await pubClient.hget(key, "firstEditAt");
+    if (!firstEditAt) firstEditAt = now;
+
+    const idleTime = Math.min(5 * 60 * 1000, (60 * 30 * 1000) / 2);
+
+    const flushAt = Math.min(
+      now + idleTime,
+      now + 25 * 60 * 1000,
+      firstEditAt + 10 * 60 * 1000,
+    );
+
+    const pipe = pubClient.pipeline();
+
+    pipe.hset(key, {
+      data: JSON.stringify(resumeData),
+      isDirty: 1,
+      lastEditAt: now,
+      firstEditAt,
+    });
+
+    pipe.expire(key, 60 * 30);
+    pipe.zadd("resume:flush_index", flushAt, key);
+
+    await pipe.exec();
+
+    return res.status(200).json({
+      success: true,
+      message: "Resume update accepted",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update resume",
+    });
+  }
+};
 
 export const optimizeResume = async (req, res) => {
   try {

@@ -37,6 +37,7 @@ const ResumeEditor = () => {
   const config = useSelector((state) => state.resume.currentResumeConfig);
   const resumeData = useSelector((state) => state.resume.currentResume);
   const resumeConfig = useSelector((state) => state.resume.currentResumeConfig);
+  const userSlice = useSelector((state) => state.auth.user);
   const isFirstRender = useRef(true);
 
   const checkedFields = useSelector(
@@ -130,14 +131,29 @@ const ResumeEditor = () => {
   }, [changeCounter]);
 
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (timer.current) {
-        clearTimeout(timer.current);
-      }
-      updateDbAFterDebounce(latestResumeRef.current);
-      window.alert("Changes saved!");
+    const handleBeforeUnload = (event) => {
+      if (!latestResumeRef.current?._id) return;
+
+      const payload = JSON.stringify({
+        resumeId: latestResumeRef.current._id,
+        resumeData: latestResumeRef.current,
+        userId: userSlice?._id,
+      });
+
+      const blob = new Blob([payload], { type: "application/json" });
+
+      navigator.sendBeacon(
+        `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/update/${latestResumeRef.current._id}`,
+        blob,
+      );
+
+      // REQUIRED to show browser warning
+      event.preventDefault();
+      event.returnValue = "";
     };
+
     window.addEventListener("beforeunload", handleBeforeUnload);
+
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
