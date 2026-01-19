@@ -123,10 +123,35 @@ const resumeTemplateSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    atsScore: {
+      type: Number,
+      default: 0,
+    },
+    contentClarityScore: {
+      type: Number,
+      default: 0,
+    },
+    structureScore: {
+      type: Number,
+      default: 0,
+    },
+    impactScore: {
+      type: Number,
+      default: 0,
+    },
+    projectScore: {
+      type: Number,
+      default: 0,
+    },
+    experienceScore: {
+      type: Number,
+      default: 0,
+    },
     suggestions: {
       type: [
         {
-          type: String,
+          suggestion: String,
+          impact: String,
         },
       ],
       default: [],
@@ -255,10 +280,15 @@ const resumeTemplateSchema = new mongoose.Schema(
         enum: ["bullets", "numbers", "none", "dash"],
       },
     },
+    skillMap: {
+      type: Object,
+      default: {},
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
+resumeTemplateSchema.index({ _id: 1, userId: 1 }, { unique: true });
 const ResumeTemplate = mongoose.model("ResumeTemplate", resumeTemplateSchema);
 export default ResumeTemplate;
 

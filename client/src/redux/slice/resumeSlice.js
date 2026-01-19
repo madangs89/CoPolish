@@ -138,6 +138,23 @@ const initialState = {
     changes: [],
     scoreBefore: 0,
     scoreAfter: 0,
+    atsScore: 0,
+    contentClarityScore: 0,
+    structureScore: 0,
+    impactScore: 0,
+    projectScore: 0,
+    experienceScore: 0,
+    skillMap: {
+      "Programming Languages": [], // java , python etc
+
+      "Frameworks & Libraries": [], // react , angular , Spring Boot etc
+
+      "Databases & Data Technologies": [], // MySQL, MongoDB , Redis etc
+
+      "Tools, Platforms & DevOps": [], // Docker, Kubernetes , AWS etc
+
+      "Core Concepts & Technical Skills": [], // Algorithms , Data Structures etc
+    },
     suggestions: [],
     checkedFields: [],
     config: resumeConfig,

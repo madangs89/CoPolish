@@ -223,6 +223,13 @@ export const parseResumeSchema = {
     "extracurricular",
     "resumeScore",
     "optimizationSuggestions",
+    "atsScore",
+    "contentClarityScore",
+    "structureScore",
+    "impactScore",
+    "projectScore",
+    "experienceScore",
+    "skillMap",
   ],
 
   properties: {
@@ -407,6 +414,48 @@ export const parseResumeSchema = {
         { type: "null" },
       ],
     },
+    atsScore: {
+      anyOf: [
+        { type: "number", minimum: 0, maximum: 100 },
+        { type: "string", pattern: "^[0-9]{1,3}$" },
+        { type: "null" },
+      ],
+    },
+    contentClarityScore: {
+      anyOf: [
+        { type: "number", minimum: 0, maximum: 100 },
+        { type: "string", pattern: "^[0-9]{1,3}$" },
+        { type: "null" },
+      ],
+    },
+    structureScore: {
+      anyOf: [
+        { type: "number", minimum: 0, maximum: 100 },
+        { type: "string", pattern: "^[0-9]{1,3}$" },
+        { type: "null" },
+      ],
+    },
+    impactScore: {
+      anyOf: [
+        { type: "number", minimum: 0, maximum: 100 },
+        { type: "string", pattern: "^[0-9]{1,3}$" },
+        { type: "null" },
+      ],
+    },
+    projectScore: {
+      anyOf: [
+        { type: "number", minimum: 0, maximum: 100 },
+        { type: "string", pattern: "^[0-9]{1,3}$" },
+        { type: "null" },
+      ],
+    },
+    experienceScore: {
+      anyOf: [
+        { type: "number", minimum: 0, maximum: 100 },
+        { type: "string", pattern: "^[0-9]{1,3}$" },
+        { type: "null" },
+      ],
+    },
 
     // ───────────────────
     // OPTIMIZATION SUGGESTIONS
@@ -414,8 +463,51 @@ export const parseResumeSchema = {
     optimizationSuggestions: {
       type: "array",
       minItems: 1,
-      maxItems: 10,
-      items: { type: "string" },
+      maxItems: 15,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          suggestion: { type: "string" },
+          impact: {
+            type: "string",
+            enum: ["High", "Medium", "Low", "high", "medium", "low"],
+          },
+        },
+      },
+    },
+    skillMap: {
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "Programming Languages",
+        "Frameworks & Libraries",
+        "Databases & Data Technologies",
+        "Tools, Platforms & DevOps",
+        "Core Concepts & Technical Skills",
+      ],
+      properties: {
+        "Programming Languages": {
+          type: "array",
+          items: { type: "string" },
+        },
+        "Frameworks & Libraries": {
+          type: "array",
+          items: { type: "string" },
+        },
+        "Databases & Data Technologies": {
+          type: "array",
+          items: { type: "string" },
+        },
+        "Tools, Platforms & DevOps": {
+          type: "array",
+          items: { type: "string" },
+        },
+        "Core Concepts & Technical Skills": {
+          type: "array",
+          items: { type: "string" },
+        },
+      },
     },
   },
 };

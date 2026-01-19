@@ -80,11 +80,40 @@ let checkedFields = [
   "hobbies",
   "personal",
 ];
+
+const scoreReturn = (score) => {
+  score = Number(score);
+  if (score >= 60 && score < 70) {
+    return Number(score) - 10;
+  } else if (score >= 70 && score < 80) {
+    return Number(score) - 15;
+  } else if (score >= 80 && score < 90) {
+    return Number(score) - 20;
+  } else if (score >= 90) {
+    return Number(score) - 25;
+  } else {
+    return score;
+  }
+};
+
+function computeResumeScore(scores) {
+  return Math.round(
+    0.3 * scoreReturn(scores.atsScore) +
+      0.2 * scoreReturn(scores.contentClarityScore) +
+      0.15 * scoreReturn(scores.structureScore) +
+      0.15 * scoreReturn(scores.impactScore) +
+      0.1 * scoreReturn(scores.projectScore) +
+      0.1 * scoreReturn(scores.experienceScore),
+  );
+}
+
 const resumeParseAIWorker = new Worker(
   "resume-parse-ai",
   async (job) => {
     const { parsedText, userId, jobKey } = job.data;
     const res = await aiResumeParser(parsedText);
+
+    console.log(res);
 
     const { text, usage, error, isError } = res;
 
@@ -100,7 +129,7 @@ const resumeParseAIWorker = new Worker(
           usage: 0,
           isError: true,
           error: error,
-        })
+        }),
       );
       throw error;
     }
@@ -110,9 +139,21 @@ const resumeParseAIWorker = new Worker(
       resumeGroupId: uuidv4(),
       version: 1,
       templateId: "HarvardResume",
-      scoreBefore: text?.resumeScore || 0,
+      scoreBefore: scoreReturn(computeResumeScore(text)),
+      atsScore: scoreReturn(text?.atsScore),
+      contentClarityScore: scoreReturn(text?.contentClarityScore),
+      structureScore: scoreReturn(text?.structureScore),
+      impactScore: scoreReturn(text?.impactScore),
+      projectScore: scoreReturn(text?.projectScore),
+      experienceScore: scoreReturn(text?.experienceScore),
       suggestions: text?.optimizationSuggestions || [],
-
+      skillMap: text?.skillMap || {
+        "Programming Languages": [],
+        "Frameworks & Libraries": [],
+        "Databases & Data Technologies": [],
+        "Tools, Platforms & DevOps": [],
+        "Core Concepts & Technical Skills": [],
+      },
       // AI output FIRST
       ...text,
 
@@ -157,7 +198,7 @@ const resumeParseAIWorker = new Worker(
   {
     connection: bullClient,
     concurrency: 2, // run 2 jobs in parallel
-  }
+  },
 );
 
 resumeParseAIWorker.on("completed", async (job) => {
@@ -181,7 +222,7 @@ resumeParseAIWorker.on("completed", async (job) => {
       usage: data.usage,
       isError: false,
       error: null,
-    })
+    }),
   );
 });
 
@@ -190,17 +231,21 @@ resumeParseAIWorker.on("failed", async (job, err) => {
 
   const { userId, jobKey } = job.data || {};
 
-  await pubClient.publish(
-    "resume:events",
-    JSON.stringify({
-      event: "RESUME_PARSE_AI_COMPLETED",
-      jobId: job.id,
-      userId: userId ?? null,
-      parsedNewResume: null,
-      userUpdateCurrentResumeId: null,
-      usage: 0,
-      isError: true,
-      error: err?.message ?? "Unknown error",
-    })
-  );
+  const attemptsMade = job.attemptsMade;
+  const maxAttempts = job.opts.attempts ?? 1;
+  if (attemptsMade >= maxAttempts) {
+    await pubClient.publish(
+      "resume:events",
+      JSON.stringify({
+        event: "RESUME_PARSE_AI_COMPLETED",
+        jobId: job.id,
+        userId: userId ?? null,
+        parsedNewResume: null,
+        userUpdateCurrentResumeId: null,
+        usage: 0,
+        isError: true,
+        error: err?.message ?? "Unknown error",
+      }),
+    );
+  }
 });

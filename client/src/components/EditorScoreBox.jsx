@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import React from "react";
+import { useSelector } from "react-redux";
 
 const EditorScoreBox = ({
   progress = 40,
@@ -7,18 +8,36 @@ const EditorScoreBox = ({
   setMobileModalState,
   setOpen,
 }) => {
+  let currentResumeData = useSelector((state) => state.resume.currentResume);
+
   const issuesData = [
-    { label: "Resume Structure", issues: 5, color: "#ef4444" },
-    { label: "Content Clarity", issues: 2, color: "#f59e0b" },
-    { label: "ATS Keywords", issues: 1, color: "#3b82f6" },
+    {
+      label: "Resume Structure",
+      issues: currentResumeData?.structureScore || 0,
+      color: "#ef4444",
+    },
+    {
+      label: "Content Clarity",
+      issues: currentResumeData?.contentClarityScore || 0,
+      color: "#f59e0b",
+    },
+    {
+      label: "ATS Keywords",
+      issues: currentResumeData?.atsScore || 0,
+      color: "#3b82f6",
+    },
   ];
 
-  const aiSuggestions = [
-    { title: "Weak impact in experience", impact: "High" },
-    { title: "ATS keywords missing", impact: "Medium" },
-    { title: "Resume structure can be improved", impact: "Medium" },
-    { title: "Summary lacks role focus", impact: "Low" },
-  ];
+  const aiSuggestions = currentResumeData?.suggestions || [];
+
+  let scoreBefore = useSelector(
+    (state) => state.resume.currentResume.scoreBefore,
+  );
+  let scoreAfter = useSelector(
+    (state) => state.resume.currentResume.scoreAfter,
+  );
+
+  progress = Math.max(scoreBefore, scoreAfter);
 
   return (
     <aside className="h-full w-full bg-[#f8f9fb] relative border-r flex flex-col">
@@ -53,7 +72,7 @@ const EditorScoreBox = ({
 
           <div className="text-center">
             <p className="text-sm font-medium text-[#374151]">
-              8 improvement areas
+              {aiSuggestions.length || 5} improvement areas
             </p>
             <p className="text-xs text-[#6B7280]">
               Focus on these to boost your score
@@ -64,10 +83,23 @@ const EditorScoreBox = ({
         {/* Issue breakdown */}
         <div className="flex flex-col gap-3">
           {issuesData.map((item, idx) => (
-            <div key={idx} className="flex flex-col gap-1.5">
+            <div
+              key={idx}
+              className="flex group cursor-pointer relative flex-col gap-1.5"
+            >
               <div className="flex justify-between text-xs">
                 {/* Label */}
                 <span className="text-[#111111]">{item.label}</span>
+
+                <span className="text-[#111111] opacity-0 transition-all duration-150 group-hover:opacity-100">
+                  {item.issues >= 90
+                    ? "Good"
+                    : item.issues >= 80
+                      ? "Neutral"
+                      : item.issues >= 70
+                        ? "Bad"
+                        : "Very Bad"}
+                </span>
 
                 {/* Count (can later color by severity if you want) */}
                 <span className="text-[#6B7280]">{item.issues}</span>
@@ -76,9 +108,9 @@ const EditorScoreBox = ({
               {/* Progress bar (NEUTRAL ONLY) */}
               <div className="w-full h-1 rounded-full bg-[#E5E7EB] overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-[#D1D5DB]"
+                  className={`h-full rounded-full ${item.issues >= 90 ? "bg-green-500" : item.issues >= 80 ? "bg-blue-500" : item.issues >= 70 ? "bg-yellow-500" : "bg-red-500"} `}
                   style={{
-                    width: `${item.issues * 20}%`,
+                    width: `${item.issues}%`,
                   }}
                 />
               </div>
@@ -107,7 +139,9 @@ const EditorScoreBox = ({
                 className="flex items-center justify-between rounded-lg bg-white px-3 py-2 border border-[#E5E7EB]"
               >
                 {/* Suggestion title */}
-                <span className="text-xs text-[#111111]">{item.title}</span>
+                <span className="text-xs text-[#111111]">
+                  {item?.suggestion}
+                </span>
 
                 {/* Impact pill — ONLY place with color */}
                 <span

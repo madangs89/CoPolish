@@ -2,7 +2,7 @@ import React, { useState, Suspense, lazy, useEffect } from "react";
 
 const EditorScoreBox = lazy(() => import("../components/EditorScoreBox"));
 const ResumePreview = lazy(
-  () => import("../components/ResumePreview/ResumePreview")
+  () => import("../components/ResumePreview/ResumePreview"),
 );
 const Editor = lazy(() => import("../components/Editor"));
 
@@ -38,7 +38,7 @@ const ResumeEditor = () => {
   const resumeConfig = useSelector((state) => state.resume.currentResumeConfig);
 
   const [checkedFields, setCheckedFields] = useState(
-    resumeSlice?.currentResume?.checkedFields || []
+    resumeSlice?.currentResume?.checkedFields || [],
   );
   const [mobileModalState, setMobileModalState] = useState("");
   const [mobileEditorState, setMobileEditorState] = useState("preview");
@@ -255,6 +255,7 @@ const ResumeEditor = () => {
           <EditorScoreBox
             mobileModalState={mobileModalState}
             setMobileModalState={setMobileModalState}
+            setOpen={setOpen}
           />
         </div>
         {/* optimize modal */}

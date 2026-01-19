@@ -14,9 +14,10 @@ resumeRouter.put("/mark-approved", authMiddelware, markApprovedAndUpdate);
 resumeRouter.post(
   "/mark-approved-create-new",
   authMiddelware,
-  markApproveAndCreateNew
+  markApproveAndCreateNew,
 );
 
 resumeRouter.post("/optimize-resume", authMiddelware, optimizeResume);
+resumeRouter.put("/update/:id", authMiddelware, optimizeResume);
 
 export default resumeRouter;

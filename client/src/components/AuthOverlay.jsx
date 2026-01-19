@@ -56,7 +56,7 @@ const AuthOverlay = ({ open, onClose }) => {
         { code: obj.code },
         {
           withCredentials: true,
-        }
+        },
       );
       console.log(data);
       if (data.success) {
@@ -100,7 +100,7 @@ const AuthOverlay = ({ open, onClose }) => {
           data,
           {
             withCredentials: true,
-          }
+          },
         );
         console.log(loginData?.data);
         if (loginData?.data.success) {
@@ -124,7 +124,7 @@ const AuthOverlay = ({ open, onClose }) => {
           data,
           {
             withCredentials: true,
-          }
+          },
         );
         console.log(registerData);
         if (registerData.data.success) {
@@ -163,7 +163,11 @@ const AuthOverlay = ({ open, onClose }) => {
       <div className="relative lg:w-[30%] w-[90%] rounded-2xl bg-white shadow-[0_30px_90px_rgba(0,0,0,0.3)] p-8 z-10">
         {/* Close */}
         <button
-          onClick={onClose}
+          onClick={() => {
+            setIsGoogleLoading(false);
+            setNormalAuthLoader(false);
+            onClose();
+          }}
           className="absolute right-4 top-4 opacity-60 hover:opacity-100 transition"
         >
           <X size={18} />

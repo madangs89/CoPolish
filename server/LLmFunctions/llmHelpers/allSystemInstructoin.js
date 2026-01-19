@@ -65,8 +65,30 @@ const resumeSchema = {
       description: null,
     },
   ],
-  resumeScore: 0, // Numerical score representing resume quality
-  optimizationSuggestions: [], // Array of strings with suggestions for improvement
+  resumeScore: 0, // Numerical score overallResume Score representing resume quality
+  atsScore: 0, // Numerical score representing ATS compatibility,
+  contentClarityScore: 0, // Numerical score representing clarity of content
+  structureScore: 0, // Numerical score representing structure quality including formatting
+  impactScore: 0, // Numerical score representing impact of resume content
+  projectScore: 0, // Numerical score representing project section quality
+  experienceScore: 0, // Numerical score representing experience section quality
+  optimizationSuggestions: [
+    {
+      suggestion: String,
+      impact: String, // High, Medium, Low
+    },
+  ], // Array of object with suggestions for improvement
+  skillMap: {
+    "Programming Languages": [], // java , python etc
+
+    "Frameworks & Libraries": [], // react , angular , Spring Boot etc
+
+    "Databases & Data Technologies": [], // MySQL, MongoDB , Redis etc
+
+    "Tools, Platforms & DevOps": [], // Docker, Kubernetes , AWS etc
+
+    "Core Concepts & Technical Skills": [], // Algorithms , Data Structures etc
+  },
 };
 export const parseResumeSystemInstruction = `
 
@@ -99,35 +121,208 @@ SCHEMA:
 ${JSON.stringify(resumeSchema)}
 
 ────────────────────────────
-PART 2: ATS RESUME SCORING
+PART 2: RESUME SCORING
 ────────────────────────────
 
 TASK:
-Calculate an ATS-style resume score between 0 and 100.
+Calculate multiple ATS-style resume scores between 0 and 100.
 
-SCORING GUIDELINES (use ATS best practices):
-- Clarity of job titles and role descriptions
-- Presence of measurable impact (numbers, percentages, outcomes)
-- Skill relevance and keyword density
-- Proper section structure (summary, skills, experience, projects)
-- Consistency of dates and roles
-- Presence of links (GitHub, LinkedIn, portfolio)
-- Avoidance of vague statements
-- Overall readability for automated screening
-- If any section is missing , you must remain skelton of that section in the output with nulls eg. experience: [ { role: null, company: null, from: null, to: null, duration: null, description: [] } ]
+All scores MUST be integers.
+All scores MUST be derived strictly from the extracted resume data.
+Do NOT invent, assume, infer, or hallucinate any information.
 
-IMPORTANT SCORING RULES:
-- Resume score MAY use general ATS knowledge
-- Resume score MUST be based on the extracted data
-- Do NOT assume experience that does not exist
-- If any section is missing, score should reflect that
-- Do NOT penalize missing data harshly if resume is clearly a fresher profile
-- Score must be strictly evaluated and don't show kindness for cutting scores
+────────────────────────────
+SCORING DIMENSIONS
+────────────────────────────
 
+1. OVERALL RESUME SCORE
 Set:
 "resumeScore": <number between 0 and 100>
 
+PURPOSE:
+Represents the weighted overall effectiveness of the resume for ATS systems and recruiters.
+
+CALCULATION RULES (STRICT AND MANDATORY):
+- resumeScore MUST be calculated using the following weighted formula:
+
+  resumeScore =
+    round(
+      0.30 * atsScore +
+      0.20 * contentClarityScore +
+      0.15 * structureScore +
+      0.15 * impactScore +
+      0.10 * projectScore +
+      0.10 * experienceScore
+    )
+
+- resumeScore MUST be the direct mathematical result of this formula
+- Do NOT apply intuition, subjective judgment, or manual adjustment
+- Do NOT lower or raise resumeScore after calculation
+
+BOUNDARY & CONSISTENCY RULES:
+- resumeScore MUST NOT be lower than (atsScore - 10)
+- resumeScore MUST NOT be higher than the highest contributing sub-score
+- If atsScore < 40, resumeScore MUST NOT exceed 55
+- If impactScore, projectScore, and experienceScore are ALL 0,
+  resumeScore MUST NOT exceed 45
+- High scores (85+) should be rare and must result naturally from strong sub-scores
+
 ────────────────────────────
+
+2. ATS COMPATIBILITY SCORE
+Set:
+"atsScore": <number between 0 and 100>
+
+PURPOSE:
+Measures how well the resume can be parsed, indexed, and ranked by Applicant Tracking Systems.
+
+SCORING GUIDELINES:
+- Presence of standard ATS-friendly sections (summary, skills, experience, projects, education)
+- Clear job titles and company names
+- Relevant keyword presence and density
+- Machine-readable structure
+- Consistent role and date formatting
+- Proper separation of experience and projects
+- Presence of professional links (GitHub, LinkedIn, portfolio)
+- Avoidance of vague or ambiguous phrasing
+- Overall ATS readability
+
+RULES:
+- Missing sections MUST reduce the score
+- Do NOT assume ATS-friendly formatting if data is missing
+- Do NOT reward visual or design elements
+- Do NOT harshly penalize freshers for lack of experience
+
+────────────────────────────
+
+3. CONTENT CLARITY SCORE
+Set:
+"contentClarityScore": <number between 0 and 100>
+
+PURPOSE:
+Measures how clear, specific, and understandable the resume content is.
+
+SCORING GUIDELINES:
+- Clear role titles and descriptions
+- Bullet points written as complete, descriptive sentences
+- Clear explanation of responsibilities
+- Logical sentence structure
+- Avoidance of vague phrases (e.g., "worked on", "helped with")
+- Minimal repetition across sections
+- Overall readability for humans and ATS
+
+RULES:
+- Score reflects clarity, not impact
+- Length alone must NOT increase score
+- Missing or unclear descriptions MUST reduce score
+- Freshers may score high if content is clear
+
+────────────────────────────
+
+4. STRUCTURE & FORMAT QUALITY SCORE
+Set:
+"structureScore": <number between 0 and 100>
+
+PURPOSE:
+Measures how well the resume is organized and structurally sound.
+
+SCORING GUIDELINES:
+- Presence of all core sections
+- Logical section ordering
+- Consistent date formats
+- Proper grouping of related information
+- Balanced section lengths
+- No duplicated or misplaced sections
+
+RULES:
+- Formatting refers to structure, NOT visual styling
+- Missing sections MUST reduce score
+- Poor ordering MUST reduce score
+- Freshers should not be penalized harshly
+
+────────────────────────────
+
+5. IMPACT SCORE
+Set:
+"impactScore": <number between 0 and 100>
+
+PURPOSE:
+Measures how effectively the resume communicates results and outcomes.
+
+SCORING GUIDELINES:
+- Set score to 0 if no measurable impact is explicitly stated
+- Presence of measurable impact (numbers, percentages, scale)
+- Clear cause-and-effect descriptions
+- Action-oriented responsibility statements
+- Explicit outcomes where stated
+
+RULES:
+- Do NOT invent metrics or results
+- Do NOT assume impact if not explicitly stated
+- Absence of measurable impact MUST significantly lower score
+- Freshers may naturally score lower
+
+────────────────────────────
+
+6. PROJECT QUALITY SCORE
+Set:
+"projectScore": <number between 0 and 100>
+
+PURPOSE:
+Evaluates the quality, clarity, and relevance of the projects section.
+
+SCORING GUIDELINES:
+- Set score to 0 if no projects are listed
+- Clear project titles
+- Well-explained project descriptions
+- Clear problem statement and implementation approach
+- Relevant technologies explicitly mentioned
+- Presence of project links where available
+- Proper separation from work experience
+
+RULES:
+- Do NOT assume production usage
+- Do NOT inflate academic projects
+- Missing project descriptions MUST reduce score
+- No projects MUST result in a low score
+
+────────────────────────────
+
+7. EXPERIENCE QUALITY SCORE
+Set:
+"experienceScore": <number between 0 and 100>
+
+PURPOSE:
+Measures the depth, clarity, and relevance of professional experience.
+
+SCORING GUIDELINES:
+- Set score to 0 if no experience is listed
+- Clear role titles and company names
+- Detailed and specific responsibility descriptions
+- Logical role progression if present
+- Consistent timelines where provided
+- Clear distinction between internships and full-time roles
+
+RULES:
+- Do NOT assume seniority or responsibility
+- Do NOT convert internships into full-time experience
+- Missing experience MUST reduce score
+- Freshers should not be penalized harshly
+
+────────────────────────────
+GLOBAL SCORING RULES
+────────────────────────────
+
+- All scores MUST be strictly evaluated
+- Do NOT show kindness or intuition-based scoring
+- Average resumes should score around 50–65
+- Scores MUST be mathematically and logically consistent
+- Scores MUST be based only on extracted data
+- Do NOT assume experience, skills, or impact
+- Skeleton sections with null values MUST be treated as missing
+- Freshers may score lower in experience and impact but can excel in clarity and structure
+
+
 PART 3: OPTIMIZATION SUGGESTIONS
 ────────────────────────────
 
@@ -135,7 +330,8 @@ TASK:
 Provide ATS-focused resume improvement suggestions.
 
 RULES FOR SUGGESTIONS:
-- Maximum 8 suggestions
+- Maximum of 10 suggestions
+- Minimum of 5 suggestions
 - Avoid repeating the same suggestion in different wording
 - Suggestions must be specific and actionable
 - Suggestions must be based on ATS optimization
@@ -144,15 +340,53 @@ RULES FOR SUGGESTIONS:
 - Suggestions must NOT reference missing data as if it exists
 
 Examples of good suggestions:
-- Improve bullet points with measurable outcomes
-- Suggest adding relevant technical keywords ONLY if they genuinely apply to the user’s experience.
-- Suggestions must never imply false experience.
-- Strengthen resume summary for role targeting
-- Improve project descriptions with impact
-- Add relevant certifications or links if applicable
+[
+  {
+    "suggestion": "Improve bullet points by adding measurable outcomes where applicable",
+    "impact": "High"
+  },
+  {
+    "suggestion": "Add relevant technical keywords only if they accurately reflect your experience",
+    "impact": "Medium"
+  }
+]
+
 
 Set:
-"optimizationSuggestions": [ minimum 5 strings ]
+"optimizationSuggestions": [ { "suggestion": <string>, "impact": <string> } ]
+
+────────────────────────────
+SKILL CATEGORIZATION
+────────────────────────────
+
+TASK:
+Categorize extracted skills into predefined skill categories.
+
+RULES:
+- Use ONLY skills explicitly mentioned in the resume text
+- Do NOT infer skills from experience or projects
+- Do NOT add new skills
+- Do NOT rename skills
+- Do NOT duplicate skills across categories
+- If a skill does not clearly belong to a category, leave it uncategorized
+- If no skills are present, return empty arrays for all categories
+
+CATEGORIES (FIXED):
+- Programming Languages
+- Frameworks & Libraries
+- Databases & Data Technologies
+- Tools, Platforms & DevOps
+- Core Concepts & Technical Skills
+
+Set:
+"skillMap": {
+  "Programming Languages": [],
+  "Frameworks & Libraries": [],
+  "Databases & Data Technologies": [],
+  "Tools, Platforms & DevOps": [],
+  "Core Concepts & Technical Skills": []
+}
+
 
 ────────────────────────────
 FINAL OUTPUT RULES

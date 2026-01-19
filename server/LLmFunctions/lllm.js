@@ -53,20 +53,31 @@ const ALL_OPERATION_ORDER = [
   "personal",
 ];
 
+function sanitizeUrl(value) {
+  if (typeof value !== "string") return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return url.href;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function normalizeResume(ai) {
-  // Fix project links
   ai.projects?.forEach((project) => {
     project.link = (project.link || []).map((l) => ({
       title: l.title ?? l.type ?? null,
-      url: typeof l.url === "string" ? l.url : null,
+      url: sanitizeUrl(l.url),
     }));
   });
 
-  // Fix certification links
   ai.certifications?.forEach((cert) => {
     cert.link = (cert.link || []).map((l) => ({
       title: l.title ?? l.type ?? null,
-      url: typeof l.url === "string" ? l.url : null,
+      url: sanitizeUrl(l.url),
     }));
   });
 
@@ -276,7 +287,7 @@ export const aiPartWiseOptimize = async (
   resumeId,
   operation,
   instruction,
-  contents
+  contents,
 ) => {
   try {
     const response = await ai.models.generateContent({
@@ -367,7 +378,7 @@ export const resumeOptimizer = async (info) => {
           resumeId,
           key,
           instruction,
-          contents
+          contents,
         );
 
         if (aiResult.isError) {
@@ -414,7 +425,7 @@ export const resumeOptimizer = async (info) => {
       resumeId,
       operation,
       instruction,
-      contents
+      contents,
     );
 
     if (aiResult.isError) {

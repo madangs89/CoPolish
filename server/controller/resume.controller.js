@@ -159,13 +159,13 @@ export const markApprovedAndUpdate = async (req, res) => {
     const updatedResume = await ResumeTemplate.findByIdAndUpdate(
       resumeId,
       { ...resumeData, config, checkedFields },
-      { new: true }
+      { new: true },
     );
 
     const makeUserApproved = await User.findByIdAndUpdate(
       user._id,
       { isApproved: true },
-      { new: true }
+      { new: true },
     );
     return res.status(200).json({
       success: true,
@@ -218,7 +218,7 @@ export const markApproveAndCreateNew = async (req, res) => {
     const makeUserApproved = await User.findByIdAndUpdate(
       user._id,
       { isApproved: true, currentResumeId: createResume._id },
-      { new: true }
+      { new: true },
     );
     return res.status(200).json({
       success: true,
@@ -226,6 +226,96 @@ export const markApproveAndCreateNew = async (req, res) => {
       resume: createResume,
       user: makeUserApproved,
     });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update resume",
+    });
+  }
+};
+
+export const updateResume = async (req, res) => {
+  try {
+    const resumeId = req.params.id;
+    const { resumeData } = req.body;
+
+    if (!resumeId || !resumeData) {
+      return res.status(400).json({
+        success: false,
+        message: "Resume ID and data are required",
+      });
+    }
+    const key = `resume-edit-cache:${resumeId}:${req.user._id}`;
+
+    const cachedResume = await pubClient.get(key);
+    if (cachedResume) {
+      console.log("got from cache");
+      const { resumeData, resumeId, updatedTime, cachedTime, isUpdated } =
+        JSON.parse(cachedResume);
+
+      let payload = {
+        resumeData: req.body.resumeData,
+        userId: req.user._id,
+        resumeId: resumeData._id,
+        cachedTime: cachedTime,
+        updatedTime: new Date(),
+        isUpdated: true,
+      };
+
+      await pubClient.setex(key, 60 * 5, JSON.stringify(payload));
+      return res.status(200).json({
+        success: true,
+        message: "Resume updated in cache",
+        resume: resumeData,
+      });
+    } else {
+      const updateTemplate = await ResumeTemplate.findOneAndUpdate(
+        { _id: resumeId, userId: req.user._id }, // FIND condition
+        {
+          $set: {
+            personal: resumeData.personal,
+            education: resumeData.education,
+            experience: resumeData.experience,
+            skills: resumeData.skills,
+            projects: resumeData.projects,
+            certifications: resumeData.certifications,
+            achievements: resumeData.achievements,
+            hobbies: resumeData.hobbies,
+            extracurricular: resumeData.extracurricular,
+            templateId: resumeData.templateId,
+            changes: resumeData.changes,
+            config: resumeData.config,
+            checkedFields: resumeData.checkedFields,
+            scoreBefore: resumeData.scoreBefore,
+            scoreAfter: resumeData.scoreAfter,
+          },
+        }, // UPDATE
+        { new: true }, // RETURN updated document
+      );
+      if (!updateTemplate) {
+        return res.status(404).json({
+          success: false,
+          message: "Resume not found",
+        });
+      }
+
+      const payload = {
+        resumeData: updateTemplate,
+        userId: req.user._id,
+        resumeId: updateTemplate._id,
+        updatedTime: new Date(),
+        cachedTime: new Date(),
+        isUpdated: true,
+      };
+      await pubClient.setex(key, 60 * 5, JSON.stringify(payload));
+
+      return res.status(200).json({
+        success: true,
+        message: "Resume updated and cached",
+        resume: updatedUser,
+      });
+    }
   } catch (error) {
     console.error(error);
     return res.status(500).json({
