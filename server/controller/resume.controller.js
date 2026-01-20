@@ -1,3 +1,4 @@
+import { aiOptimizationQueue } from "../bull/jobs/bullJobs.js";
 import { pubClient } from "../config/redis.js";
 import ResumeTemplate from "../models/resume.model.js";
 import User from "../models/user.model.js";
@@ -320,7 +321,7 @@ export const updateResume = async (req, res) => {
 
 export const updateResumeBeacon = async (req, res) => {
   console.log("got request on beacon");
-  
+
   try {
     const resumeId = req.params.id;
     const { resumeData, userId } = req.body;
@@ -413,7 +414,7 @@ export const updateResumeBeacon = async (req, res) => {
 
 export const optimizeResume = async (req, res) => {
   try {
-    const { resumeId, operation } = req.body;
+    const { resumeId, operation, prompt = "" } = req.body;
     const userId = req.user._id;
 
     if (!resumeId || !operation) {
@@ -424,7 +425,7 @@ export const optimizeResume = async (req, res) => {
     }
 
     // 🔑 DETERMINISTIC jobId (PRIMARY IDENTITY)
-    const jobId = `optimize:${resumeId}:${operation}:v1`;
+    const jobId = `optimize:${resumeId}:${operation}:resume:${userId}`;
 
     // 🟡 Redis = UX guard only
     const redisKey = `optimize-lock:${jobId}`;
@@ -441,24 +442,32 @@ export const optimizeResume = async (req, res) => {
     }
 
     // 🔥 BullMQ jobId = HARD idempotency
-    // await resumeOptimizeQueue.add(
-    //   "resume-optimize",
-    //   {
-    //     resumeId,
-    //     operation,
-    //     userId,
-    //     jobKey: jobId,
-    //   },
-    //   {
-    //     jobId,              // 👈 THIS is critical
-    //     removeOnComplete: true,
-    //     attempts: 3,
-    //   }
-    // );
+    await aiOptimizationQueue.add(
+      "optimize-ai",
+      {
+        resumeId,
+        operation,
+        userId,
+        jobKey: jobId,
+        prompt,
+        event: "resume",
+      },
+      {
+        jobId,
+        removeOnComplete: true,
+        attempts: 1,
+      },
+    );
+
+    const counts = await aiOptimizationQueue.getJobCounts();
+
+    const totalLength = counts.waiting + counts.active;
+    console.log("Queue Length:", totalLength);
 
     return res.status(202).json({
       success: true,
       jobId,
+      queueLength: totalLength,
       message: "Optimization queued",
     });
   } catch (err) {
@@ -470,65 +479,7 @@ export const optimizeResume = async (req, res) => {
   }
 };
 
-// import { Worker } from "bullmq";
-// import { bullClient, pubClient } from "../../config/redis.js";
-// import ResumeTemplate from "../../models/resume.model.js";
 
-// const resumeOptimizeWorker = new Worker(
-//   "resume-optimize",
-//   async (job) => {
-//     const { resumeId, operation, userId, jobKey } = job.data;
-
-//     // 🔒 EXECUTION LOCK (prevents parallel execution)
-//     const execLockKey = `exec-lock:${jobKey}`;
-//     const acquired = await pubClient.set(execLockKey, "1", {
-//       NX: true,
-//       PX: 10 * 60 * 1000, // 10 min
-//     });
-
-//     if (!acquired) {
-//       // Another worker already processed this
-//       return { skipped: true };
-//     }
-
-//     try {
-//       // 🔍 CHECK DB FIRST (final idempotency)
-//       const existing = await ResumeTemplate.findOne({ jobKey });
-//       if (existing) {
-//         return { reused: true, resumeId: existing._id };
-//       }
-
-//       // ---- AI CALL HERE ----
-//       const optimizedData = await runAIOptimization(resumeId, operation);
-
-//       const payload = {
-//         userId,
-//         jobKey,
-//         resumeGroupId: resumeId,
-//         version: 1,
-//         ...optimizedData,
-//       };
-
-//       // 🔐 UPSERT = ONLY ONE INSERT EVER
-//       const resume = await ResumeTemplate.findOneAndUpdate(
-//         { jobKey },
-//         { $setOnInsert: payload },
-//         { upsert: true, new: true }
-//       );
-
-//       return {
-//         success: true,
-//         resumeId: resume._id,
-//       };
-//     } finally {
-//       // Optional: let TTL handle cleanup
-//     }
-//   },
-//   {
-//     connection: bullClient,
-//     concurrency: 2,
-//   }
-// );
 
 // | Command         | Meaning                           |
 // | --------------- | --------------------------------- |
