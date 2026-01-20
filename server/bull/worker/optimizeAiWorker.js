@@ -1,57 +1,60 @@
-
 import { Worker } from "bullmq";
-import { bullClient, pubClient } from "../../config/redis";
-import ResumeTemplate from "../../models/resume.model";
-import { connectDB } from "../../config/connectDB";
+import { bullClient, connectRedis, pubClient } from "../../config/redis.js";
+import ResumeTemplate from "../../models/resume.model.js";
+import { connectDB } from "../../config/connectDB.js";
+import { resumeOptimizer } from "../../LLmFunctions/lllm.js";
 
 await connectDB();
-
+await connectRedis();
 
 const resumeOptimizeWorker = new Worker(
   "optimize-ai",
   async (job) => {
-    const { resumeId, operation, userId, jobKey } = job.data;
+    const { resumeId, operation, userId, jobKey, prompt, event } = job.data;
+
+    console.log(resumeId, operation, userId);
 
     // 🔒 EXECUTION LOCK (prevents parallel execution)
     const execLockKey = `exec-lock:${jobKey}`;
-    const acquired = await pubClient.set(execLockKey, "1", {
-      NX: true,
-      PX: 10 * 60 * 1000, // 10 min
-    });
+    const acquired = await pubClient.set(execLockKey, "1", "EX", 300, "NX");
 
-    if (!acquired) {
-      // Another worker already processed this
-      return { skipped: true };
-    }
+    // if (!acquired) {
+    //   // Another worker already processed this
+    //   return { skipped: true };
+    // }
 
     try {
-      // 🔍 CHECK DB FIRST (final idempotency)
-      const existing = await ResumeTemplate.findOne({ jobKey });
-      if (existing) {
-        return { reused: true, resumeId: existing._id };
-      }
-
       // ---- AI CALL HERE ----
-      const optimizedData = await runAIOptimization(resumeId, operation);
-
-      const payload = {
+      console.log("Starting AI optimization for resume:", resumeId);
+      const optimizedData = await resumeOptimizer({
+        resumeId,
+        operation,
+        prompt,
+        event,
         userId,
-        jobKey,
-        resumeGroupId: resumeId,
-        version: 1,
-        ...optimizedData,
-      };
+      });
 
-      // 🔐 UPSERT = ONLY ONE INSERT EVER
-      const resume = await ResumeTemplate.findOneAndUpdate(
-        { jobKey },
-        { $setOnInsert: payload },
-        { upsert: true, new: true },
-      );
+      console.log(JSON.stringify(optimizedData, null, 2));
+
+      // const payload = {
+      //   userId,
+      //   jobKey,
+      //   resumeGroupId: resumeId,
+      //   version: 1,
+      //   ...optimizedData,
+      // };
+
+      // // 🔐 UPSERT = ONLY ONE INSERT EVER
+      // const resume = await ResumeTemplate.findOneAndUpdate(
+      //   { jobKey },
+      //   { $setOnInsert: payload },
+      //   { upsert: true, new: true },
+      // );
 
       return {
         success: true,
-        resumeId: resume._id,
+        jobId: jobKey,
+        // resumeId: resume._id,
       };
     } finally {
       // Optional: let TTL handle cleanup

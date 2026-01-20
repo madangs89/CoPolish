@@ -1,4 +1,5 @@
 import { ai } from "../config/google.js";
+import { pubClient } from "../config/redis.js";
 import { validateLLMResponse } from "../JsonHandlers/handlers/ajv.js";
 
 import ResumeTemplate from "../models/resume.model.js";
@@ -84,11 +85,30 @@ function normalizeResume(ai) {
   return ai;
 }
 
-const getResumeFromDb = async (resumeId, operation) => {
+const getResumeFromDb = async (resumeId, operation, key) => {
   try {
-    const resumeData = await ResumeTemplate.findById(resumeId);
-    if (!resumeData) {
-      return null;
+    let isFound = false;
+    let resumeData;
+
+    console.log("got request to fetch from db ", key);
+    if (key) {
+      const exists = await pubClient.exists(key);
+      if (exists) {
+        resumeData = await pubClient.hget(key, "data");
+        resumeData = JSON.parse(resumeData);
+        isFound = true;
+      }
+    }
+
+    if (!isFound || !key || !resumeData) {
+      resumeData = await ResumeTemplate.findById(resumeId);
+      if (!resumeData) {
+        return {
+          error: "Resume not found",
+          isError: true,
+          data: null,
+        };
+      }
     }
 
     const payload = {
@@ -325,7 +345,8 @@ export const aiPartWiseOptimize = async (
 
 export const resumeOptimizer = async (info) => {
   try {
-    const { resumeId, operation } = info;
+    console.log("Resume optimizer called with:", info);
+    const { resumeId, operation, prompt, userId, event } = info;
     if (!resumeId || !operation) {
       return {
         error: "resumeId and operation are required",
@@ -342,11 +363,13 @@ export const resumeOptimizer = async (info) => {
       };
     }
 
+    const key = `resume:${resumeId}:${userId}`;
+
     // ─────────────────────────────
     // HANDLE ALL (ONE DB CALL ONLY)
     // ─────────────────────────────
     if (operation === "all") {
-      const full = await getResumeFromDb(resumeId, "all");
+      const full = await getResumeFromDb(resumeId, "all", key);
 
       if (!full || full.isError) {
         return {
@@ -367,7 +390,9 @@ export const resumeOptimizer = async (info) => {
         }
 
         const instruction =
-          baseResumeOptimizerSystemInstruction + systemInstructionMask[key];
+          baseResumeOptimizerSystemInstruction +
+          systemInstructionMask[key] +
+          prompt;
 
         const contents = JSON.stringify({
           data: partialData,
@@ -403,7 +428,7 @@ export const resumeOptimizer = async (info) => {
     // ─────────────────────────────
     // SINGLE OPERATION (DB ONCE)
     // ─────────────────────────────
-    const resumeData = await getResumeFromDb(resumeId, operation);
+    const resumeData = await getResumeFromDb(resumeId, operation, key);
 
     if (!resumeData || resumeData.isError) {
       return {
@@ -414,7 +439,9 @@ export const resumeOptimizer = async (info) => {
     }
 
     const instruction =
-      baseResumeOptimizerSystemInstruction + systemInstructionMask[operation];
+      baseResumeOptimizerSystemInstruction +
+      systemInstructionMask[operation] +
+      prompt;
 
     const contents = JSON.stringify({
       data: resumeData.data,

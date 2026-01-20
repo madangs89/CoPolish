@@ -126,7 +126,7 @@ export const getResumeById = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Resume fetched successfully",
-      resume,
+      resume: resume.toObject(),
     });
   } catch (error) {
     console.error(error);
@@ -425,21 +425,18 @@ export const optimizeResume = async (req, res) => {
     }
 
     // 🔑 DETERMINISTIC jobId (PRIMARY IDENTITY)
-    const jobId = `optimize:${resumeId}:${operation}:resume:${userId}`;
+    const jobId = `optimize_${resumeId}_${operation}_resume_${userId}`;
 
     // 🟡 Redis = UX guard only
     const redisKey = `optimize-lock:${jobId}`;
-    const lock = await pubClient.set(redisKey, "1", {
-      NX: true,
-      EX: 300, // 5 min
-    });
+    const lock = await pubClient.set(redisKey, "1", "EX", 300, "NX");
 
-    if (!lock) {
-      return res.status(429).json({
-        success: false,
-        message: "Optimization already in progress",
-      });
-    }
+    // if (!lock) {
+    //   return res.status(429).json({
+    //     success: false,
+    //     message: "Optimization already in progress",
+    //   });
+    // }
 
     // 🔥 BullMQ jobId = HARD idempotency
     await aiOptimizationQueue.add(
@@ -478,8 +475,6 @@ export const optimizeResume = async (req, res) => {
     });
   }
 };
-
-
 
 // | Command         | Meaning                           |
 // | --------------- | --------------------------------- |

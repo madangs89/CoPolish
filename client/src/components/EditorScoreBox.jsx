@@ -2,6 +2,8 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import React from "react";
 import { useSelector } from "react-redux";
 
+import axios from "axios";
+import { useState } from "react";
 const EditorScoreBox = ({
   progress = 40,
   mobileModalState,
@@ -10,6 +12,7 @@ const EditorScoreBox = ({
 }) => {
   let currentResumeData = useSelector((state) => state.resume.currentResume);
 
+  const [aiLoading, setAiLoading] = useState(false);
   const issuesData = [
     {
       label: "Resume Structure",
@@ -50,6 +53,26 @@ const EditorScoreBox = ({
       return 75;
     } else {
       return 75;
+    }
+  };
+
+  const handleAiOptimize = async () => {
+    setAiLoading(true);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/optimize-resume`,
+        {
+          resumeId: currentResumeData._id,
+          operation: "projects",
+          prompt: "",
+        },
+        { withCredentials: true },
+      );
+      console.log(response.data);
+      setAiLoading(false);
+    } catch (error) {
+      console.log(error);
+      setAiLoading(false);
     }
   };
   return (
@@ -177,7 +200,7 @@ const EditorScoreBox = ({
       {/* ================= FOOTER (FIXED CTA) ================= */}
       <div className="px-4 py-4 flex flex-col items-center justify-center border-t bg-gray-100">
         <button
-          onClick={() => setOpen(true)}
+          onClick={() => handleAiOptimize()}
           className="flex optimize items-center cursor-pointer gap-2 px-8 py-2 rounded-full bg-blue-600 text-white shadow-md"
         >
           <Sparkles className="w-4 h-4 " />
