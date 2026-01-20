@@ -44,10 +44,10 @@ const ResumePreview = ({ resumeData, checkedFields }) => {
   return (
     <div
       ref={containerRef}
-      className="w-full h-full relative bg-gray-200 flex justify-center overflow-y-scroll scrollbar-minimal overflow-x-hidden p-3"
+      className="w-full h-[90%] relative  bg-gray-200 flex justify-center overflow-y-scroll scrollbar-minimal overflow-x-hidden p-2"
     >
       {/* PAGE COUNT BADGE */}
-      <div className="absolute top-4 right-14 z-50 px-3 py-1 bg-white shadow text-xs rounded">
+      <div className="absolute top-4 right-14 z-50 px-3 py-1 bg-transparent shadow text-xs rounded">
         {pageCount} Page{pageCount > 1 ? "s" : ""}
       </div>
 

@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import React from "react";
 import { useSelector } from "react-redux";
 
@@ -39,6 +39,19 @@ const EditorScoreBox = ({
 
   progress = Math.max(scoreBefore, scoreAfter);
 
+  const returnOptimzerValue = () => {
+    if (progress >= 90) {
+      return 95;
+    } else if (progress >= 80) {
+      return 95;
+    } else if (progress >= 70) {
+      return 85;
+    } else if (progress >= 60) {
+      return 75;
+    } else {
+      return 75;
+    }
+  };
   return (
     <aside className="h-full w-full bg-[#f8f9fb] relative border-r flex flex-col">
       {mobileModalState == "score" && (
@@ -72,7 +85,7 @@ const EditorScoreBox = ({
 
           <div className="text-center">
             <p className="text-sm font-medium text-[#374151]">
-              {aiSuggestions.length || 5} improvement areas
+              {aiSuggestions.length || 5} issues blocking ATS shortlisting
             </p>
             <p className="text-xs text-[#6B7280]">
               Focus on these to boost your score
@@ -163,17 +176,22 @@ const EditorScoreBox = ({
 
       {/* ================= FOOTER (FIXED CTA) ================= */}
       <div className="px-4 py-4 flex flex-col items-center justify-center border-t bg-gray-100">
+        <button
+          onClick={() => setOpen(true)}
+          className="flex optimize items-center cursor-pointer gap-2 px-8 py-2 rounded-full bg-blue-600 text-white shadow-md"
+        >
+          <Sparkles className="w-4 h-4 " />
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm font-semibold">
+              Optimize to {returnOptimzerValue()}+
+            </span>
+            {/* <span className="text-[10px] opacity-80">9 credits</span> */}
+          </div>
+        </button>
+
         <p className="text-[11px] mt-2 text-center text-[#6B7280]">
           Uses 5 credits • Creates a new version
         </p>
-        <button
-          onClick={() => setOpen(true)}
-          className="px-3 mx-auto mt-2 py-2.5 rounded-lg text-sm font-medium 
-bg-black text-white hover:bg-zinc-900 
-transition-all duration-200 ease-linear"
-        >
-          Improve Resume with AI
-        </button>
       </div>
     </aside>
   );

@@ -7,33 +7,31 @@ const PageRenderer = ({ Component, data, config, onPageCountChange }) => {
   const { width, minHeight, padding, background } = config.page;
   const contentHeight = minHeight - padding * 2;
 
-  /* ---------- MEASURE CONTENT HEIGHT ---------- */
+  /* ---------- PAGE COUNT CALCULATION (FINAL & STABLE) ---------- */
   useEffect(() => {
-    if (!measureRef.current) return;
+    if (!measureRef.current || contentHeight <= 0) return;
 
     const totalHeight = measureRef.current.scrollHeight;
-    const pages = Math.max(1, Math.ceil(totalHeight / contentHeight));
 
-    setPageCount(pages);
-    onPageCountChange?.(pages);
+    let pages;
+    // ⬇️ TOLERANCE FIX (MANDATORY FOR BROWSER LAYOUTS)
+    if (totalHeight <= contentHeight * 1.02) {
+      pages = 1;
+    } else {
+      pages = Math.ceil(totalHeight / contentHeight);
+    }
+
+    setPageCount((prev) => {
+      if (prev !== pages) {
+        onPageCountChange?.(pages);
+        return pages;
+      }
+      return prev;
+    });
   }, [data, config, Component, contentHeight, onPageCountChange]);
 
   return (
     <>
-      {/* 🔹 HIDDEN MEASUREMENT (FULL CONTENT) */}
-      <div
-        ref={measureRef}
-        style={{
-          position: "absolute",
-          visibility: "hidden",
-          width: width - padding * 2,
-          padding,
-          boxSizing: "border-box",
-        }}
-      >
-        <Component data={data} config={config} />
-      </div>
-
       {/* 🔹 REAL PAGINATED PAGES */}
       {Array.from({ length: pageCount }).map((_, pageIndex) => (
         <div
@@ -54,6 +52,7 @@ const PageRenderer = ({ Component, data, config, onPageCountChange }) => {
             }}
           >
             <div
+              ref={pageIndex === 0 ? measureRef : null}
               style={{
                 height: contentHeight,
                 overflow: "hidden",
@@ -61,9 +60,7 @@ const PageRenderer = ({ Component, data, config, onPageCountChange }) => {
             >
               <div
                 style={{
-                  transform: `translateY(-${
-                    pageIndex * contentHeight
-                  }px)`,
+                  transform: `translateY(-${pageIndex * contentHeight}px)`,
                 }}
               >
                 <Component data={data} config={config} />

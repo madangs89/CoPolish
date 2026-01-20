@@ -30,6 +30,8 @@ import {
 } from "../redux/slice/resumeSlice";
 import { useRef } from "react";
 import ImproveWithAIModal from "../components/modals/ImproveWithAIModal";
+import OptimizeModal from "../components/modals/OptimizeModal";
+import ResumeTopBar from "../components/ResumeEditor/ResumeTopBar";
 const ResumeEditor = () => {
   const dispatch = useDispatch();
 
@@ -50,6 +52,7 @@ const ResumeEditor = () => {
   const latestResumeRef = useRef(resumeData);
 
   const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState("FULL_RESUME");
   const [changeCounter, setChangeCounter] = useState(0);
 
   const updateDbAFterDebounce = async (latestResumeData) => {
@@ -181,7 +184,7 @@ const ResumeEditor = () => {
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <div className="w-full  relative overflow-hidden flex md:flex-row flex-col items-center justify-center gap-3 h-screen md:py-2 md:p-4 bg-white">
+      <div className="w-full  relative overflow-hidden flex md:flex-row flex-col items-center justify-center gap-1 h-screen md:py-2 md:px-2 bg-white">
         <div className="w-[20%] min-w-[260px] hidden md:flex h-full">
           <EditorScoreBox
             mobileModalState={mobileModalState}
@@ -214,8 +217,9 @@ const ResumeEditor = () => {
 
         {/* Next Section */}
         {/* Here handles both big and small screen */}
-        <div className="h-full   px-3 md:w-[50%] w-full overflow-hidden ">
-          <div className="shadow-xl  md:flex hidden items-center justify-center h-full   relative overflow-hidden">
+        <div className="h-full    md:w-[50%] w-full overflow-hidden ">
+          <div className="shadow-xl  md:flex hidden flex-col  items-center h-full bg-gray-200  relative overflow-hidden">
+            <ResumeTopBar />
             <ResumePreview
               resumeData={resumeData}
               checkedFields={checkedFields}
@@ -223,7 +227,8 @@ const ResumeEditor = () => {
           </div>
 
           {mobileEditorState === "preview" ? (
-            <div className="h-full flex md:hidden  items-center justify-center shadow-xl bg-white relative overflow-hidden">
+            <div className="h-full flex md:hidden flex-col items-center shadow-xl  relative overflow-hidden">
+              <ResumeTopBar />
               <ResumePreview
                 resumeData={resumeData}
                 checkedFields={checkedFields}
@@ -319,7 +324,7 @@ const ResumeEditor = () => {
             <Sparkles className="w-5 h-5" />
             <div className="flex flex-col leading-tight">
               <span className="text-sm font-semibold">Optimize</span>
-              <span className="text-[10px] opacity-80">9 credits</span>
+              <span className="text-[10px] opacity-80">9 credits left</span>
             </div>
           </div>
 
@@ -364,103 +369,15 @@ const ResumeEditor = () => {
               : "translate-y-full"
           }`}
         >
-          <div className="w-full h-full z-50 bg-black/40 flex items-end md:hidden">
-            <div className="w-full bg-white rounded-t-2xl px-5 pt-4 pb-6">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Optimize with AI
-                  </h2>
-                  <p className="text-sm text-gray-500">9 credits left</p>
-                </div>
-                <button
-                  onClick={() => setMobileModalState(null)}
-                  className="text-gray-400 text-xl"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Options */}
-              <div className="space-y-3">
-                {/* Option 1 */}
-                <div className="flex items-start gap-3 p-3 rounded-xl border hover:bg-gray-50 cursor-pointer">
-                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">
-                      Optimize entire resume
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Improve wording, metrics, and ATS score across all
-                      sections.
-                    </p>
-                  </div>
-                  <span className="text-xs text-gray-400">1 credit</span>
-                </div>
-
-                {/* Option 2 */}
-                <div className="flex items-start gap-3 p-3 rounded-xl border hover:bg-gray-50 cursor-pointer">
-                  <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                    <Rocket className="w-5 h-5 text-indigo-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">
-                      Improve experience section
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Rewrite roles with impact, metrics, and clarity.
-                    </p>
-                  </div>
-                  <span className="text-xs text-gray-400">1 credit</span>
-                </div>
-
-                {/* Option 3 */}
-                <div className="flex items-start gap-3 p-3 rounded-xl border hover:bg-gray-50 cursor-pointer">
-                  <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                    <Search className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">
-                      ATS keyword boost
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Add missing keywords recruiters actually scan for.
-                    </p>
-                  </div>
-                  <span className="text-xs text-gray-400">1 credit</span>
-                </div>
-
-                {/* Option 4 */}
-                <div className="flex items-start gap-3 p-3 rounded-xl border hover:bg-gray-50 cursor-pointer">
-                  <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <Target className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">
-                      Job-specific optimization
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Tailor resume to a specific job description.
-                    </p>
-                  </div>
-                  <span className="text-xs text-gray-400">1 credit</span>
-                </div>
-              </div>
-
-              {/* Footer CTA */}
-              <div className="mt-5">
-                <button className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm">
-                  Use 1 credit (₹30)
-                </button>
-                <p className="text-center text-xs text-gray-400 mt-2">
-                  Credits never expire • ₹30 per optimization
-                </p>
-              </div>
-            </div>
-          </div>
+          <OptimizeModal
+            selected={selected}
+            setSelected={setSelected}
+            creditsLeft={userSlice?.totalCredits || 0}
+            onClose={() => {
+              setMobileModalState(null);
+              setOpen(false);
+            }}
+          />
         </div>
 
         {/* Modal State configuration */}
@@ -515,15 +432,14 @@ const ResumeEditor = () => {
         </div>
 
         {/* Big Screen Modal */}
-        <ImproveWithAIModal
-          isOpen={open}
-          onClose={() => setOpen(false)}
-          onConfirm={() => {
-            setOpen(false);
-            // call your AI optimization API here
-          }}
-          userCredits={8}
-        />
+        {open && (
+          <OptimizeModal
+            selected={selected}
+            setSelected={setSelected}
+            creditsLeft={userSlice?.totalCredits || 0}
+            onClose={() => setOpen(false)}
+          />
+        )}
       </div>
     </Suspense>
   );

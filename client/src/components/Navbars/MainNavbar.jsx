@@ -90,7 +90,7 @@ const MainNavbar = () => {
   return (
     <div className="fixed sc top-0 left-0 w-full z-[99999]">
       <div className="w-full mx-auto px-6 py-3 flex items-center justify-between">
-        <h1 className="text-black text-[22px] font-medium">CoPolish</h1>
+        <h1 className="text-black  slider text-[22px] font-medium">CoPolish</h1>
 
         {!location.pathname.includes("onboarding") &&
           !location.pathname.includes("approve") && (
