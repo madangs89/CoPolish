@@ -58,64 +58,63 @@ app.use("/api/parse/v1", parseRouter);
 app.use("/api/resume/v1", resumeRouter);
 app.use("/api/payment/v1", paymentRouter);
 
-const instruction =
-  baseResumeOptimizerSystemInstruction + projectsSystemInstruction;
-const contents = JSON.stringify({
-  operation: "projects",
-  data: {
-    experience: [
-      {
-        role: null,
-        company: null,
-        from: null,
-        to: null,
-        description: [],
-      },
-    ],
-    skills: [
-      "JavaScript",
-      "C++",
-      "HTML",
-      "CSS",
-      "SQL",
-      "React.js",
-      "Node.js",
-      "Express.js",
-      "Redux",
-      "MongoDB",
-      "Redis",
-      "RESTful APIs",
-      "Socket.IO",
-      "JWT",
-      "OAuth",
-      "Git",
-      "GitHub",
-    ],
-    projects: [
- {
-  "title": "Payment System",
-  "description": [
-    "Built payment system.",
-    "Handled payments.",
-    "Worked on payment logic."
-  ]
-}
+// const instruction =
+//   baseResumeOptimizerSystemInstruction + projectsSystemInstruction;
+// const contents = JSON.stringify({
+//   operation: "projects",
+//   data: {
+//     experience: [
+//       {
+//         role: null,
+//         company: null,
+//         from: null,
+//         to: null,
+//         description: [],
+//       },
+//     ],
+//     skills: [
+//       "JavaScript",
+//       "C++",
+//       "HTML",
+//       "CSS",
+//       "SQL",
+//       "React.js",
+//       "Node.js",
+//       "Express.js",
+//       "Redux",
+//       "MongoDB",
+//       "Redis",
+//       "RESTful APIs",
+//       "Socket.IO",
+//       "JWT",
+//       "OAuth",
+//       "Git",
+//       "GitHub",
+//     ],
+//     projects: [
+//  {
+//   "title": "Payment System",
+//   "description": [
+//     "Built payment system.",
+//     "Handled payments.",
+//     "Worked on payment logic."
+//   ]
+// }
 
+//     ],
+//     skills: ["Node.js", "MongoDB", "Socket.IO"],
+//     experience: [],
+//   },
+// });
 
-    ],
-    skills: ["Node.js", "MongoDB", "Socket.IO"],
-    experience: [],
-  },
-});
+// const aiResult = await aiPartWiseOptimize(
+//   "fakeResumeId",
+//   "personal",
+//   instruction,
+//   contents,
+// );
 
-const aiResult = await aiPartWiseOptimize(
-  "fakeResumeId",
-  "personal",
-  instruction,
-  contents,
-);
-
-console.log(JSON.stringify(aiResult, null, 2));
+// console.log(JSON.stringify(aiResult, null, 2));
 
 httpServer.listen(3000, async () => {
   await connectDB();
