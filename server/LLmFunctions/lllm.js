@@ -346,54 +346,58 @@ export const aiPartWiseOptimize = async (
 export const resumeOptimizer = async (info) => {
   try {
     console.log("Resume optimizer called with:", info);
-    let errorTask = [];
+    let errorTask = {};
     let optimizedSections = {};
-    const { resumeId, operation, prompt, userId, event } = info;
+    const { resumeId, operation, prompt, userId, event, jobKey } = info;
+
     if (!resumeId || !operation) {
+      errorTask["missing_parameters"] = "resumeId and operation are required";
       return {
         error: "resumeId and operation are required",
         isError: true,
         data: null,
         errorTask,
+        optimizedSections,
       };
     }
 
     if (!SUPPORTED_OPERATIONS.has(operation)) {
+      errorTask["unsupported_operation"] =
+        `Unsupported operation: ${operation}`;
       return {
         error: `Unsupported operation: ${operation}`,
         isError: true,
         data: null,
         errorTask,
+        optimizedSections,
       };
     }
 
-    const key = `resume:${resumeId}:${userId}`;
+    const keyR = `resume:${resumeId}:${userId}`;
 
-    // ─────────────────────────────
-    // HANDLE ALL (ONE DB CALL ONLY)
-    // ─────────────────────────────
+    let startedAt = await pubClient.hget(jobKey, "startedAt");
+
     if (operation === "all") {
-      const full = await getResumeFromDb(resumeId, "all", key);
+      const full = await getResumeFromDb(resumeId, "all", keyR);
 
       if (!full || full.isError) {
+        errorTask["resume_not_found"] = full?.error || "Resume not found";
         return {
           error: full?.error || "Resume not found",
           isError: true,
           data: null,
           errorTask,
+          optimizedSections,
         };
       }
 
       const fullResume = full.data.toObject ? full.data.toObject() : full.data;
       const updatedResume = { ...fullResume };
-
       for (const key of ALL_OPERATION_ORDER) {
         const partialData = derivePartialData(fullResume, key);
-
         if (partialData === null) {
           continue;
         }
-
         const instruction =
           baseResumeOptimizerSystemInstruction +
           systemInstructionMask[key] +
@@ -412,65 +416,129 @@ export const resumeOptimizer = async (info) => {
         );
 
         if (aiResult.isError) {
-          // return {
-          //   error: aiResult.error,
-          //   isError: true,
-          //   data: null,
-          // };
-
           let err = JSON.parse(JSON.stringify(aiResult.error));
           console.log("AI result error in all operation:", key);
 
           if (err && err.status == 429) {
             err = "AI quota exceeded. Please try again later.";
             console.log("ai quota exceeded", key);
+            errorTask["quota_exceeded"] = err;
+
+            await pubClient.hset(jobKey, {
+              status: "failed",
+              error: err,
+              currentOperation: key,
+              optimizedSections: JSON.stringify(optimizedSections),
+              startedAt: startedAt,
+              updatedAt: Date.now(),
+              completedAt: Date.now(),
+              resumeId,
+              userId,
+              errorTask: JSON.stringify(errorTask),
+            });
+
+            await pubClient.expire(jobKey, 60 * 10); // 10 minutes expiration
 
             return {
               error: err,
               isError: true,
               data: null,
               errorTask,
+              optimizedSections,
             };
           } else if (err && err.status == 503) {
             err =
               "AI service is currently unavailable. Please try again later.";
-            console.log("ai quota exceeded", key);
+            console.log("ai service unavailable", key);
+            errorTask["service_unavailable"] = err;
 
+            await pubClient.hset(jobKey, {
+              status: "failed",
+              error: err,
+              currentOperation: key,
+              optimizedSections: JSON.stringify(optimizedSections),
+              startedAt: startedAt,
+              updatedAt: Date.now(),
+              completedAt: Date.now(),
+              resumeId,
+              userId,
+              errorTask: JSON.stringify(errorTask),
+            });
+
+            await pubClient.expire(jobKey, 60 * 10); // 10 minutes expiration
             return {
               error: err,
               isError: true,
               data: null,
               errorTask,
+              optimizedSections,
             };
           }
 
-          errorTask.push({ operation: key, error: err });
+          errorTask[key] = err;
+          optimizedSections[key] = {
+            isError: true,
+            error: aiResult.error,
+            data: partialData,
+          };
           continue;
         }
 
         // Merge safely (no nesting bug)
         updatedResume[key] = aiResult.data[key];
+        optimizedSections[key] = {
+          isError: false,
+          error: null,
+          data: aiResult.data[key],
+        };
+
+        await pubClient.hset(jobKey, {
+          status: "running",
+          error: null,
+          currentOperation: key,
+          optimizedSections: JSON.stringify(optimizedSections),
+          startedAt: startedAt,
+          updatedAt: Date.now(),
+          completedAt: null,
+          resumeId,
+          userId,
+          errorTask: JSON.stringify(errorTask),
+        });
       }
+
+      await pubClient.hset(jobKey, {
+        status: "completed",
+        error: null,
+        currentOperation: null,
+        optimizedSections: JSON.stringify(optimizedSections),
+        startedAt: startedAt,
+        updatedAt: Date.now(),
+        completedAt: Date.now(),
+        resumeId,
+        userId,
+        errorTask: JSON.stringify(errorTask),
+      });
+      await pubClient.expire(jobKey, 60 * 10); // 10 minutes expiration
 
       return {
         error: null,
         isError: false,
         data: updatedResume,
         errorTask,
+        optimizedSections,
       };
     }
 
-    // ─────────────────────────────
-    // SINGLE OPERATION (DB ONCE)
-    // ─────────────────────────────
-    const resumeData = await getResumeFromDb(resumeId, operation, key);
+    const resumeData = await getResumeFromDb(resumeId, operation, keyR);
 
     if (!resumeData || resumeData.isError) {
+      errorTask["resume_not_found"] = resumeData?.error || "Resume not found";
       return {
         error: resumeData?.error || "Failed to fetch resume data",
         isError: true,
         data: null,
         errorTask,
+        optimizedSections,
       };
     }
 
@@ -496,44 +564,128 @@ export const resumeOptimizer = async (info) => {
 
       if (err && err.status === 429) {
         err = "AI quota exceeded. Please try again later.";
+        errorTask["quota_exceeded"] = err;
+
+        await pubClient.hset(jobKey, {
+          status: "failed",
+          error: err,
+          currentOperation: operation,
+          optimizedSections: JSON.stringify(optimizedSections),
+          startedAt: startedAt,
+          updatedAt: Date.now(),
+          completedAt: Date.now(),
+          resumeId,
+          userId,
+          errorTask: JSON.stringify(errorTask),
+        });
+
+        await pubClient.expire(jobKey, 60 * 10); // 10 minutes expiration
+
         return {
           error: err,
           isError: true,
           data: null,
           errorTask,
+          optimizedSections,
         };
       } else if (err && err.status === 503) {
         err = "AI service is currently unavailable. Please try again later.";
+        errorTask["service_unavailable"] = err;
+
+        await pubClient.hset(jobKey, {
+          status: "failed",
+          error: err,
+          currentOperation: operation,
+          optimizedSections: JSON.stringify(optimizedSections),
+          startedAt: startedAt,
+          updatedAt: Date.now(),
+          completedAt: Date.now(),
+          resumeId,
+          userId,
+          errorTask: JSON.stringify(errorTask),
+        });
+
+        await pubClient.expire(jobKey, 60 * 10); // 10 minutes expiration
+
         return {
           error: err,
           isError: true,
           data: null,
           errorTask,
+          optimizedSections,
         };
       }
 
-      errorTask.push({ operation, error: err });
+      errorTask[operation] = err;
+
+      optimizedSections[operation] = {
+        isError: true,
+        error: aiResult.error,
+        data: resumeData.data,
+      };
+
+      await pubClient.hset(jobKey, {
+        status: "failed",
+        error: err,
+        currentOperation: operation,
+        optimizedSections: JSON.stringify(optimizedSections),
+        startedAt: startedAt,
+        updatedAt: Date.now(),
+        completedAt: Date.now(),
+        resumeId,
+        userId,
+        errorTask: JSON.stringify(errorTask),
+      });
+
+      await pubClient.expire(jobKey, 60 * 10); // 10 minutes expiration
+
       return {
         error: aiResult.error,
         isError: true,
         data: null,
         errorTask,
+        optimizedSections,
       };
     }
+
+    optimizedSections[operation] = {
+      isError: false,
+      error: null,
+      data: aiResult.data[operation],
+    };
+    await pubClient.hset(jobKey, {
+      status: "completed",
+      error: null,
+      currentOperation: null,
+      optimizedSections: JSON.stringify(optimizedSections),
+      startedAt: startedAt,
+      updatedAt: Date.now(),
+      completedAt: Date.now(),
+      resumeId,
+      userId,
+      errorTask: JSON.stringify(errorTask),
+    });
+
+    await pubClient.expire(jobKey, 60 * 10); // 10 minutes expiration
 
     return {
       error: null,
       isError: false,
-      data: aiResult.data,
+      data: aiResult.data[operation],
       errorTask,
+      optimizedSections,
     };
   } catch (error) {
     console.error("Resume optimizer error:", error);
+    let errorTask = {};
+    errorTask["server_error"] = error;
+
     return {
       error,
       isError: true,
       data: null,
-      errorTask: [],
+      errorTask,
+      optimizedSections: {},
     };
   }
 };

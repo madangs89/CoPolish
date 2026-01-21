@@ -12,17 +12,29 @@ const resumeOptimizeWorker = new Worker(
   async (job) => {
     const { resumeId, operation, userId, jobKey, prompt, event } = job.data;
     console.log(resumeId, operation, userId);
-
+    const execLockKey = `exec-lock:${jobKey}`;
+    const redisKey = `optimize-lock:${jobKey}`;
     try {
       // 🔒 EXECUTION LOCK (prevents parallel execution)
-      const execLockKey = `exec-lock:${jobKey}`;
       const acquired = await pubClient.set(execLockKey, "1", "EX", 300, "NX");
 
-      // if (!acquired) {
-      //   // Another worker already processed this
-      //   return { skipped: true };
-      // }
+      if (!acquired) {
+        // Another worker already processed this
+        return { skxipped: true };
+      }
 
+      await pubClient.hset(jobKey, {
+        status: "started",
+        error: null,
+        currentOperation: "",
+        optimizedSections: {},
+        startedAt: Date.now(),
+        updatedAt: null,
+        completedAt: null,
+        resumeId,
+        userId,
+        errorTask: {},
+      });
       console.log("Starting AI optimization for resume:", resumeId);
       const optimizedData = await resumeOptimizer({
         resumeId,
@@ -30,9 +42,24 @@ const resumeOptimizeWorker = new Worker(
         prompt,
         event,
         userId,
+        jobKey,
       });
 
       console.log(JSON.stringify(optimizedData, null, 2));
+
+      const { error, isError, data, errorTask, optimizedSections } =
+        optimizedData;
+      console.log();
+
+      if (isError) {
+        await pubClient.del(redisKey);
+        await pubClient.del(execLockKey);
+        throw new Error(`AI Optimization failed: ${error}`);
+      }
+
+      await pubClient.del(redisKey);
+
+      await pubClient.del(execLockKey);
 
       // const payload = {
       //   userId,
@@ -49,6 +76,9 @@ const resumeOptimizeWorker = new Worker(
       //   { upsert: true, new: true },
       // );
     } catch (error) {
+      // nee to remove another lock also
+      await pubClient.del(redisKey);
+      await pubClient.del(execLockKey);
       console.error("Error in AI optimization worker:", error);
       throw error;
     }

@@ -429,7 +429,7 @@ export const optimizeResume = async (req, res) => {
 
     // 🟡 Redis = UX guard only
     const redisKey = `optimize-lock:${jobId}`;
-    const lock = await pubClient.set(redisKey, "1", "EX", 300, "NX");
+    const lock = await pubClient.set(redisKey, "1", "EX", 300, "NX"); // 5 min lock
 
     // if (!lock) {
     //   return res.status(429).json({
@@ -438,6 +438,20 @@ export const optimizeResume = async (req, res) => {
     //   });
     // }
 
+    await pubClient.hset(jobId, {
+      status: "pending",
+      error: null,
+      currentOperation: "",
+      optimizedSections: {},
+      startedAt: Date.now(),
+      updatedAt: null,
+      completedAt: null,
+      resumeId,
+      userId,
+      errorTask: {},
+    });
+
+    await pubClient.expire(jobId, 60 * 60); // 60 minutes expiration
     // 🔥 BullMQ jobId = HARD idempotency
     await aiOptimizationQueue.add(
       "optimize-ai",
