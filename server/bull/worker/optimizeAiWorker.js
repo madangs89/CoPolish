@@ -19,6 +19,7 @@ const resumeOptimizeWorker = new Worker(
       const acquired = await pubClient.set(execLockKey, "1", "EX", 300, "NX");
 
       if (!acquired) {
+        console.log("Optimization already in progress");
         // Another worker already processed this
         return { skxipped: true };
       }
@@ -58,7 +59,6 @@ const resumeOptimizeWorker = new Worker(
       }
 
       await pubClient.del(redisKey);
-
       await pubClient.del(execLockKey);
 
       // const payload = {

@@ -32,6 +32,7 @@ import { useRef } from "react";
 import ImproveWithAIModal from "../components/modals/ImproveWithAIModal";
 import OptimizeModal from "../components/modals/OptimizeModal";
 import ResumeTopBar from "../components/ResumeEditor/ResumeTopBar";
+import OptimizationPanel from "../components/modals/OptimizationPanel";
 const ResumeEditor = () => {
   const dispatch = useDispatch();
 
@@ -192,6 +193,8 @@ const ResumeEditor = () => {
             setOpen={setOpen}
           />
         </div>
+
+        <OptimizationPanel />
 
         {/* This is small screen tab switcher */}
         <div className="md:hidden w-full h-fit mt-3 mb-3 flex gap-2 items-center justify-between px-3 sticky top-0 z-20">

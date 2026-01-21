@@ -427,16 +427,20 @@ export const optimizeResume = async (req, res) => {
     // 🔑 DETERMINISTIC jobId (PRIMARY IDENTITY)
     const jobId = `optimize_${resumeId}_${operation}_resume_${userId}`;
 
+    const bullJobId = `${jobId}_${Date.now()}`;
+
     // 🟡 Redis = UX guard only
     const redisKey = `optimize-lock:${jobId}`;
     const lock = await pubClient.set(redisKey, "1", "EX", 300, "NX"); // 5 min lock
 
-    // if (!lock) {
-    //   return res.status(429).json({
-    //     success: false,
-    //     message: "Optimization already in progress",
-    //   });
-    // }
+    console.log("Optimization lock acquired:", lock);
+
+    if (!lock) {
+      return res.status(429).json({
+        success: false,
+        message: "Optimization already in progress",
+      });
+    }
 
     await pubClient.hset(jobId, {
       status: "pending",
@@ -464,12 +468,12 @@ export const optimizeResume = async (req, res) => {
         event: "resume",
       },
       {
-        jobId,
+        jobId: bullJobId,
         removeOnComplete: true,
         attempts: 1,
       },
     );
-
+    console.log("Optimization job queued:");
     const counts = await aiOptimizationQueue.getJobCounts();
 
     const totalLength = counts.waiting + counts.active;
@@ -477,7 +481,8 @@ export const optimizeResume = async (req, res) => {
 
     return res.status(202).json({
       success: true,
-      jobId,
+      jobKey: jobId,
+      jobId: bullJobId,
       queueLength: totalLength,
       message: "Optimization queued",
     });
