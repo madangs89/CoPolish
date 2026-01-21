@@ -63,7 +63,7 @@ const EditorScoreBox = ({
         `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/optimize-resume`,
         {
           resumeId: currentResumeData._id,
-          operation: "projects",
+          operation: "all",
           prompt: "",
         },
         { withCredentials: true },

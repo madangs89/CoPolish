@@ -334,7 +334,7 @@ export const aiPartWiseOptimize = async (
       data: parsed,
     };
   } catch (error) {
-    console.error("AI optimize error:", error);
+    // console.error("AI optimize error:", error);
     return {
       error,
       isError: true,
@@ -346,12 +346,15 @@ export const aiPartWiseOptimize = async (
 export const resumeOptimizer = async (info) => {
   try {
     console.log("Resume optimizer called with:", info);
+    let errorTask = [];
+    let optimizedSections = {};
     const { resumeId, operation, prompt, userId, event } = info;
     if (!resumeId || !operation) {
       return {
         error: "resumeId and operation are required",
         isError: true,
         data: null,
+        errorTask,
       };
     }
 
@@ -360,6 +363,7 @@ export const resumeOptimizer = async (info) => {
         error: `Unsupported operation: ${operation}`,
         isError: true,
         data: null,
+        errorTask,
       };
     }
 
@@ -376,6 +380,7 @@ export const resumeOptimizer = async (info) => {
           error: full?.error || "Resume not found",
           isError: true,
           data: null,
+          errorTask,
         };
       }
 
@@ -407,11 +412,40 @@ export const resumeOptimizer = async (info) => {
         );
 
         if (aiResult.isError) {
-          return {
-            error: aiResult.error,
-            isError: true,
-            data: null,
-          };
+          // return {
+          //   error: aiResult.error,
+          //   isError: true,
+          //   data: null,
+          // };
+
+          let err = JSON.parse(JSON.stringify(aiResult.error));
+          console.log("AI result error in all operation:", key);
+
+          if (err && err.status == 429) {
+            err = "AI quota exceeded. Please try again later.";
+            console.log("ai quota exceeded", key);
+
+            return {
+              error: err,
+              isError: true,
+              data: null,
+              errorTask,
+            };
+          } else if (err && err.status == 503) {
+            err =
+              "AI service is currently unavailable. Please try again later.";
+            console.log("ai quota exceeded", key);
+
+            return {
+              error: err,
+              isError: true,
+              data: null,
+              errorTask,
+            };
+          }
+
+          errorTask.push({ operation: key, error: err });
+          continue;
         }
 
         // Merge safely (no nesting bug)
@@ -422,6 +456,7 @@ export const resumeOptimizer = async (info) => {
         error: null,
         isError: false,
         data: updatedResume,
+        errorTask,
       };
     }
 
@@ -435,6 +470,7 @@ export const resumeOptimizer = async (info) => {
         error: resumeData?.error || "Failed to fetch resume data",
         isError: true,
         data: null,
+        errorTask,
       };
     }
 
@@ -456,10 +492,32 @@ export const resumeOptimizer = async (info) => {
     );
 
     if (aiResult.isError) {
+      let err = JSON.parse(JSON.stringify(aiResult.error));
+
+      if (err && err.status === 429) {
+        err = "AI quota exceeded. Please try again later.";
+        return {
+          error: err,
+          isError: true,
+          data: null,
+          errorTask,
+        };
+      } else if (err && err.status === 503) {
+        err = "AI service is currently unavailable. Please try again later.";
+        return {
+          error: err,
+          isError: true,
+          data: null,
+          errorTask,
+        };
+      }
+
+      errorTask.push({ operation, error: err });
       return {
         error: aiResult.error,
         isError: true,
         data: null,
+        errorTask,
       };
     }
 
@@ -467,6 +525,7 @@ export const resumeOptimizer = async (info) => {
       error: null,
       isError: false,
       data: aiResult.data,
+      errorTask,
     };
   } catch (error) {
     console.error("Resume optimizer error:", error);
@@ -474,6 +533,7 @@ export const resumeOptimizer = async (info) => {
       error,
       isError: true,
       data: null,
+      errorTask: [],
     };
   }
 };

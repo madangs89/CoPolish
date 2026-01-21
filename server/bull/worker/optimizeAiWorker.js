@@ -11,20 +11,18 @@ const resumeOptimizeWorker = new Worker(
   "optimize-ai",
   async (job) => {
     const { resumeId, operation, userId, jobKey, prompt, event } = job.data;
-
     console.log(resumeId, operation, userId);
 
-    // 🔒 EXECUTION LOCK (prevents parallel execution)
-    const execLockKey = `exec-lock:${jobKey}`;
-    const acquired = await pubClient.set(execLockKey, "1", "EX", 300, "NX");
-
-    // if (!acquired) {
-    //   // Another worker already processed this
-    //   return { skipped: true };
-    // }
-
     try {
-      // ---- AI CALL HERE ----
+      // 🔒 EXECUTION LOCK (prevents parallel execution)
+      const execLockKey = `exec-lock:${jobKey}`;
+      const acquired = await pubClient.set(execLockKey, "1", "EX", 300, "NX");
+
+      // if (!acquired) {
+      //   // Another worker already processed this
+      //   return { skipped: true };
+      // }
+
       console.log("Starting AI optimization for resume:", resumeId);
       const optimizedData = await resumeOptimizer({
         resumeId,
@@ -50,15 +48,12 @@ const resumeOptimizeWorker = new Worker(
       //   { $setOnInsert: payload },
       //   { upsert: true, new: true },
       // );
-
-      return {
-        success: true,
-        jobId: jobKey,
-        // resumeId: resume._id,
-      };
-    } finally {
-      // Optional: let TTL handle cleanup
+    } catch (error) {
+      console.error("Error in AI optimization worker:", error);
+      throw error;
     }
+
+    return { success: true };
   },
   {
     connection: bullClient,
