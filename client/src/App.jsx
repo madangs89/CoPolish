@@ -33,7 +33,7 @@ const App = () => {
           `${import.meta.env.VITE_BACKEND_URL}/api/auth/v1/is-auth`,
           {
             withCredentials: true,
-          }
+          },
         );
         console.log(data);
 
@@ -88,6 +88,14 @@ const App = () => {
       }
     };
   }, [auth, socket]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("job:update", (data) => {
+      console.log("job:update received:", data);
+    });
+  }, [socket]);
 
   return (
     <div className="w-full relative min-h-screen">

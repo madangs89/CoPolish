@@ -28,6 +28,14 @@ export const initSubscribers = async () => {
     }
   });
 
+  await subClient.subscribe("job:updates", (err) => {
+    if (err) {
+      console.error("Failed to subscribe: ", err);
+    } else {
+      console.log("Subscribed successfully to job:updates");
+    }
+  });
+
   subClient.on("message", async (channel, message) => {
     try {
       if (channel == "mail:events") {
@@ -89,7 +97,7 @@ export const initSubscribers = async () => {
                 if (socketId) {
                   io.to(socketId).emit(
                     "resume:parsed:error",
-                    JSON.stringify({ jobId, userId, event, error, isError })
+                    JSON.stringify({ jobId, userId, event, error, isError }),
                   );
                 }
               }
@@ -99,7 +107,7 @@ export const initSubscribers = async () => {
                 if (socketId) {
                   io.to(socketId).emit(
                     "resume:parsed",
-                    JSON.stringify({ jobId, userId, event, error, isError })
+                    JSON.stringify({ jobId, userId, event, error, isError }),
                   );
                 }
               }
@@ -133,7 +141,7 @@ export const initSubscribers = async () => {
                       parsedNewResume,
                       error,
                       isError,
-                    })
+                    }),
                   );
                 }
               }
@@ -150,13 +158,28 @@ export const initSubscribers = async () => {
                       parsedNewResume,
                       error,
                       isError,
-                    })
+                    }),
                   );
                 }
               }
             }
             break;
           }
+        }
+      }
+
+      if (channel === "job:updates") {
+        const jobPayload = JSON.parse(message);
+        console.log("Job update event received:", jobPayload);
+        const { userId, jobId, status, data } = jobPayload;
+
+        const io = getIO();
+
+        if (io) {
+          io.to(`user:${userId}`).emit(
+            "job:update",
+            JSON.stringify({ jobId, status, data }),
+          );
         }
       }
     } catch (error) {

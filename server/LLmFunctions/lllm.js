@@ -1,5 +1,6 @@
 import { ai } from "../config/google.js";
 import { pubClient } from "../config/redis.js";
+import { getIO } from "../config/socket.js";
 import { validateLLMResponse } from "../JsonHandlers/handlers/ajv.js";
 
 import ResumeTemplate from "../models/resume.model.js";
@@ -504,6 +505,30 @@ export const resumeOptimizer = async (info) => {
           userId,
           errorTask: JSON.stringify(errorTask),
         });
+
+        let jobPayLoad = {
+          userId,
+          jobKey,
+          resumeId,
+          event,
+          operation: key,
+          data: {
+            status: "running",
+            error: null,
+            currentOperation: key,
+            optimizedSections: JSON.stringify(optimizedSections),
+            startedAt: startedAt,
+            updatedAt: Date.now(),
+            completedAt: null,
+            resumeId,
+            userId,
+            errorTask: JSON.stringify(errorTask),
+          },
+        };
+
+        console.log("publishing event");
+
+        await pubClient.publish("job:updates", JSON.stringify(jobPayLoad));
       }
 
       await pubClient.hset(jobKey, {

@@ -19,7 +19,7 @@ export function initSocket(httpServer, url = process.env.CLIENT_URL) {
     console.log("Authenticated user ID:", id, "on socket:", socket.id);
     await pubClient.hset("online_users", id, socket.id);
 
-
+    socket.join(`user:${id}`);
 
     //disconnect
     socket.on("disconnect", async () => {
