@@ -27,12 +27,14 @@ import {
   setCurrentResume,
   setCurrentResumeConfig,
   setCheckedField,
+  setGlobalLoaderForStatus,
 } from "../redux/slice/resumeSlice";
 import { useRef } from "react";
 import ImproveWithAIModal from "../components/modals/ImproveWithAIModal";
 import OptimizeModal from "../components/modals/OptimizeModal";
 import ResumeTopBar from "../components/ResumeEditor/ResumeTopBar";
 import OptimizationPanel from "../components/modals/OptimizationPanel";
+import DraggableOptimizerFab from "../components/modals/DraggableOptimizerFab";
 const ResumeEditor = () => {
   const dispatch = useDispatch();
 
@@ -185,7 +187,7 @@ const ResumeEditor = () => {
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <div className="w-full  relative overflow-hidden flex md:flex-row flex-col items-center justify-center gap-1 h-screen md:py-2 md:px-2 bg-white">
+      <div className="w-full select-none  relative overflow-hidden flex md:flex-row flex-col items-center justify-center gap-1 h-screen md:py-2 md:px-2 bg-white">
         <div className="w-[20%] min-w-[260px] hidden md:flex h-full">
           <EditorScoreBox
             mobileModalState={mobileModalState}
@@ -194,7 +196,7 @@ const ResumeEditor = () => {
           />
         </div>
 
-        <OptimizationPanel />
+        {/* <OptimizationPanel /> */}
 
         {/* This is small screen tab switcher */}
         <div className="md:hidden w-full h-fit mt-3 mb-3 flex gap-2 items-center justify-between px-3 sticky top-0 z-20">
@@ -443,6 +445,19 @@ const ResumeEditor = () => {
             onClose={() => setOpen(false)}
           />
         )}
+        {/* Big Screen statusHelper */}
+        <div
+          className={`absolute w-fit z-[1000000] right-0 overflow-y-auto overflow-x-hidden  h-full bg-black/80 transition-all duration-200 ease-in-out ${
+            resumeSlice.globalLoaderForStatus
+              ? "translate-x-0"
+              : "translate-x-full"
+          }`}
+        >
+          <OptimizationPanel />
+        </div>
+
+        {/* For all both big and small screen modal */}
+        <DraggableOptimizerFab />
       </div>
     </Suspense>
   );

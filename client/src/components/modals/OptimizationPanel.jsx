@@ -1,25 +1,61 @@
 import React from "react";
+import { useDispatch } from "react-redux";
+import { setGlobalLoaderForStatus } from "../../redux/slice/resumeSlice";
+import DiffViewer from "react-diff-viewer";
 
 /**
- * CHANGE THIS LATER WITH REAL STATE
+ * TEMP STATIC DATA (replace later)
  */
 const STATIC_DATA = {
-  operation: "all", // "all" | "skills" | "projects" | etc
-  status: "running", // pending | running | successful | failed
+  operation: "all",
   currentOperation: "experience",
   optimizedSections: {
-    skills: { status: "completed", note: "Keywords clarified for ATS" },
-    projects: { status: "completed", note: "Descriptions refined" },
-    experience: { status: "running", note: "Improving bullet clarity" },
-    education: { status: "pending" },
-    certifications: { status: "pending" },
+    skills: {
+      status: "completed",
+      note: "Keywords clarified for ATS",
+      changes: [
+        {
+          section: "Skills",
+          before: "Node.js, Express, Mongo",
+          after: "Node.js, Express.js, MongoDB, REST APIs",
+          reason: "Improved keyword coverage for ATS",
+        },
+      ],
+    },
+
+    projects: {
+      status: "completed",
+      note: "Descriptions refined",
+      changes: [
+        {
+          section: "Schema Genius",
+          before: "Built an AI backend generator",
+          after:
+            "Built an AI-powered backend generator transforming prompts into APIs",
+          reason: "Added clarity and impact",
+        },
+      ],
+    },
+
+    experience: {
+      status: "running",
+      note: "Optimizing bullet clarity",
+      changes: [
+        {
+          section: "Backend Developer Intern",
+          before: "Worked on APIs",
+          after: "Designed and optimized REST APIs",
+          reason: "Clarified responsibility",
+        },
+      ],
+    },
+
+    education: { status: "pending", changes: [] },
+    certifications: { status: "pending", changes: [] },
   },
 };
 
-/**
- * ORDER FOR MULTI OPERATION
- */
-const ALL_OPERATION_ORDER = [
+const ORDER = [
   "skills",
   "projects",
   "experience",
@@ -28,91 +64,130 @@ const ALL_OPERATION_ORDER = [
 ];
 
 export default function OptimizationPanel() {
-  const { operation } = STATIC_DATA;
-  const isAll = operation === "all";
+  const dispatch = useDispatch();
 
   return (
-    <div
-      className="w-[360px] max-w-full bg-white rounded-xl shadow-xl p-4
-                    lg:sticky lg:top-4
-                    md:fixed md:right-0 md:top-0 md:h-full md:rounded-none
-                    sm:fixed sm:bottom-0 sm:left-0 sm:right-0 sm:h-[60%] sm:rounded-t-xl"
-    >
+    <aside className="w-[380px] bg-[#F8F9FB] border-l shadow-sm">
       {/* HEADER */}
-      <div className="flex items-center justify-between border-b pb-2">
-        <h3 className="font-semibold text-gray-900">Optimizing your resume…</h3>
-        <button className="text-gray-400 hover:text-gray-600">✕</button>
+      <div className="flex items-center justify-between px-4 py-3 border-b">
+        <h3 className="font-medium text-gray-900">Optimizing your resume</h3>
+        <button
+          onClick={() => dispatch(setGlobalLoaderForStatus(false))}
+          className="text-gray-400 hover:text-gray-600"
+        >
+          ✕
+        </button>
       </div>
 
       {/* BODY */}
-      <div className="mt-4 space-y-3 overflow-y-auto max-h-[65vh]">
-        {isAll ? (
-          ALL_OPERATION_ORDER.map((key) => {
-            const section = STATIC_DATA.optimizedSections[key];
-            return (
-              <SectionRow
-                key={key}
-                label={capitalize(key)}
-                status={section?.status}
-                note={section?.note}
-                isActive={STATIC_DATA.currentOperation === key}
-              />
-            );
-          })
-        ) : (
-          <SectionRow
-            label={capitalize(operation)}
-            status={STATIC_DATA.status}
-            note="Improving keyword relevance and grouping"
-            isActive={STATIC_DATA.status === "running"}
-          />
-        )}
+      <div className="px-4 py-3 space-y-3 overflow-y-auto">
+        {ORDER.map((key) => {
+          const section = STATIC_DATA.optimizedSections[key];
+          return (
+            <SectionRow
+              key={key}
+              label={capitalize(key)}
+              {...section}
+              isActive={STATIC_DATA.currentOperation === key}
+            />
+          );
+        })}
       </div>
 
       {/* FOOTER */}
-      <div className="mt-4 border-t pt-3 text-sm text-gray-600">
+      <div className="px-4 py-3 border-t text-sm text-gray-600">
         <p className="font-medium text-gray-800 mb-1">Why this works</p>
         <ul className="space-y-1">
-          <li>✓ Enhances ATS readability</li>
-          <li>✓ Preserves factual accuracy</li>
+          <li>✓ Improves ATS readability</li>
+          <li>✓ Keeps information truthful</li>
         </ul>
       </div>
-    </div>
+    </aside>
   );
 }
 
-/**
- * SECTION ROW
- */
-function SectionRow({ label, status = "pending", note, isActive }) {
+/* -------------------------------------------------- */
+/* SECTION ROW                                        */
+/* -------------------------------------------------- */
+
+function SectionRow({ label, status, note, changes = [], isActive }) {
   return (
-    <div className="flex items-start gap-3">
-      <span className="text-lg mt-0.5">{getStatusIcon(status, isActive)}</span>
+    <div
+      className={`text-sm border bg-white p-2 rounded ${isActive && "loader"}`}
+    >
+      <div className="flex items-start gap-3">
+        <StatusIcon status={status} isActive={isActive} />
 
-      <div>
-        <p className="font-medium text-gray-900">{label}</p>
-        <p className="text-sm text-gray-500">{getStatusText(status, note)}</p>
+        <div className="flex-1">
+          <p className="font-medium text-gray-900">{label}</p>
+          <p className="text-gray-500">{note || "Pending"}</p>
+        </div>
       </div>
+
+      {/* INLINE DIFFS */}
+      {changes.length > 0 && (
+        <ul className="mt-2 ml-8 space-y-2 list-disc pl-3">
+          {changes.map((c, i) => (
+            <li key={i} className="rounded-md border border-gray-200 bg-white">
+              <DiffViewer
+                oldValue={c.before}
+                newValue={c.after}
+                splitView={false}
+                showDiffOnly
+                hideLineNumbers
+                styles={{
+                  diffContainer: {
+                    background: "transparent",
+                    fontSize: "13px",
+                    lineHeight: "1.6",
+                  },
+                  added: {
+                    background: "#dcfce7",
+                  },
+                  removed: {
+                    background: "#fee2e2",
+                  },
+                }}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
 
-/**
- * HELPERS
- */
-function getStatusIcon(status, isActive) {
-  if (status === "completed") return "✔";
-  if (status === "failed") return "✖";
-  if (status === "running" || isActive) return "⏳";
-  return "○";
+/* -------------------------------------------------- */
+/* STATUS ICON                                        */
+/* -------------------------------------------------- */
+
+function StatusIcon({ status, isActive }) {
+  if (status === "completed") {
+    return (
+      <span className="h-5 w-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">
+        ✓
+      </span>
+    );
+  }
+
+  if (status === "running" || isActive) {
+    return (
+      <span className="h-5 w-5 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs animate-pulse">
+        ⏳
+      </span>
+    );
+  }
+
+  return (
+    <span className="h-5 w-5 rounded-full border text-gray-400 flex items-center justify-center text-xs">
+      ○
+    </span>
+  );
 }
 
-function getStatusText(status, note) {
-  if (status === "completed") return note || "Optimized";
-  if (status === "running") return "Optimization in progress…";
-  if (status === "failed") return "Optimization failed";
-  return "Pending";
-}
+/* -------------------------------------------------- */
+/* HELPERS                                            */
+/* -------------------------------------------------- */
 
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);

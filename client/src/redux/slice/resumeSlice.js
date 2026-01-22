@@ -161,7 +161,21 @@ const initialState = {
   },
   config: resumeConfig,
   currentResumeConfig: resumeConfig,
-  // templates: templateRegistry,
+  globalLoaderForStatus: true,
+
+  statusHelper: {
+    status: "",
+    loading: true,
+    error: null,
+    currentOperation: "",
+    optimizedSections: {},
+    startedAt: Date.now(),
+    updatedAt: null,
+    completedAt: null,
+    resumeId: null,
+    userId: null,
+    errorTask: {},
+  },
 };
 
 export const resumeSlice = createSlice({
@@ -187,6 +201,9 @@ export const resumeSlice = createSlice({
     setCheckedField: (state, actions) => {
       state.currentResume.checkedFields = actions.payload;
     },
+    setGlobalLoaderForStatus: (state, actions) => {
+      state.globalLoaderForStatus = actions.payload;
+    },
   },
 });
 
@@ -197,6 +214,7 @@ export const {
   setCurrentResumeConfig,
   setCurrentResumeTemplateId,
   setCheckedField,
+  setGlobalLoaderForStatus,
 } = resumeSlice.actions;
 const resumeReducer = resumeSlice.reducer;
 

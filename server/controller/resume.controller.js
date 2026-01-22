@@ -442,7 +442,7 @@ export const optimizeResume = async (req, res) => {
       });
     }
 
-    await pubClient.hset(jobId, {
+    let statusPayload = {
       status: "pending",
       error: null,
       currentOperation: "",
@@ -453,7 +453,8 @@ export const optimizeResume = async (req, res) => {
       resumeId,
       userId,
       errorTask: {},
-    });
+    };
+    await pubClient.hset(jobId, statusPayload);
 
     await pubClient.expire(jobId, 60 * 60); // 60 minutes expiration
     // 🔥 BullMQ jobId = HARD idempotency
@@ -475,7 +476,6 @@ export const optimizeResume = async (req, res) => {
     );
     console.log("Optimization job queued:");
     const counts = await aiOptimizationQueue.getJobCounts();
-
     const totalLength = counts.waiting + counts.active;
     console.log("Queue Length:", totalLength);
 
@@ -485,6 +485,7 @@ export const optimizeResume = async (req, res) => {
       jobId: bullJobId,
       queueLength: totalLength,
       message: "Optimization queued",
+      statusPayload,
     });
   } catch (err) {
     console.error(err);
@@ -506,69 +507,3 @@ export const optimizeResume = async (req, res) => {
 // | `ZREM`          | Remove item from queue            |
 // | `PIPELINE`      | Batch Redis commands              |
 // | `EXISTS`        | Check key existence               |
-
-// setInterval(async () => {
-//   const now = Date.now();
-
-//   /* --------------------------------
-//      REDIS: ZRANGEBYSCORE
-//      Get resumes READY to save
-//      -------------------------------- */
-//   const keys = await pubClient.zrangebyscore(
-//     "resume:flush_index",
-//     0,
-//     now,
-//     "LIMIT",
-//     0,
-//     50,
-//   );
-
-//   if (!keys.length) return;
-
-//   const bulkOps = [];
-
-//   for (const key of keys) {
-//     /* --------------------------------
-//        REDIS: HGETALL
-//        Fetch full HASH
-//        -------------------------------- */
-//     const data = await pubClient.hgetall(key);
-
-//     if (!data || data.isDirty !== "1") {
-//       await pubClient.zrem("resume:flush_index", key);
-//       continue;
-//     }
-
-//     const [, resumeId, userId] = key.split(":");
-
-//     bulkOps.push({
-//       updateOne: {
-//         filter: { _id: resumeId, userId },
-//         update: JSON.parse(data.data),
-//       },
-//     });
-
-//     /* --------------------------------
-//        REDIS: HSET
-//        Mark clean after DB save
-//        -------------------------------- */
-//     await pubClient.hset(key, {
-//       isDirty: 0,
-//       firstEditAt: "",
-//       lastEditAt: "",
-//     });
-
-//     /* --------------------------------
-//        REDIS: ZREM
-//        Remove from flush queue
-//        -------------------------------- */
-//     await pubClient.zrem("resume:flush_index", key);
-//   }
-
-//   /* --------------------------------
-//      MongoDB: BULK WRITE
-//      -------------------------------- */
-//   if (bulkOps.length) {
-//     await ResumeTemplate.bulkWrite(bulkOps);
-//   }
-// }, 5000);
