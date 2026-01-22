@@ -1,9 +1,10 @@
 import { ArrowRight, Sparkles } from "lucide-react";
 import React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import axios from "axios";
 import { useState } from "react";
+import { setStatusHelperLoader } from "../redux/slice/resumeSlice";
 const EditorScoreBox = ({
   progress = 40,
   mobileModalState,
@@ -11,6 +12,10 @@ const EditorScoreBox = ({
   setOpen,
 }) => {
   let currentResumeData = useSelector((state) => state.resume.currentResume);
+
+  let resumeSlice = useSelector((state) => state.resume);
+
+  let dispatch = useDispatch();
 
   const [aiLoading, setAiLoading] = useState(false);
   const issuesData = [
@@ -200,14 +205,24 @@ const EditorScoreBox = ({
       {/* ================= FOOTER (FIXED CTA) ================= */}
       <div className="px-4 py-4 flex flex-col items-center justify-center border-t bg-gray-100">
         <button
-          onClick={() => handleAiOptimize()}
+          onClick={() => {
+            if (resumeSlice.statusHelper.loading) return;
+            dispatch(setStatusHelperLoader(true));
+            handleAiOptimize();
+          }}
           className="flex optimize items-center cursor-pointer gap-2 px-8 py-2 rounded-full bg-blue-600 text-white shadow-md"
         >
           <Sparkles className="w-4 h-4 " />
           <div className="flex flex-col leading-tight">
-            <span className="text-sm font-semibold">
-              Optimize to {returnOptimzerValue()}+
-            </span>
+            {resumeSlice.statusHelper.loading ? (
+              <span className="text-sm font-medium">Optimizing...</span>
+            ) : (
+              <>
+                <span className="text-sm font-semibold">
+                  Optimize to {returnOptimzerValue()}+
+                </span>
+              </>
+            )}
             {/* <span className="text-[10px] opacity-80">9 credits</span> */}
           </div>
         </button>

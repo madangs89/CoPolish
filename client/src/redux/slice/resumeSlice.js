@@ -165,7 +165,7 @@ const initialState = {
 
   statusHelper: {
     status: "",
-    loading: true,
+    loading: false,
     error: null,
     currentOperation: "",
     optimizedSections: {},
@@ -207,6 +207,9 @@ export const resumeSlice = createSlice({
     setStatusHelper: (state, actions) => {
       state.statusHelper = actions.payload;
     },
+    setStatusHelperLoader: (state, actions) => {
+      state.statusHelper.loading = actions.payload;
+    },
   },
 });
 
@@ -219,6 +222,7 @@ export const {
   setCheckedField,
   setGlobalLoaderForStatus,
   setStatusHelper,
+  setStatusHelperLoader,
 } = resumeSlice.actions;
 const resumeReducer = resumeSlice.reducer;
 

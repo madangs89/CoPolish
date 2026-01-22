@@ -67,7 +67,7 @@ export default function OptimizationPanel() {
   const dispatch = useDispatch();
 
   return (
-    <aside className="w-[380px] bg-[#F8F9FB] border-l shadow-sm">
+    <aside className="w-[400px] bg-[#F8F9FB] border-l shadow-sm">
       {/* HEADER */}
       <div className="flex items-center justify-between px-4 py-3 border-b">
         <h3 className="font-medium text-gray-900">Optimizing your resume</h3>
@@ -80,7 +80,7 @@ export default function OptimizationPanel() {
       </div>
 
       {/* BODY */}
-      <div className="px-4 py-3 space-y-3 overflow-y-auto">
+      <div className="px-4 py-3 h-[510px] space-y-3 overflow-y-auto">
         {ORDER.map((key) => {
           const section = STATIC_DATA.optimizedSections[key];
           return (

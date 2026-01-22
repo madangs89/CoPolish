@@ -452,7 +452,7 @@ const ResumeEditor = () => {
         )}
         {/* Big Screen statusHelper */}
         <div
-          className={`absolute w-fit z-[1000000] right-0 overflow-y-auto overflow-x-hidden  h-full bg-black/80 transition-all duration-200 ease-in-out ${
+          className={`absolute w-fit z-[1000000] right-0  overflow-hidden  h-full bg-black/80 transition-all duration-200 ease-in-out ${
             resumeSlice.globalLoaderForStatus
               ? "translate-x-0"
               : "translate-x-full"
@@ -462,7 +462,10 @@ const ResumeEditor = () => {
         </div>
 
         {/* For all both big and small screen modal */}
-        <DraggableOptimizerFab dragDetails={dragDetails} setDragDetails={setDragDetails} />
+        <DraggableOptimizerFab
+          dragDetails={dragDetails}
+          setDragDetails={setDragDetails}
+        />
       </div>
     </Suspense>
   );
