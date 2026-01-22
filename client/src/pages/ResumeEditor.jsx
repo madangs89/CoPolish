@@ -51,6 +51,11 @@ const ResumeEditor = () => {
 
   const [mobileModalState, setMobileModalState] = useState("");
   const [mobileEditorState, setMobileEditorState] = useState("preview");
+  const [dragDetails, setDragDetails] = useState({
+    isDragging: false,
+    x: 0,
+    y: 0,
+  });
   const timer = useRef(null);
   const latestResumeRef = useRef(resumeData);
 
@@ -457,7 +462,7 @@ const ResumeEditor = () => {
         </div>
 
         {/* For all both big and small screen modal */}
-        <DraggableOptimizerFab />
+        <DraggableOptimizerFab dragDetails={dragDetails} setDragDetails={setDragDetails} />
       </div>
     </Suspense>
   );

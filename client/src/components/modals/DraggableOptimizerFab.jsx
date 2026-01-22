@@ -1,15 +1,18 @@
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
+import { useRef } from "react";
 import { setGlobalLoaderForStatus } from "../../redux/slice/resumeSlice";
 
-export default function DraggableOptimizerFab() {
+export default function DraggableOptimizerFab({
+  dragDetails,
+  setDragDetails,
+}) {
   const dispatch = useDispatch();
   const resumeSlice = useSelector((state) => state.resume);
 
-  if (
-    resumeSlice.globalLoaderForStatus ||
-    !resumeSlice.statusHelper.loading
-  ) {
+  const isDraggingRef = useRef(false);
+
+  if (resumeSlice.globalLoaderForStatus || !resumeSlice.statusHelper.loading) {
     return null;
   }
 
@@ -19,26 +22,59 @@ export default function DraggableOptimizerFab() {
       dragMomentum
       dragElastic={0.15}
       whileTap={{ scale: 0.95 }}
-      onTap={() => dispatch(setGlobalLoaderForStatus(true))}
+
+      // ✅ Start drag
+      onDragStart={() => {
+        isDraggingRef.current = true;
+      }}
+
+      // ✅ Save final position
+      onDragEnd={(event, info) => {
+        setDragDetails((prev) => ({
+          x: prev.x + info.offset.x,
+          y: prev.y + info.offset.y,
+        }));
+
+        // Delay to avoid ghost click
+        setTimeout(() => {
+          isDraggingRef.current = false;
+        }, 50);
+      }}
+
+      // ✅ Click only if NOT dragged
+      onTap={() => {
+        if (isDraggingRef.current) return;
+        dispatch(setGlobalLoaderForStatus(true));
+      }}
+
+      // ✅ Framer Motion controls position
+      animate={{
+        x: dragDetails.x,
+        y: dragDetails.y,
+        opacity: 1,
+        scale: 1,
+      }}
       initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
+
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
+
       className="
         fixed z-[1000000]
-        w-14 h-14 md:w-16 md:h-16
+        w-14 h-14 md:w-14 md:h-14
         rounded-full
         bg-[#3662e3]
         shadow-xl
         flex items-center justify-center
         text-white
         cursor-pointer
+        touch-none
+        select-none
       "
       style={{
-        bottom: 120,
+        bottom: 96,
         right: 16,
       }}
     >
-      <span className="absolute inset-0 rounded-full animate-ping bg-white/30" />
 
       <svg
         className="absolute inset-0 animate-spin pointer-events-none"
@@ -58,7 +94,7 @@ export default function DraggableOptimizerFab() {
       </svg>
 
       <span className="relative z-10 text-xs md:text-sm font-medium">
-        <span className="hidden md:inline">Working</span>
+        <span className="hidden text-[10px] md:inline">Working</span>
         <span className="md:hidden">•••</span>
       </span>
     </motion.div>

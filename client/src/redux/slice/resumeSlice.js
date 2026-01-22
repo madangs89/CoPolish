@@ -161,7 +161,7 @@ const initialState = {
   },
   config: resumeConfig,
   currentResumeConfig: resumeConfig,
-  globalLoaderForStatus: true,
+  globalLoaderForStatus: false,
 
   statusHelper: {
     status: "",
@@ -204,6 +204,9 @@ export const resumeSlice = createSlice({
     setGlobalLoaderForStatus: (state, actions) => {
       state.globalLoaderForStatus = actions.payload;
     },
+    setStatusHelper: (state, actions) => {
+      state.statusHelper = actions.payload;
+    },
   },
 });
 
@@ -215,6 +218,7 @@ export const {
   setCurrentResumeTemplateId,
   setCheckedField,
   setGlobalLoaderForStatus,
+  setStatusHelper,
 } = resumeSlice.actions;
 const resumeReducer = resumeSlice.reducer;
 
