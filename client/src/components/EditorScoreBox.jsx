@@ -10,14 +10,12 @@ const EditorScoreBox = ({
   mobileModalState,
   setMobileModalState,
   setOpen,
+  open,
 }) => {
   let currentResumeData = useSelector((state) => state.resume.currentResume);
 
   let resumeSlice = useSelector((state) => state.resume);
 
-  let dispatch = useDispatch();
-
-  const [aiLoading, setAiLoading] = useState(false);
   const issuesData = [
     {
       label: "Resume Structure",
@@ -61,25 +59,6 @@ const EditorScoreBox = ({
     }
   };
 
-  const handleAiOptimize = async () => {
-    setAiLoading(true);
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/optimize-resume`,
-        {
-          resumeId: currentResumeData._id,
-          operation: "all",
-          prompt: "",
-        },
-        { withCredentials: true },
-      );
-      console.log(response.data);
-      setAiLoading(false);
-    } catch (error) {
-      console.log(error);
-      setAiLoading(false);
-    }
-  };
   return (
     <aside className="h-full w-full bg-[#f8f9fb] relative border-r flex flex-col">
       {mobileModalState == "score" && (
@@ -207,18 +186,23 @@ const EditorScoreBox = ({
         <button
           onClick={() => {
             if (resumeSlice.statusHelper.loading) return;
-            dispatch(setStatusHelperLoader(true));
-            handleAiOptimize();
+            setOpen(true);
           }}
-          className="flex optimize items-center cursor-pointer gap-2 px-8 py-2 rounded-full bg-blue-600 text-white shadow-md"
+          disabled={resumeSlice.statusHelper.loading}
+          className={`
+            ${resumeSlice.statusHelper.loading ? "cursor-not-allowed" : "cursor-pointer"} ${!open && !resumeSlice.statusHelper.loading && "optimize"}
+            flex  items-center  gap-2 px-8 py-2 rounded-full bg-blue-600 text-white shadow-md
+            `}
         >
-          <Sparkles className="w-4 h-4 " />
+          <Sparkles
+            className={`w-4 h-4 ${resumeSlice.statusHelper.loading && "animate-pulse"}`}
+          />
           <div className="flex flex-col leading-tight">
             {resumeSlice.statusHelper.loading ? (
-              <span className="text-sm font-medium">Optimizing...</span>
+              <span className={`text-sm font-medium `}>Optimizing...</span>
             ) : (
               <>
-                <span className="text-sm font-semibold">
+                <span className={`text-sm font-semibold  `}>
                   Optimize to {returnOptimzerValue()}+
                 </span>
               </>

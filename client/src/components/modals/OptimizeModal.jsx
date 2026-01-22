@@ -1,7 +1,17 @@
+import axios from "axios";
 import { Sparkles } from "lucide-react";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  setStatusHelperLoader,
+  setGlobalLoaderForStatus,
+} from "../../redux/slice/resumeSlice";
+import BlackLoader from "../Loaders/BlackLoader";
+import ButtonLoader from "../Loaders/ButtonLoader";
+import toast from "react-hot-toast";
 
 const CREDIT_COST = {
-  FULL_RESUME: 10,
+  ALL: 10,
   PERSONAL: 1,
   EXPERIENCE: 1,
   PROJECTS: 1,
@@ -15,7 +25,7 @@ const CREDIT_COST = {
 
 const OPTIONS = [
   {
-    key: "FULL_RESUME",
+    key: "ALL",
     label: "Full resume (recommended)",
     desc: "Improve structure, clarity, and ATS readability across all sections.",
   },
@@ -109,15 +119,53 @@ export default function OptimizeModal({
   selected,
   setSelected,
   onClose,
+  open,
+  setOpen,
 }) {
   const cost = selected ? CREDIT_COST[selected] : 0;
   const hasEnoughCredits = creditsLeft >= cost;
   const missingCredits = Math.max(cost - creditsLeft, 0);
+  const currentResumeData = useSelector((state) => state.resume.currentResume);
+
+  let dispatch = useDispatch();
+
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const handleAiOptimize = async () => {
+    setAiLoading(true);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/optimize-resume`,
+        {
+          resumeId: currentResumeData._id,
+          operation: "all",
+          prompt: "",
+        },
+        { withCredentials: true },
+      );
+      console.log(response.data);
+      if (response.data.success) {
+        dispatch(setGlobalLoaderForStatus(true));
+        dispatch(setStatusHelperLoader(true));
+        setOpen(false);
+        toast.success("Resume optimization started successfully!");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to optimize resume. Please try again.",
+      );
+      dispatch(setGlobalLoaderForStatus(false));
+      dispatch(setStatusHelperLoader(false));
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-end md:items-center justify-center">
       <div className="w-full md:max-w-xl bg-white rounded-t-xl md:rounded-xl px-5 pt-4 pb-5 shadow-xl">
-        
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -157,12 +205,8 @@ export default function OptimizeModal({
               <Sparkles className="w-4 h-4 mt-0.5 text-gray-400" />
 
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">
-                  {opt.label}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {opt.desc}
-                </p>
+                <p className="text-sm font-medium text-gray-900">{opt.label}</p>
+                <p className="text-xs text-gray-500">{opt.desc}</p>
               </div>
 
               <span className="text-xs text-gray-400 whitespace-nowrap">
@@ -186,14 +230,21 @@ export default function OptimizeModal({
           ) : (
             <>
               <button
+                onClick={() => {
+                  handleAiOptimize();
+                }}
                 disabled={!selected}
-                className="
+                className={`
+                  
                   w-full h-10 rounded-md
                   bg-blue-600 disabled:bg-gray-300
                   text-white text-sm font-medium
-                "
+
+                  ${aiLoading ? "cursor-not-allowed" : "optimize cursor-pointer"}
+                  
+                  `}
               >
-                Apply optimization
+                {aiLoading ? <ButtonLoader /> : <p>Apply optimization</p>}
               </button>
               <p className="text-center text-xs text-gray-400 mt-2">
                 Creates a new version

@@ -30,7 +30,7 @@ import {
   setGlobalLoaderForStatus,
 } from "../redux/slice/resumeSlice";
 import { useRef } from "react";
-import ImproveWithAIModal from "../components/modals/ImproveWithAIModal";
+// import ImproveWithAIModal from "../components/modals/ImproveWithAIModal";
 import OptimizeModal from "../components/modals/OptimizeModal";
 import ResumeTopBar from "../components/ResumeEditor/ResumeTopBar";
 import OptimizationPanel from "../components/modals/OptimizationPanel";
@@ -60,7 +60,7 @@ const ResumeEditor = () => {
   const latestResumeRef = useRef(resumeData);
 
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState("FULL_RESUME");
+  const [selected, setSelected] = useState("ALL");
   const [changeCounter, setChangeCounter] = useState(0);
 
   const updateDbAFterDebounce = async (latestResumeData) => {
@@ -198,6 +198,7 @@ const ResumeEditor = () => {
             mobileModalState={mobileModalState}
             setMobileModalState={setMobileModalState}
             setOpen={setOpen}
+            open={open}
           />
         </div>
 
@@ -369,6 +370,8 @@ const ResumeEditor = () => {
             mobileModalState={mobileModalState}
             setMobileModalState={setMobileModalState}
             setOpen={setOpen}
+            open={open}
+         
           />
         </div>
         {/* optimize modal */}
@@ -387,6 +390,8 @@ const ResumeEditor = () => {
               setMobileModalState(null);
               setOpen(false);
             }}
+            open={open}
+            setOpen={setOpen}
           />
         </div>
 
@@ -448,6 +453,8 @@ const ResumeEditor = () => {
             setSelected={setSelected}
             creditsLeft={userSlice?.totalCredits || 0}
             onClose={() => setOpen(false)}
+             open={open}
+            setOpen={setOpen}
           />
         )}
         {/* Big Screen statusHelper */}
@@ -466,6 +473,7 @@ const ResumeEditor = () => {
           dragDetails={dragDetails}
           setDragDetails={setDragDetails}
         />
+
       </div>
     </Suspense>
   );

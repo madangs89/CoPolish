@@ -2,6 +2,8 @@ import React from "react";
 import { useDispatch } from "react-redux";
 import { setGlobalLoaderForStatus } from "../../redux/slice/resumeSlice";
 import DiffViewer from "react-diff-viewer";
+import ButtonLoader from "../Loaders/ButtonLoader";
+import BlackLoader from "../Loaders/BlackLoader";
 
 /**
  * TEMP STATIC DATA (replace later)
@@ -67,7 +69,7 @@ export default function OptimizationPanel() {
   const dispatch = useDispatch();
 
   return (
-    <aside className="w-[400px] bg-[#F8F9FB] border-l shadow-sm">
+    <aside className="w-[400px] h-screen flex flex-col bg-[#F8F9FB] border-l shadow-sm">
       {/* HEADER */}
       <div className="flex items-center justify-between px-4 py-3 border-b">
         <h3 className="font-medium text-gray-900">Optimizing your resume</h3>
@@ -80,7 +82,7 @@ export default function OptimizationPanel() {
       </div>
 
       {/* BODY */}
-      <div className="px-4 py-3 h-[510px] space-y-3 overflow-y-auto">
+      <div className="px-4 py-3 pb-10 flex-1 space-y-3 overflow-y-auto">
         {ORDER.map((key) => {
           const section = STATIC_DATA.optimizedSections[key];
           return (
@@ -95,13 +97,13 @@ export default function OptimizationPanel() {
       </div>
 
       {/* FOOTER */}
-      <div className="px-4 py-3 border-t text-sm text-gray-600">
+      {/* <div className="px-4 py-3 border-t text-sm text-gray-600">
         <p className="font-medium text-gray-800 mb-1">Why this works</p>
         <ul className="space-y-1">
           <li>✓ Improves ATS readability</li>
           <li>✓ Keeps information truthful</li>
         </ul>
-      </div>
+      </div> */}
     </aside>
   );
 }
@@ -173,7 +175,7 @@ function StatusIcon({ status, isActive }) {
   if (status === "running" || isActive) {
     return (
       <span className="h-5 w-5 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs animate-pulse">
-        ⏳
+        <BlackLoader />
       </span>
     );
   }
