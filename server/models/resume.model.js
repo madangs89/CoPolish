@@ -103,18 +103,23 @@ const resumeTemplateSchema = new mongoose.Schema(
       required: true,
       default: "ModernMinimalResume",
     },
-    changes: [
-      {
-        section: String,
-        before: String,
-        after: String,
-        reason: String,
-        timestamp: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
+    // changes: [
+    //   {
+    //     section: String,
+    //     before: String,
+    //     after: String,
+    //     reason: String,
+    //     timestamp: {
+    //       type: Date,
+    //       default: Date.now,
+    //     },
+    //   },
+    // ],
+
+    changes: {
+      type: Object,
+      default: {},
+    },
     scoreBefore: {
       type: Number,
       default: 0,

@@ -23,6 +23,20 @@ export const personalSchema = {
         address: { type: ["string", "null"] },
       },
     },
+    changes: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["section", "before", "after", "reason"],
+        properties: {
+          section: { type: "string", enum: ["personal"] },
+          before: { type: "string" },
+          after: { type: "string" },
+          reason: { type: "string" },
+        },
+      },
+    },
   },
 };
 export const educationSchema = {

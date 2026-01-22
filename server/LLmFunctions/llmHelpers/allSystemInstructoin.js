@@ -638,7 +638,6 @@ ABSOLUTE STRUCTURAL CONSTRAINTS
 
 // `;
 
-
 export const personalSystemInstruction = `
 
 Operation: personal
@@ -653,18 +652,39 @@ Return ONLY the following JSON structure:
     "summary": string | null,
     "github": string | null,
     "linkedin": string | null,
-    "address": string | null
-  }
+    "address": string | null,
+  },
+  changes:[
+          {
+              "section": "<section_name>",  // e.g., "summary"
+              "before": "<original content>",
+              "after": "<optimized content>",
+              "reason": "<clear explanation of why the change was made>"
+          }
+ ]
 }
 
 SUMMARY RULES:
 - Summary MUST contain 3–5 complete sentences
+- Summary MUST be a single paragraph (no line breaks, no bullets)
 - Each sentence must be factual and descriptive
 - Content must be derived strictly from experience, projects, and skills
 - Sentence expansion is allowed for clarity and ATS readability
 - Do NOT add goals, aspirations, personality traits, or future intent
 - Do NOT generalize beyond provided data
 - Do NOT use buzzwords (e.g., passionate, dynamic, results-driven)
+
+
+
+CHANGES SECTION Rules:
+- You Must return changes array with details of all changes made in personal section.
+- "before" must contain the exact original text.
+- "after" must contain the improved version.
+- If no change is required, return an empty array.
+- Do NOT omit any field.
+- Do NOT rename fields.
+- Do NOT add extra keys or metadata.
+
 
 If insufficient data exists:
 - Return summary as null

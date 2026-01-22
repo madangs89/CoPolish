@@ -43,6 +43,8 @@ const SUPPORTED_OPERATIONS = new Set([
   "all",
 ]);
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const ALL_OPERATION_ORDER = [
   "skills",
   "projects",
@@ -421,6 +423,8 @@ export const resumeOptimizer = async (info) => {
           console.log("AI result error in all operation:", key);
 
           if (err && err.status == 429) {
+            console.log(err);
+
             err = "AI quota exceeded. Please try again later.";
             console.log("ai quota exceeded", key);
             errorTask["quota_exceeded"] = err;
@@ -529,6 +533,7 @@ export const resumeOptimizer = async (info) => {
         console.log("publishing event");
 
         await pubClient.publish("job:updates", JSON.stringify(jobPayLoad));
+        await sleep(2000); // slight delay to avoid rate limits
       }
 
       await pubClient.hset(jobKey, {
