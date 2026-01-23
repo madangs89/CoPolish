@@ -406,6 +406,14 @@ const LinkedInEditor = () => {
          
         </div>
       </div>
+
+
+
+
+      <div className="fixed w-[250px] right-10 top-20 z-50 h-[300px] bg-white"> 
+      
+      
+      </div>
     </div>
   );
 };
