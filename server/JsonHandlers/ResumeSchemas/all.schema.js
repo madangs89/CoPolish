@@ -57,6 +57,20 @@ export const educationSchema = {
         },
       },
     },
+    changes: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["section", "before", "after", "reason"],
+        properties: {
+          section: { type: "string", enum: ["personal"] },
+          before: { type: "string" },
+          after: { type: "string" },
+          reason: { type: "string" },
+        },
+      },
+    },
   },
 };
 export const experienceSchema = {
@@ -80,6 +94,20 @@ export const experienceSchema = {
             default: [],
             items: { type: "string", minLength: 1 },
           },
+        },
+      },
+    },
+    changes: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["section", "before", "after", "reason"],
+        properties: {
+          section: { type: "string", enum: ["personal"] },
+          before: { type: "string" },
+          after: { type: "string" },
+          reason: { type: "string" },
         },
       },
     },
@@ -125,6 +153,20 @@ export const projectsSchema = {
         },
       },
     },
+    changes: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["section", "before", "after", "reason"],
+        properties: {
+          section: { type: "string", enum: ["personal"] },
+          before: { type: "string" },
+          after: { type: "string" },
+          reason: { type: "string" },
+        },
+      },
+    },
   },
 };
 
@@ -136,6 +178,20 @@ export const skillsSchema = {
       type: "array",
       default: [],
       items: { type: "string", minLength: 1 },
+    },
+    changes: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["section", "before", "after", "reason"],
+        properties: {
+          section: { type: "string", enum: ["personal"] },
+          before: { type: "string" },
+          after: { type: "string" },
+          reason: { type: "string" },
+        },
+      },
     },
   },
 };
@@ -174,6 +230,20 @@ export const certificationsSchema = {
         },
       },
     },
+    changes: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["section", "before", "after", "reason"],
+        properties: {
+          section: { type: "string", enum: ["personal"] },
+          before: { type: "string" },
+          after: { type: "string" },
+          reason: { type: "string" },
+        },
+      },
+    },
   },
 };
 
@@ -186,6 +256,20 @@ export const achievementsSchema = {
       default: [],
       items: { type: ["string", "null"] },
     },
+    changes: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["section", "before", "after", "reason"],
+        properties: {
+          section: { type: "string", enum: ["personal"] },
+          before: { type: "string" },
+          after: { type: "string" },
+          reason: { type: "string" },
+        },
+      },
+    },
   },
 };
 
@@ -197,6 +281,20 @@ export const hobbiesSchema = {
       type: "array",
       default: [],
       items: { type: "string" },
+    },
+    changes: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["section", "before", "after", "reason"],
+        properties: {
+          section: { type: "string", enum: ["personal"] },
+          before: { type: "string" },
+          after: { type: "string" },
+          reason: { type: "string" },
+        },
+      },
     },
   },
 };
@@ -216,6 +314,20 @@ export const extracurricularSchema = {
           activity: { type: ["string", "null"] },
           year: { type: ["string", "null", "number"] },
           description: { type: ["string", "null"] },
+        },
+      },
+    },
+    changes: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["section", "before", "after", "reason"],
+        properties: {
+          section: { type: "string", enum: ["personal"] },
+          before: { type: "string" },
+          after: { type: "string" },
+          reason: { type: "string" },
         },
       },
     },

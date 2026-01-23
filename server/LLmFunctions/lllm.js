@@ -313,6 +313,8 @@ export const aiPartWiseOptimize = async (
   contents,
 ) => {
   try {
+    console.log("ai part wise called");
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents,
@@ -491,10 +493,12 @@ export const resumeOptimizer = async (info) => {
 
         // Merge safely (no nesting bug)
         updatedResume[key] = aiResult.data[key];
+
         optimizedSections[key] = {
           isError: false,
           error: null,
           data: aiResult.data[key],
+          changes: aiResult.data["changes"],
         };
 
         await pubClient.hset(jobKey, {
@@ -682,6 +686,7 @@ export const resumeOptimizer = async (info) => {
       isError: false,
       error: null,
       data: aiResult.data[operation],
+      changes: aiResult.data["changes"],
     };
     await pubClient.hset(jobKey, {
       status: "completed",
@@ -698,6 +703,27 @@ export const resumeOptimizer = async (info) => {
 
     await pubClient.expire(jobKey, 60 * 10); // 10 minutes expiration
 
+    let jobPayLoad = {
+      userId,
+      jobKey,
+      resumeId,
+      event,
+      operation: operation,
+      data: {
+        status: "completed",
+        error: null,
+        currentOperation: null,
+        optimizedSections: JSON.stringify(optimizedSections),
+        startedAt: startedAt,
+        updatedAt: Date.now(),
+        completedAt: Date.now(),
+        resumeId,
+        userId,
+        errorTask: JSON.stringify(errorTask),
+      },
+    };
+    console.log("publishing event");
+    await pubClient.publish("job:updates", JSON.stringify(jobPayLoad));
     return {
       error: null,
       isError: false,

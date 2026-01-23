@@ -417,6 +417,10 @@ export const optimizeResume = async (req, res) => {
     const { resumeId, operation, prompt = "" } = req.body;
     const userId = req.user._id;
 
+
+    console.log(operation);
+    
+
     if (!resumeId || !operation) {
       return res.status(400).json({
         success: false,

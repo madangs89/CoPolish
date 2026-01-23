@@ -138,7 +138,7 @@ export default function OptimizeModal({
         `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/optimize-resume`,
         {
           resumeId: currentResumeData._id,
-          operation: "all",
+          operation: selected.toLowerCase(),
           prompt: "",
         },
         { withCredentials: true },

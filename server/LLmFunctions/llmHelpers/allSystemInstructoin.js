@@ -654,7 +654,7 @@ Return ONLY the following JSON structure:
     "linkedin": string | null,
     "address": string | null,
   },
-  changes:[
+  "changes":[
           {
               "section": "<section_name>",  // e.g., "summary"
               "before": "<original content>",
@@ -704,8 +704,26 @@ Return ONLY the following JSON structure:
       "from": string | null,
       "to": string | null
     }
-  ]
+  ],
+    "changes":[
+          {
+              "section": "<section_name>",  // e.g., "degree"
+              "before": "<original content>",
+              "after": "<optimized content>",
+              "reason": "<clear explanation of why the change was made>"
+          }
+ ]
 }
+
+
+CHANGES SECTION Rules:
+- You Must return changes array with details of all changes made in personal section.
+- "before" must contain the exact original text.
+- "after" must contain the improved version.
+- If no change is required, return an empty array.
+- Do NOT omit any field.
+- Do NOT rename fields.
+- Do NOT add extra keys or metadata.
 
 RULES:
 - Preserve academic information exactly as provided
@@ -730,7 +748,15 @@ Return ONLY the following JSON structure:
       "description": string[],
       "duration": string | null
     }
-  ]
+  ],
+    "changes":[
+          {
+              "section": "<section_name>",  // e.g., "role" , "description"
+              "before": "<original content>",
+              "after": "<optimized content>",
+              "reason": "<clear explanation of why the change was made>"
+          }
+ ]
 }
 
 DESCRIPTION RULES:
@@ -743,6 +769,15 @@ DESCRIPTION RULES:
 - Do NOT add tools, technologies, metrics, or impact
 - Do NOT exaggerate responsibility or scope
 - Do NOT convert internships or training into full-time roles
+
+CHANGES SECTION Rules:
+- You Must return changes array with details of all changes made in personal section.
+- "before" must contain the exact original text.
+- "after" must contain the improved version.
+- If no change is required, return an empty array.
+- Do NOT omit any field.
+- Do NOT rename fields.
+- Do NOT add extra keys or metadata.
 
 `;
 
@@ -764,7 +799,15 @@ Return ONLY the following JSON structure:
         }
       ]
     }
-  ]
+  ] ,
+     changes:[
+          {
+              "section": "<section_name>",  // e.g., "description"
+              "before": "<original content>",
+              "after": "<optimized content>",
+              "reason": "<clear explanation of why the change was made>"
+          }
+ ]
 }
 
 ────────────────────────────
@@ -789,6 +832,15 @@ PROJECT RULES:
 - Do NOT add technologies not explicitly listed
 - Do NOT present academic projects as production systems
 
+CHANGES SECTION Rules:
+- You Must return changes array with details of all changes made in personal section.
+- "before" must contain the exact original text.
+- "after" must contain the improved version.
+- If no change is required, return an empty array.
+- Do NOT omit any field.
+- Do NOT rename fields.
+- Do NOT add extra keys or metadata.
+
 `;
 
 export const skillsSystemInstruction = `
@@ -797,7 +849,15 @@ Operation: skills
 
 Return ONLY the following JSON structure:
 {
-  "skills": string[]
+  "skills": string[] , 
+    "changes":[
+          {
+              "section": "<section_name>",  // e.g., "java"
+              "before": "<original content>",
+              "after": "<optimized content>",
+              "reason": "<clear explanation of why the change was made>"
+          }
+ ]
 }
 
 RULES:
@@ -805,6 +865,15 @@ RULES:
 - Do NOT infer skills from experience or projects
 - Do NOT categorize, group, or rate skills
 - Do NOT add proficiency levels
+
+CHANGES SECTION Rules:
+- You Must return changes array with details of all changes made in personal section.
+- "before" must contain the exact original text.
+- "after" must contain the improved version.
+- If no change is required, return an empty array.
+- Do NOT omit any field.
+- Do NOT rename fields.
+- Do NOT add extra keys or metadata.
 
 `;
 
@@ -827,8 +896,25 @@ Return ONLY the following JSON structure:
         }
       ]
     }
-  ]
+  ] , 
+     "changes":[
+          {
+              "section": "<section_name>",  // e.g., "name"
+              "before": "<original content>",
+              "after": "<optimized content>",
+              "reason": "<clear explanation of why the change was made>"
+          }
+ ]
 }
+
+CHANGES SECTION Rules:
+- You Must return changes array with details of all changes made in personal section.
+- "before" must contain the exact original text.
+- "after" must contain the improved version.
+- If no change is required, return an empty array.
+- Do NOT omit any field.
+- Do NOT rename fields.
+- Do NOT add extra keys or metadata.
 
 RULES:
 - Preserve certification names exactly
@@ -843,8 +929,25 @@ Operation: achievements
 
 Return ONLY the following JSON structure:
 {
-  "achievements": string[]
+  "achievements": string[],
+    "changes":[
+          {
+              "section": "<section_name>",  // e.g., "achievement"
+              "before": "<original content>",
+              "after": "<optimized content>",
+              "reason": "<clear explanation of why the change was made>"
+          }
+ ]
 }
+
+CHANGES SECTION Rules:
+- You Must return changes array with details of all changes made in personal section.
+- "before" must contain the exact original text.
+- "after" must contain the improved version.
+- If no change is required, return an empty array.
+- Do NOT omit any field.
+- Do NOT rename fields.
+- Do NOT add extra keys or metadata.
 
 RULES:
 - One factual achievement per entry
@@ -860,8 +963,25 @@ Operation: hobbies
 
 Return ONLY the following JSON structure:
 {
-  "hobbies": string[]
+  "hobbies": string[],
+    "changes":[
+          {
+              "section": "<section_name>",  // e.g., "hobby"
+              "before": "<original content>",
+              "after": "<optimized content>",
+              "reason": "<clear explanation of why the change was made>"
+          }
+ ]
 }
+
+CHANGES SECTION Rules:
+- You Must return changes array with details of all changes made in personal section.
+- "before" must contain the exact original text.
+- "after" must contain the improved version.
+- If no change is required, return an empty array.
+- Do NOT omit any field.
+- Do NOT rename fields.
+- Do NOT add extra keys or metadata.
 
 RULES:
 - Keep entries short, neutral, and factual
@@ -883,8 +1003,26 @@ Return ONLY the following JSON structure:
       "year": string | null,
       "description": string | null
     }
-  ]
+  ],
+    "changes":[
+          {
+              "section": "<section_name>",  // e.g., "description" , activity
+              "before": "<original content>",
+              "after": "<optimized content>",
+              "reason": "<clear explanation of why the change was made>"
+          }
+ ]
 }
+
+
+CHANGES SECTION Rules:
+- You Must return changes array with details of all changes made in personal section.
+- "before" must contain the exact original text.
+- "after" must contain the improved version.
+- If no change is required, return an empty array.
+- Do NOT omit any field.
+- Do NOT rename fields.
+- Do NOT add extra keys or metadata.
 
 RULES:
 - Description must remain factual

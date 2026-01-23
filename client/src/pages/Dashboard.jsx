@@ -46,7 +46,7 @@ const Dashboard = () => {
         `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/${location.state?.id || userDetails?.currentResumeId}`,
         {
           withCredentials: true,
-        }
+        },
       );
       if (data.success) {
         dispatch(setCurrentResume(data?.resume));
@@ -118,7 +118,7 @@ const Dashboard = () => {
                 new Date(resumeSlice?.currentResume?.updatedAt || nowTime),
                 {
                   addSuffix: true,
-                }
+                },
               )}
             </p>
 
@@ -162,7 +162,12 @@ const Dashboard = () => {
             <button className="px-5 py-2 rounded-full border text-sm font-medium hover:bg-gray-50">
               View Suggestions
             </button>
-            <button className="px-5 py-2 rounded-full bg-blue-600 text-white text-sm font-medium hover:opacity-90">
+            <button
+              onClick={() =>
+                navigate(`/editor/linkedin/${resumeSlice?.currentResume?._id}`)
+              }
+              className="px-5 py-2 rounded-full bg-blue-600 text-white text-sm font-medium hover:opacity-90"
+            >
               Improve LinkedIn →
             </button>
           </div>

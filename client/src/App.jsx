@@ -6,6 +6,7 @@ import axios from "axios";
 import { setAuthFalse, setUser } from "./redux/slice/authSlice";
 import { io } from "socket.io-client";
 import { setSocket } from "./redux/slice/socketSlice";
+import LinkedInEditor from "./pages/LinkedInEditor";
 
 const Hero = lazy(() => import("./pages/Hero"));
 const Cursor = lazy(() => import("./components/Cursor"));
@@ -112,6 +113,7 @@ const App = () => {
             <Route path="/approve/:id" element={<ApprovePage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/editor/resume/:id" element={<ResumeEditor />} />
+            <Route path="/editor/linkedin/:id" element={<LinkedInEditor />} />
           </Route>
         </Routes>
       </Suspense>
