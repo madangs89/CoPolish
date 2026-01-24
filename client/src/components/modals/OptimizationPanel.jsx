@@ -30,7 +30,6 @@ export default function OptimizationPanel() {
 
     socket.on("job:update", (val) => {
       val = JSON.parse(val);
-
       let {
         userId,
         resumeId,
@@ -45,6 +44,8 @@ export default function OptimizationPanel() {
           errorTask,
         },
       } = val;
+
+      console.log(status, currentOperation);
 
       optimizedSections = JSON.parse(optimizedSections || "{}");
       errorTask = JSON.parse(errorTask || "{}");
