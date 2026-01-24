@@ -90,13 +90,6 @@ const App = () => {
     };
   }, [auth, socket]);
 
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("job:update", (data) => {
-      console.log("job:update received:", data);
-    });
-  }, [socket]);
 
   return (
     <div className="w-full relative min-h-screen">

@@ -61,6 +61,7 @@ const resumeOptimizeWorker = new Worker(
       await pubClient.del(redisKey);
       await pubClient.del(execLockKey);
 
+      console.log(optimizedData);
       // const payload = {
       //   userId,
       //   jobKey,

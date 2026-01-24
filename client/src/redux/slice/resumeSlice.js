@@ -162,8 +162,8 @@ const initialState = {
   config: resumeConfig,
   currentResumeConfig: resumeConfig,
   globalLoaderForStatus: false,
-
   statusHelper: {
+    operation: "",
     status: "",
     loading: false,
     error: null,
@@ -182,6 +182,12 @@ export const resumeSlice = createSlice({
   name: "resume",
   initialState,
   reducers: {
+    setStatusHelper: (state, actions) => {
+      state.statusHelper = {
+        ...state.statusHelper,
+        ...actions.payload,
+      };
+    },
     setIsChanged: (state, actions) => {
       state.isChanged = actions.payload;
     },
@@ -204,9 +210,9 @@ export const resumeSlice = createSlice({
     setGlobalLoaderForStatus: (state, actions) => {
       state.globalLoaderForStatus = actions.payload;
     },
-    setStatusHelper: (state, actions) => {
-      state.statusHelper = actions.payload;
-    },
+    // setStatusHelper: (state, actions) => {
+    //   state.statusHelper = actions.payload;
+    // },
     setStatusHelperLoader: (state, actions) => {
       state.statusHelper.loading = actions.payload;
     },

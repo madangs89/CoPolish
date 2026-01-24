@@ -167,18 +167,32 @@ export const initSubscribers = async () => {
           }
         }
       }
-
       if (channel === "job:updates") {
         const jobPayload = JSON.parse(message);
         console.log("Job update event received:", jobPayload);
-        const { userId, jobId, status, data } = jobPayload;
+        let { userId, data, jobKey, jobId, resumeId, event, operation } =
+          jobPayload;
+
+        // let {
+        //   status,
+        //   error,
+        //   optimizedSections,
+        //   startedAt,
+        //   updatedAt,
+        // currentOperation
+        //   completedAt,
+        //   errorTask,
+        // } = data;
+
+        // errorTask = JSON.parse(errorTask || "{}");
+        // optimizedSections = JSON.parse(optimizedSections || "{}");
 
         const io = getIO();
 
         if (io) {
           io.to(`user:${userId}`).emit(
             "job:update",
-            JSON.stringify({ jobId, status, data }),
+            JSON.stringify({ jobId, event, userId, resumeId, data }),
           );
         }
       }

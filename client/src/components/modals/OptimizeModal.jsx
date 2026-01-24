@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   setStatusHelperLoader,
   setGlobalLoaderForStatus,
+  setStatusHelper,
 } from "../../redux/slice/resumeSlice";
 import BlackLoader from "../Loaders/BlackLoader";
 import ButtonLoader from "../Loaders/ButtonLoader";
@@ -134,6 +135,13 @@ export default function OptimizeModal({
   const handleAiOptimize = async () => {
     setAiLoading(true);
     try {
+      dispatch(
+        setStatusHelper({
+          operation: selected.toLowerCase(),
+          status: "started",
+        }),
+      );
+
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/optimize-resume`,
         {
