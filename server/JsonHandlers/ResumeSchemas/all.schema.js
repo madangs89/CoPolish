@@ -25,15 +25,16 @@ export const personalSchema = {
     },
     changes: {
       type: "array",
+      default: [],
       items: {
         type: "object",
         additionalProperties: false,
         required: ["section", "before", "after", "reason"],
         properties: {
-          section: { type: "string", enum: ["personal"] },
-          before: { type: "string" },
-          after: { type: "string" },
-          reason: { type: "string" },
+          section: { type: ["string", "null"] },
+          before: { type: ["string", "null"] },
+          after: { type: ["string", "null"] },
+          reason: { type: ["string", "null"] },
         },
       },
     },
@@ -59,15 +60,17 @@ export const educationSchema = {
     },
     changes: {
       type: "array",
+      default: [],
       items: {
         type: "object",
+
         additionalProperties: false,
         required: ["section", "before", "after", "reason"],
         properties: {
-          section: { type: "string", enum: ["personal"] },
-          before: { type: "string" },
-          after: { type: "string" },
-          reason: { type: "string" },
+          section: { type: ["string", "null"] },
+          before: { type: ["string", "null"] },
+          after: { type: ["string", "null"] },
+          reason: { type: ["string", "null"] },
         },
       },
     },
@@ -99,15 +102,17 @@ export const experienceSchema = {
     },
     changes: {
       type: "array",
+      default: [],
       items: {
         type: "object",
+
         additionalProperties: false,
         required: ["section", "before", "after", "reason"],
         properties: {
-          section: { type: "string", enum: ["personal"] },
-          before: { type: "string" },
-          after: { type: "string" },
-          reason: { type: "string" },
+          section: { type: ["string", "null"] },
+          before: { type: ["string", "null"] },
+          after: { type: ["string", "null"] },
+          reason: { type: ["string", "null"] },
         },
       },
     },
@@ -155,15 +160,17 @@ export const projectsSchema = {
     },
     changes: {
       type: "array",
+      default: [],
       items: {
         type: "object",
+
         additionalProperties: false,
         required: ["section", "before", "after", "reason"],
         properties: {
-          section: { type: "string", enum: ["personal"] },
-          before: { type: "string" },
-          after: { type: "string" },
-          reason: { type: "string" },
+          section: { type: ["string", "null"] },
+          before: { type: ["string", "null"] },
+          after: { type: ["string", "null"] },
+          reason: { type: ["string", "null"] },
         },
       },
     },
@@ -181,15 +188,16 @@ export const skillsSchema = {
     },
     changes: {
       type: "array",
+      default: [],
       items: {
         type: "object",
         additionalProperties: false,
         required: ["section", "before", "after", "reason"],
         properties: {
-          section: { type: "string", enum: ["personal"] },
-          before: { type: "string" },
-          after: { type: "string" },
-          reason: { type: "string" },
+           section: { type: ["string", "null"] },
+          before: { type: ["string", "null"] },
+          after: { type: ["string", "null"] },
+          reason: { type: ["string", "null"] },
         },
       },
     },
@@ -232,15 +240,16 @@ export const certificationsSchema = {
     },
     changes: {
       type: "array",
+      default: [],
       items: {
         type: "object",
         additionalProperties: false,
         required: ["section", "before", "after", "reason"],
         properties: {
-          section: { type: "string", enum: ["personal"] },
-          before: { type: "string" },
-          after: { type: "string" },
-          reason: { type: "string" },
+          section: { type: ["string", "null"] },
+          before: { type: ["string", "null"] },
+          after: { type: ["string", "null"] },
+          reason: { type: ["string", "null"] },
         },
       },
     },
@@ -258,15 +267,16 @@ export const achievementsSchema = {
     },
     changes: {
       type: "array",
+      default: [],
       items: {
         type: "object",
         additionalProperties: false,
         required: ["section", "before", "after", "reason"],
         properties: {
-          section: { type: "string", enum: ["personal"] },
-          before: { type: "string" },
-          after: { type: "string" },
-          reason: { type: "string" },
+           section: { type: ["string", "null"] },
+          before: { type: ["string", "null"] },
+          after: { type: ["string", "null"] },
+          reason: { type: ["string", "null"] },
         },
       },
     },
@@ -284,15 +294,16 @@ export const hobbiesSchema = {
     },
     changes: {
       type: "array",
+      default: [],
       items: {
         type: "object",
         additionalProperties: false,
         required: ["section", "before", "after", "reason"],
         properties: {
-          section: { type: "string", enum: ["personal"] },
-          before: { type: "string" },
-          after: { type: "string" },
-          reason: { type: "string" },
+           section: { type: ["string", "null"] },
+          before: { type: ["string", "null"] },
+          after: { type: ["string", "null"] },
+          reason: { type: ["string", "null"] },
         },
       },
     },
@@ -319,15 +330,59 @@ export const extracurricularSchema = {
     },
     changes: {
       type: "array",
+      default: [],
       items: {
         type: "object",
         additionalProperties: false,
         required: ["section", "before", "after", "reason"],
         properties: {
-          section: { type: "string", enum: ["personal"] },
-          before: { type: "string" },
-          after: { type: "string" },
-          reason: { type: "string" },
+           section: { type: ["string", "null"] },
+          before: { type: ["string", "null"] },
+          after: { type: ["string", "null"] },
+          reason: { type: ["string", "null"] },
+        },
+      },
+    },
+  },
+};
+
+export const resumeScoreSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    resumeScore: {
+      anyOf: [{ type: "number", minimum: 0, maximum: 100 }, { type: "null" }],
+    },
+    atsScore: {
+      anyOf: [{ type: "number", minimum: 0, maximum: 100 }, { type: "null" }],
+    },
+    contentClarityScore: {
+      anyOf: [{ type: "number", minimum: 0, maximum: 100 }, { type: "null" }],
+    },
+    structureScore: {
+      anyOf: [{ type: "number", minimum: 0, maximum: 100 }, { type: "null" }],
+    },
+    impactScore: {
+      anyOf: [{ type: "number", minimum: 0, maximum: 100 }, { type: "null" }],
+    },
+    projectScore: {
+      anyOf: [{ type: "number", minimum: 0, maximum: 100 }, { type: "null" }],
+    },
+    experienceScore: {
+      anyOf: [{ type: "number", minimum: 0, maximum: 100 }, { type: "null" }],
+    },
+    optimizationSuggestions: {
+      type: "array",
+      default: [],
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          suggestion: { type: "string" },
+          impact: {
+            type: "string",
+            enum: ["High", "Medium", "Low", "high", "medium", "low"],
+          },
         },
       },
     },

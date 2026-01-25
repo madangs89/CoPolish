@@ -1,14 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  setCurrentResume,
+  setCurrentResumeId,
   setGlobalLoaderForStatus,
   setStatusHelper,
 } from "../../redux/slice/resumeSlice";
 import DiffViewer from "react-diff-viewer";
 import BlackLoader from "../Loaders/BlackLoader";
 import { ArrowDown, ArrowUp } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { createPortal } from "react-dom";
 
-const ORDER = [
+/* ---------------- CONSTANTS ---------------- */
+
+const BASE_ORDER = [
   "skills",
   "projects",
   "experience",
@@ -20,247 +26,231 @@ const ORDER = [
   "personal",
 ];
 
+/* ---------------- MAIN ---------------- */
+
 export default function OptimizationPanel() {
   const dispatch = useDispatch();
-  const socket = useSelector((state) => state.socket.socket);
-  const STATIC_DATA = useSelector((state) => state.resume.statusHelper);
+  const socket = useSelector((s) => s.socket.socket);
+  const STATUS = useSelector((s) => s.resume.statusHelper);
+
+  const [finalScore, setFinalScore] = useState(null);
+  const [showCommitModal, setShowCommitModal] = useState(false);
+  const [isFinalized, setIsFinalized] = useState(false);
+
+  /* ---------------- SOCKET ---------------- */
 
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("job:update", (val) => {
-      val = JSON.parse(val);
-      let {
-        userId,
-        resumeId,
-        data: {
-          status,
-          error,
-          optimizedSections,
-          startedAt,
-          updatedAt,
-          completedAt,
-          currentOperation,
-          errorTask,
-        },
-      } = val;
-
-      console.log(status, currentOperation);
-
-      optimizedSections = JSON.parse(optimizedSections || "{}");
-      errorTask = JSON.parse(errorTask || "{}");
-
-      const currentIndex = ORDER.indexOf(currentOperation);
-
-      if (
-        currentIndex !== -1 &&
-        currentIndex < ORDER.length - 1 &&
-        optimizedSections[currentOperation]?.status === "completed"
-      ) {
-        currentOperation = ORDER[currentIndex + 1];
-      }
+    const onUpdate = (raw) => {
+      const payload = JSON.parse(raw);
+      const { data } = payload;
 
       dispatch(
         setStatusHelper({
-          resumeId,
-          userId,
-          error,
-          optimizedSections,
-          errorTask,
-          completedAt,
-          startedAt,
-          updatedAt,
-          currentOperation,
-          status,
+          ...data,
+          optimizedSections: JSON.parse(data.optimizedSections || "{}"),
+          errorTask: JSON.parse(data.errorTask || "{}"),
         }),
       );
-    });
+    };
 
-    return () => socket.off("job:update");
+    const onFinish = (raw) => {
+      if (!raw) return;
+
+      const payload = JSON.parse(raw);
+
+      // ✅ success path
+      setFinalScore(payload.scoreAfter ?? null);
+      setIsFinalized(true);
+      setShowCommitModal(true);
+      setTimeout(() => {
+        dispatch(setCurrentResumeId(payload._id));
+        dispatch(setCurrentResume(payload));
+        dispatch(setStatusHelper(false));
+        setShowCommitModal(false);
+        toast.success("Optimized changes applied");
+      }, 800);
+    };
+
+    socket.on("job:update", onUpdate);
+    socket.on("job:update-finish", onFinish);
+
+    return () => {
+      socket.off("job:update", onUpdate);
+      socket.off("job:update-finish", onFinish);
+    };
   }, [socket, dispatch]);
 
-  return (
-    <aside className="w-[400px] h-screen flex flex-col bg-[#F8F9FB] border-l shadow-sm">
-      {/* HEADER */}
-      <div className="flex items-center justify-between px-4 py-3 border-b">
-        <h3 className="font-medium text-gray-900">Optimizing your resume</h3>
-        <button
-          onClick={() => dispatch(setGlobalLoaderForStatus(false))}
-          className="text-gray-400 hover:text-gray-600"
-        >
-          ✕
-        </button>
-      </div>
+  /* ---------------- DERIVED ---------------- */
 
-      {/* BODY */}
-      <div className="px-4 py-3 pb-10 flex-1 space-y-3 overflow-y-auto">
-        {STATIC_DATA.operation === "all" ? (
-          ORDER.map((key) => {
-            const section = STATIC_DATA.optimizedSections?.[key];
-            return (
-              <SectionRow
-                key={key}
-                label={capitalize(key)}
-                {...section}
-                isActive={STATIC_DATA.currentOperation === key}
-              />
-            );
-          })
-        ) : (
-          <SingleOptimizationView data={STATIC_DATA} />
-        )}
-      </div>
-    </aside>
-  );
-}
+  const sectionOrder =
+    STATUS.operation === "all" ? BASE_ORDER : [STATUS.operation];
 
-/* -------------------------------------------------- */
-/* SINGLE OPTIMIZATION VIEW                            */
-/* -------------------------------------------------- */
+  const sections = sectionOrder.map((key) => {
+    const s = STATUS.optimizedSections?.[key];
+    return {
+      key,
+      label: capitalize(key),
+      status: s?.status || "pending",
+      changes: s?.changes || [],
+      isActive: STATUS.currentOperation === key,
+    };
+  });
 
-function SingleOptimizationView({ data }) {
-  const sectionKey = data.operation;
-  const section = data.optimizedSections?.[sectionKey];
+  // ✅ derived success count
+  const successCount = useMemo(() => {
+    return sections.filter((s) => s.status === "completed").length;
+  }, [sections]);
 
-  const isLoading = data.isOptimizing || !section;
+  /* ---------------- FORCE COMPLETE (ALL FAILED) ---------------- */
 
-  return (
-    <div className="space-y-3">
-      {/* Header */}
-      <div className="rounded-md border bg-white p-3 text-sm">
-        <p className="font-medium text-gray-900">
-          Optimizing {capitalize(sectionKey)}
-        </p>
-        <p className="text-gray-500 text-xs mt-1">
-          Only this section is being optimized to keep changes focused and
-          accurate.
-        </p>
-      </div>
+  useEffect(() => {
+    if (STATUS.status === "completed" && successCount === 0 && !isFinalized) {
+      setIsFinalized(true);
+      setFinalScore(null);
+      dispatch(setStatusHelper(false));
+    }
+  }, [STATUS.status, successCount, isFinalized, dispatch]);
 
-      {/* Content */}
-      {isLoading ? (
-        <div className="rounded-md border bg-white p-4 text-sm text-gray-600 flex items-center gap-2">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-700" />
-          Preparing optimization…
-        </div>
-      ) : (
-        <SectionRow
-          label={capitalize(sectionKey)}
-          {...section}
-          isActive={true}
-        />
-      )}
-    </div>
-  );
-}
+  /* ---------------- SCORE ROW ---------------- */
 
-/* -------------------------------------------------- */
-/* SECTION ROW                                        */
-/* -------------------------------------------------- */
-
-function SectionRow({ label, status, changes = [], isActive }) {
-  const [openViewer, setOpenViewer] = useState(true);
-
-  return (
-    <div
-      className={`text-sm border bg-white p-2 rounded ${isActive && status !== "completed" ? "loader" : ""}`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex gap-2">
-          <StatusIcon status={status} isActive={isActive} />
-
-          <div className="flex-1">
-            <p className="font-medium text-gray-900">{label}</p>
-            <p className="text-gray-500">{status ? status : "Pending"}</p>
-          </div>
-        </div>
-
-        {changes.length > 0 ? (
-          <button onClick={() => setOpenViewer(!openViewer)}>
-            {openViewer ? (
-              <ArrowUp className="text-gray-600 w-5 h-5" />
-            ) : (
-              <ArrowDown className="text-gray-600 w-5 h-5" />
-            )}
-          </button>
-        ) : (
-          <p className="text-xs text-gray-700">No changes</p>
-        )}
-      </div>
-
-      {changes.length > 0 && (
-        <ul
-          className={`
-            mt-2  list-disc pl-1
-            grid overflow-hidden
-            transition-[grid-template-rows] duration-300 ease-out
-            ${openViewer ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}
-          `}
-        >
-          <div className="min-h-0">
-            <div className="space-y-2">
-              {changes.map((c, i) => (
-                <li
-                  key={i}
-                  className="rounded-md border border-gray-200 bg-white"
-                >
-                  <DiffViewer
-                    oldValue={c.before || ""}
-                    newValue={c.after || ""}
-                    splitView={false}
-                    showDiffOnly
-                    hideLineNumbers
-                    styles={{
-                      diffContainer: {
-                        background: "transparent",
-                        fontSize: "13px",
-                        lineHeight: "1.6",
-                      },
-                      added: { background: "#dcfce7" },
-                      removed: { background: "#fee2e2" },
-                    }}
-                  />
-                </li>
-              ))}
-            </div>
-          </div>
-        </ul>
-      )}
-    </div>
-  );
-}
-
-/* -------------------------------------------------- */
-/* STATUS ICON                                        */
-/* -------------------------------------------------- */
-
-function StatusIcon({ status, isActive }) {
-  if (status === "completed") {
-    return (
-      <span className="h-5 w-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">
-        ✓
-      </span>
-    );
+  // 🟡 CASE 1: waiting for backend score (some success)
+  if (!isFinalized && successCount > 0) {
+    sections.push({
+      key: "score",
+      label: "Score",
+      status: "running",
+      changes: [],
+      isActive: true,
+    });
   }
 
-  if (status === "running" || isActive) {
+  // 🟢 CASE 2: finalized (success or all-failed)
+  if (isFinalized) {
+    sections.push({
+      key: "score",
+      label: "Score",
+      status: "completed",
+      changes: [
+        {
+          before: "",
+          after:
+            finalScore == null
+              ? "Score unchanged (all sections failed)"
+              : `Final Resume Score: ${finalScore}`,
+        },
+      ],
+    });
+  }
+
+  /* ---------------- RENDER ---------------- */
+
+  return (
+    <>
+      <aside className="w-[400px] h-screen flex flex-col bg-[#F8F9FB] border-l">
+        <div className="flex justify-between px-4 py-3 border-b">
+          <h3 className="font-medium">
+            {isFinalized ? "Optimization Complete" : "Optimizing Resume"}
+          </h3>
+          <button onClick={() => dispatch(setGlobalLoaderForStatus(false))}>
+            ✕
+          </button>
+        </div>
+
+        <div className="px-4 py-3 space-y-3 overflow-y-auto">
+          {sections.map((s) => (
+            <SectionRow key={s.key} {...s} />
+          ))}
+        </div>
+      </aside>
+
+      {showCommitModal && <ApplyCommitModal />}
+    </>
+  );
+}
+
+/* ---------------- SECTION ROW ---------------- */
+
+function SectionRow({ label, status, changes, isActive }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="border bg-white p-2 rounded">
+      <div className="flex justify-between">
+        <div className="flex gap-2 items-start">
+          <StatusIcon status={status} isActive={isActive} />
+          <div>
+            <p className="font-medium">{label}</p>
+            <p className="text-xs text-gray-500">{status}</p>
+          </div>
+        </div>
+
+        {changes.length > 0 && (
+          <button onClick={() => setOpen(!open)}>
+            {open ? <ArrowUp /> : <ArrowDown />}
+          </button>
+        )}
+      </div>
+
+      {open &&
+        changes.map((c, i) => (
+          <DiffViewer
+            key={i}
+            oldValue={c.before || ""}
+            newValue={c.after || ""}
+            splitView={false}
+            showDiffOnly
+            hideLineNumbers
+          />
+        ))}
+    </div>
+  );
+}
+
+/* ---------------- STATUS ICON ---------------- */
+
+function StatusIcon({ status, isActive }) {
+  if (status === "completed") return <Dot color="green" text="✓" />;
+  if (status === "failed") return <Dot color="red" text="!" />;
+  if (status === "running" || isActive)
     return (
-      <span className="h-5 w-5 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs animate-pulse">
+      <span className="h-5 w-5 flex items-center justify-center">
         <BlackLoader />
       </span>
     );
-  }
-
-  return (
-    <span className="h-5 w-5 rounded-full border text-gray-400 flex items-center justify-center text-xs">
-      ○
-    </span>
-  );
+  return <Dot color="gray" text="○" />;
 }
 
-/* -------------------------------------------------- */
-/* HELPERS                                            */
-/* -------------------------------------------------- */
+const Dot = ({ color, text }) => {
+  const map = {
+    green: "bg-green-100 text-green-600",
+    red: "bg-red-100 text-red-600",
+    gray: "bg-gray-200 text-gray-500",
+  };
+
+  return (
+    <span
+      className={`h-5 w-5 rounded-full flex items-center justify-center text-xs ${map[color]}`}
+    >
+      {text}
+    </span>
+  );
+};
+
+/* ---------------- MODAL ---------------- */
+
+function ApplyCommitModal() {
+  return createPortal(
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+      <div className="bg-white p-6 rounded">
+        <BlackLoader />
+        <p className="mt-2 text-sm">Applying optimized changes…</p>
+      </div>
+    </div>,
+    document.body,
+  );
+}
 
 function capitalize(str = "") {
   return str.charAt(0).toUpperCase() + str.slice(1);

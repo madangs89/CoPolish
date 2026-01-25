@@ -2,7 +2,12 @@ import { Worker } from "bullmq";
 import { bullClient, connectRedis, pubClient } from "../../config/redis.js";
 import ResumeTemplate from "../../models/resume.model.js";
 import { connectDB } from "../../config/connectDB.js";
-import { resumeOptimizer } from "../../LLmFunctions/lllm.js";
+import {
+  payloadPublisher,
+  resumeOptimizer,
+  resumeScoreWithAi,
+} from "../../LLmFunctions/lllm.js";
+import User from "../../models/user.model.js";
 
 const SUPPORTED_OPERATIONS = new Set([
   "personal",
@@ -114,6 +119,16 @@ let checkedFields = [
   "personal",
 ];
 
+function computeResumeScore(scores) {
+  return Math.round(
+    0.3 * scores.atsScore +
+      0.2 * scores.contentClarityScore +
+      0.15 * scores.structureScore +
+      0.15 * scores.impactScore +
+      0.1 * scores.projectScore +
+      0.1 * scores.experienceScore,
+  );
+}
 await connectDB();
 await connectRedis();
 
@@ -129,7 +144,7 @@ const resumeOptimizeWorker = new Worker(
         if (!resumeId || !operation) {
           await pubClient.hset(jobKey, {
             status: "failed",
-            error: null,
+            error: "Missing resumeId or operation",
             currentOperation: null,
             optimizedSections: JSON.stringify({}),
             startedAt: null,
@@ -140,35 +155,25 @@ const resumeOptimizeWorker = new Worker(
             errorTask: JSON.stringify({}),
           });
 
-          let jobPayLoad = {
+          await payloadPublisher({
             userId,
+            operation: operation,
             jobKey,
             resumeId,
             event,
-            operation: operation,
-            data: {
-              status: "failed",
-              error: "Missing resumeId or operation",
-              currentOperation: "",
-              optimizedSections: JSON.stringify({}),
-              startedAt: null,
-              updatedAt: null,
-              completedAt: null,
-              resumeId,
-              userId,
-              errorTask: JSON.stringify({}),
-            },
-          };
-
-          await pubClient.publish("job:updates", JSON.stringify(jobPayLoad));
-
+            status: "failed",
+            error: "Missing resumeId or operation",
+            startedAt,
+            updatedAt: Date.now(),
+            completedAt: Date.now(),
+          });
           throw new Error("Missing resumeId or operation");
         }
 
         if (!SUPPORTED_OPERATIONS.has(operation)) {
           await pubClient.hset(jobKey, {
             status: "failed",
-            error: null,
+            error: "Server Error during AI Optimization",
             currentOperation: null,
             optimizedSections: JSON.stringify({}),
             startedAt: null,
@@ -179,27 +184,18 @@ const resumeOptimizeWorker = new Worker(
             errorTask: JSON.stringify({}),
           });
 
-          let jobPayLoad = {
+          await payloadPublisher({
             userId,
+            operation: operation,
             jobKey,
             resumeId,
             event,
-            operation: operation,
-            data: {
-              status: "failed",
-              error: "Missing resumeId or operation",
-              currentOperation: "",
-              optimizedSections: JSON.stringify({}),
-              startedAt: null,
-              updatedAt: null,
-              completedAt: null,
-              resumeId,
-              userId,
-              errorTask: JSON.stringify({}),
-            },
-          };
-
-          await pubClient.publish("job:updates", JSON.stringify(jobPayLoad));
+            status: "failed",
+            error: "Server Error during AI Optimization",
+            startedAt,
+            updatedAt: Date.now(),
+            completedAt: Date.now(),
+          });
 
           throw new Error("Server Error during AI Optimization");
         }
@@ -217,13 +213,13 @@ const resumeOptimizeWorker = new Worker(
           status: "started",
           error: null,
           currentOperation: "",
-          optimizedSections: {},
+          optimizedSections: JSON.stringify({}),
           startedAt: Date.now(),
           updatedAt: null,
           completedAt: null,
           resumeId,
           userId,
-          errorTask: {},
+          errorTask: JSON.stringify({}),
         });
         console.log("Starting AI optimization for resume:", resumeId);
         const optimizedData = await resumeOptimizer({
@@ -239,17 +235,9 @@ const resumeOptimizeWorker = new Worker(
         console.log("got optimized data from llm function", operation);
 
         if (isError) {
-          if (
-            (errorTask &&
-              Object.keys(errorTask).length > 0 &&
-              errorTask["resume_not_found"] != undefined) ||
-            errorTask["server_error"] !== undefined
-          ) {
-          }
-
           await pubClient.hset(jobKey, {
             status: "failed",
-            error: null,
+            error,
             currentOperation: null,
             optimizedSections: JSON.stringify({}),
             startedAt: null,
@@ -260,31 +248,18 @@ const resumeOptimizeWorker = new Worker(
             errorTask: JSON.stringify({}),
           });
 
-          let jobPayLoad = {
+          await payloadPublisher({
             userId,
+            operation: operation,
             jobKey,
             resumeId,
             event,
-            operation: operation,
-            data: {
-              status: "failed",
-              error: "Server Error during AI Optimization",
-              currentOperation: "",
-              optimizedSections: JSON.stringify({}),
-              startedAt: null,
-              updatedAt: null,
-              completedAt: null,
-              resumeId,
-              userId,
-              errorTask: JSON.stringify({}),
-            },
-          };
-
-          await pubClient.publish("job:updates", JSON.stringify(jobPayLoad));
-
-          // need to do pub sub
-          await pubClient.del(redisKey);
-          await pubClient.del(execLockKey);
+            status: "failed",
+            error: "Server Error during AI Optimization",
+            startedAt,
+            updatedAt: Date.now(),
+            completedAt: Date.now(),
+          });
           throw new Error(`AI Optimization failed: ${error}`);
         }
 
@@ -295,11 +270,12 @@ const resumeOptimizeWorker = new Worker(
         let isAnyError = false;
         let dbPayload = {};
         let dbChanges = {};
-        let errorCount = 0;
+        let successCount = 0;
+        let scoreBefore = 0;
+        let scoreAfter = 0;
 
         // console.log(optimizedSections);
 
-        console.log(operation == "all");
         if (operation == "all") {
           console.log("inside if ");
 
@@ -309,7 +285,8 @@ const resumeOptimizeWorker = new Worker(
             if (!sectionData) continue;
             if (sectionData.isError) {
               isAnyError = true;
-              errorCount += 1;
+            } else {
+              successCount += 1;
             }
 
             const value = extractSectionValue(op, sectionData);
@@ -320,103 +297,373 @@ const resumeOptimizeWorker = new Worker(
               ? sectionData.changes
               : [];
           }
+          let oldResumeData = null;
+          let newSuggestions = [];
 
-          console.log("DB PAYLOAD:", dbPayload);
-          console.log("DB CHANGES:", dbChanges);
-          console.log("error Count", errorCount);
-          console.log("skill map", data.skillMap);
+          let config = {};
+          let templateId = null;
+          let version = 1;
 
-          let jobPayLoad = {
-            userId,
-            jobKey,
-            resumeId,
-            event,
-            operation: operation,
-            data: {
-              status: "completed",
-              error: redisData.error,
-              currentOperation: redisData.currentOperation,
-              optimizedSections: JSON.stringify(redisData.optimizedSections),
-              startedAt: redisData.startedAt,
-              updatedAt: redisData.updatedAt,
-              completedAt: redisData.completedAt,
-              resumeId,
+          const key = `resume:${resumeId}:${userId}`;
+
+          const exists = await pubClient.exists(key);
+          if (exists) {
+            const resumeData = await pubClient.hget(key, "data");
+
+            oldResumeData = JSON.parse(resumeData);
+            newSuggestions = oldResumeData?.suggestions || [];
+            config = oldResumeData?.config || {};
+            templateId = oldResumeData?.templateId || "HarvardResume";
+            version = oldResumeData?.version || 1;
+          } else {
+            const resume = await ResumeTemplate.findOne({
+              _id: resumeId,
               userId,
-              errorTask: JSON.stringify(errorTask),
-            },
-          };
-
-          await pubClient.publish("job:updates", JSON.stringify(jobPayLoad));
-
-          // const newResumeVersion = await ResumeTemplate.create({
-          //   userId,
-          //   jobKey,
-          //   version: 1,
-          //   ...dbPayload,
-          //   changes: dbChanges,
-          //   checkedFields,
-          //   config,
-          //   skillMap: data.skillMap || {},
-          // });
-        } else {
-          const sectionData = optimizedSections[operation];
-
-          if (sectionData.isError) {
-            isAnyError = true;
-            errorCount += 1;
+            });
+            oldResumeData = resume ? resume.toObject() : null;
+            newSuggestions = oldResumeData?.suggestions || [];
+            config = oldResumeData?.config || {};
+            templateId = oldResumeData?.templateId || "HarvardResume";
+            version = oldResumeData?.version || 1;
           }
 
-          const value = extractSectionValue(operation, sectionData);
+          let score = {
+            atsScore: oldResumeData?.atsScore || 0,
+            contentClarityScore: oldResumeData?.contentClarityScore || 0,
+            structureScore: oldResumeData?.structureScore || 0,
+            impactScore: oldResumeData?.impactScore || 0,
+            projectScore: oldResumeData?.projectScore || 0,
+            experienceScore: oldResumeData?.experienceScore || 0,
+          };
 
-          console.log(value);
+          let totalScore = computeResumeScore(score);
 
-          let jobPayLoad = {
+          scoreBefore = totalScore;
+          scoreAfter = totalScore;
+
+          score["totalScore"] = totalScore;
+          // now need to compute new Score
+
+          console.log("Success Count:", successCount);
+          if (successCount == 0) {
+            console.log("inside success count zero");
+            await payloadPublisher({
+              userId,
+              operation,
+              jobKey,
+              resumeId,
+              event,
+              status: "completed",
+              optimizedSections,
+              errorTask,
+              startedAt,
+              updatedAt: Date.now(),
+              completedAt: Date.now(),
+            });
+
+            await pubClient.publish(
+              "job:updates-finish",
+              JSON.stringify({
+                type: "completed",
+                result: "all_failed",
+                jobKey,
+                resumeId,
+                userId,
+                scoreAfter: null,
+                reason: "All sections failed during optimization",
+              }),
+            );
+
+            return;
+          } else {
+            // call llm for new Scores and suggestions
+            console.log("Called for resume score");
+
+            if (Object.keys(dbChanges).length > 0) {
+              let returnedVal = await resumeScoreWithAi({
+                oldResumeData,
+                dbChanges,
+              });
+
+              const { error, isError, data: newScore } = returnedVal;
+
+              if (!isError) {
+                score.atsScore = newScore.atsScore;
+                score.contentClarityScore = newScore.contentClarityScore;
+                score.structureScore = newScore.structureScore;
+                score.impactScore = newScore.impactScore;
+                score.projectScore = newScore.projectScore;
+                score.experienceScore = newScore.experienceScore;
+                totalScore = computeResumeScore(score);
+                score["totalScore"] = totalScore;
+                scoreAfter = totalScore;
+                newSuggestions =
+                  newScore.optimizationSuggestions.length > 0
+                    ? newScore.optimizationSuggestions
+                    : newSuggestions;
+              }
+            }
+          }
+
+          console.log("Final Score:", score);
+          console.log("New Suggestions:", newSuggestions);
+
+          const newResumeVersion = await ResumeTemplate.create({
             userId,
             jobKey,
-            resumeId,
-            event,
-            operation: operation,
-            data: {
-              status: redisData.status,
-              error: redisData.error,
-              currentOperation: redisData.currentOperation,
-              optimizedSections: JSON.stringify(redisData.optimizedSections),
-              startedAt: redisData.startedAt,
-              updatedAt: redisData.updatedAt,
-              completedAt: redisData.completedAt,
-              resumeId,
+            version: version + 1,
+            ...dbPayload,
+            changes: dbChanges,
+            checkedFields,
+            skillMap: data.skillMap || {},
+            suggestions: newSuggestions,
+            scoreBefore,
+            scoreAfter,
+            ...score,
+            templateId,
+            config,
+          });
+
+          const newkey = `resume:${newResumeVersion._id}:${userId}`;
+
+          await pubClient.hset(newkey, {
+            data: JSON.stringify(newResumeVersion),
+            isDirty: 0, // not edited yet
+            firstEditAt: Date.now(), // editing not started
+            lastEditAt: "", // editing not started
+          });
+
+          await User.findByIdAndUpdate(userId, {
+            currentResumeId: newResumeVersion._id,
+          });
+          await pubClient.publish(
+            "job:updates-finish",
+            JSON.stringify(newResumeVersion),
+          );
+        } else {
+          const sectionData = optimizedSections[operation];
+          if (!sectionData.isError) {
+            successCount += 1;
+          } else {
+            isAnyError = true;
+          }
+          const value = extractSectionValue(operation, sectionData);
+          let dbChanges = {};
+          dbChanges[operation] = Array.isArray(sectionData.changes)
+            ? sectionData.changes
+            : [];
+          console.log(value);
+          console.log(dbChanges);
+
+          let oldResumeData = null;
+          let newSuggestions = [];
+          let scoreBefore = 0;
+          let scoreAfter = 0;
+
+          let config = {};
+          let templateId = null;
+
+          const key = `resume:${resumeId}:${userId}`;
+
+          let exists = await pubClient.exists(key);
+          if (exists) {
+            const resumeData = await pubClient.hget(key, "data");
+
+            oldResumeData = JSON.parse(resumeData);
+            newSuggestions = oldResumeData?.suggestions || [];
+            config = oldResumeData?.config || {};
+            templateId = oldResumeData?.templateId || "HarvardResume";
+          } else {
+            const resume = await ResumeTemplate.findOne({
+              _id: resumeId,
               userId,
-              errorTask: JSON.stringify(errorTask),
-            },
+            });
+            oldResumeData = resume ? resume.toObject() : null;
+            newSuggestions = oldResumeData?.suggestions || [];
+            config = oldResumeData?.config || {};
+            templateId = oldResumeData?.templateId || "HarvardResume";
+          }
+
+          let score = {
+            atsScore: oldResumeData?.atsScore || 0,
+            contentClarityScore: oldResumeData?.contentClarityScore || 0,
+            structureScore: oldResumeData?.structureScore || 0,
+            impactScore: oldResumeData?.impactScore || 0,
+            projectScore: oldResumeData?.projectScore || 0,
+            experienceScore: oldResumeData?.experienceScore || 0,
           };
-          console.log("publishing event");
-          await pubClient.publish("job:updates", JSON.stringify(jobPayLoad));
 
-          // // //  UPSERT = ONLY ONE INSERT EVER
-          // const resume = await ResumeTemplate.findOneAndUpdate(
-          //   { _id: resumeId },
-          //   {
-          //     $setOnInsert: {
-          //       operation: value,
-          //       [`changes.${operation}`]: Array.isArray(sectionData.changes)
-          //         ? sectionData.changes
-          //         : [],
-          //     },
-          //   },
-          //   { upsert: true, new: true },
-          // );
+          let totalScore = computeResumeScore(score);
+          scoreBefore = totalScore;
+          scoreAfter = totalScore;
+
+          score["totalScore"] = totalScore;
+          // now need to compute new Score
+
+          console.log("Success Count:", successCount);
+          if (successCount == 0) {
+            console.log("inside success count zero");
+            await payloadPublisher({
+              userId,
+              operation,
+              jobKey,
+              resumeId,
+              event,
+              status: "completed",
+              optimizedSections,
+              errorTask,
+              startedAt,
+              updatedAt: Date.now(),
+              completedAt: Date.now(),
+            });
+            await pubClient.publish(
+              "job:updates-finish",
+              JSON.stringify({
+                type: "completed",
+                result: "all_failed",
+                jobKey,
+                resumeId,
+                userId,
+                scoreAfter: null,
+                reason: "All sections failed during optimization",
+              }),
+            );
+
+            return;
+          } else {
+            // call llm for new Scores and suggestions
+
+            console.log("Called for resume score");
+
+            if (Object.keys(dbChanges).length > 0) {
+              let returnedVal = await resumeScoreWithAi({
+                oldResumeData,
+                dbChanges,
+              });
+
+              const { error, isError, data: newScore } = returnedVal;
+
+              if (!isError) {
+                score.atsScore = newScore.atsScore;
+                score.contentClarityScore = newScore.contentClarityScore;
+                score.structureScore = newScore.structureScore;
+                score.impactScore = newScore.impactScore;
+                score.projectScore = newScore.projectScore;
+                score.experienceScore = newScore.experienceScore;
+                totalScore = computeResumeScore(score);
+                score["totalScore"] = totalScore;
+                scoreAfter = totalScore;
+                newSuggestions =
+                  newScore.optimizationSuggestions.length > 0
+                    ? newScore.optimizationSuggestions
+                    : newSuggestions;
+              }
+            }
+          }
+
+          console.log("Final Score:", score);
+          console.log("New Suggestions:", newSuggestions);
+
+          exists = await pubClient.exists(key);
+          if (exists) {
+            const resumeData = await pubClient.hget(key, "data");
+
+            oldResumeData = JSON.parse(resumeData);
+
+            oldResumeData[operation] = value;
+            oldResumeData.changes = oldResumeData.changes || {};
+            oldResumeData.changes[operation] = dbChanges[operation];
+            oldResumeData = {
+              ...oldResumeData,
+              ...score,
+              scoreBefore,
+              scoreAfter,
+              suggestions: newSuggestions,
+              updatedAt: Date.now(),
+            };
+            await pubClient.hset(key, {
+              data: JSON.stringify(oldResumeData),
+              isDirty: 1, // not edited yet
+              firstEditAt: Date.now(), // editing not started
+              lastEditAt: "", // editing not started
+            });
+
+            await pubClient.publish(
+              "job:updates-finish",
+              JSON.stringify(oldResumeData),
+            );
+          } else {
+            const resume = await ResumeTemplate.findOneAndUpdate(
+              { _id: resumeId },
+              {
+                $set: {
+                  operation: value,
+                  [`changes.${operation}`]: Array.isArray(sectionData.changes)
+                    ? [
+                        ...sectionData.changes,
+                        ...oldResumeData.changes[operation],
+                      ]
+                    : [],
+                  ...score,
+                  suggestions: newSuggestions,
+                  templateId,
+                  config,
+                  scoreBefore,
+                  scoreAfter,
+                },
+              },
+              { upsert: true, new: true },
+            );
+            await pubClient.hset(key, {
+              data: JSON.stringify(resume.toObject()),
+              isDirty: 0, // not edited yet
+              firstEditAt: Date.now(), // editing not started
+              lastEditAt: "", // editing not started
+            });
+
+            await pubClient.publish(
+              "job:updates-finish",
+              JSON.stringify(resume.toObject()),
+            );
+          }
         }
-
-        await pubClient.del(redisKey);
-        await pubClient.del(execLockKey);
-        // console.log(optimizedData);
       }
     } catch (error) {
-      // nee to remove another lock also
-      await pubClient.del(redisKey);
-      await pubClient.del(execLockKey);
+      await pubClient.hset(jobKey, {
+        status: "failed",
+        error: "Unexpected server error during AI Optimization",
+        currentOperation: null,
+        optimizedSections: JSON.stringify({}),
+        startedAt: null,
+        updatedAt: null,
+        completedAt: null,
+        resumeId,
+        userId,
+        errorTask: JSON.stringify({}),
+      });
+
+      await pubClient.expire(jobKey, 60 * 10); // 10 minutes
+
+      await payloadPublisher({
+        userId,
+        operation,
+        jobKey,
+        resumeId,
+        event,
+        status: "failed",
+        error: error.message || "Worker crashed",
+        optimizedSections: {},
+        errorTask: { worker: error.message },
+        startedAt,
+        updatedAt: Date.now(),
+        completedAt: Date.now(),
+      });
+
       console.error("Error in AI optimization worker:", error);
       throw error;
+    } finally {
+      await pubClient.del(redisKey);
+      await pubClient.del(execLockKey);
     }
 
     return { success: true };

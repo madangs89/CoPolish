@@ -10,6 +10,7 @@ import {
   parseResumeSchema,
   personalSchema,
   projectsSchema,
+  resumeScoreSchema,
   skillsSchema,
 } from "../ResumeSchemas/all.schema.js";
 
@@ -33,6 +34,7 @@ export const schemaMap = {
   hobbies: hobbiesSchema,
   extracurricular: extracurricularSchema,
   parsed: parseResumeSchema,
+  score:resumeScoreSchema
 };
 
 export const validateLLMResponse = (operation, data) => {

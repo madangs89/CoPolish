@@ -10,6 +10,7 @@ import {
 } from "../redux/slice/resumeSlice";
 import SkeletonLoader from "../components/Loaders/SkeletonLoader";
 import { useLocation, useNavigate } from "react-router-dom";
+import { setAuthFalse, setUser } from "../redux/slice/authSlice";
 
 let nowTime = new Date();
 
@@ -37,6 +38,47 @@ const Dashboard = () => {
     oops: 30,
     dbms: 50,
   });
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/auth/v1/is-auth`,
+          {
+            withCredentials: true,
+          },
+        );
+        console.log(data);
+
+        if (data.success) {
+          console.log("calling setUser");
+          data.isAuth = true;
+          dispatch(setUser(data));
+          if (
+            data?.user?.currentResumeId == "" ||
+            data?.user?.currentResumeId == undefined
+          ) {
+            navigate("/onboarding");
+          } else if (
+            data?.user?.currentResumeId.length > 0 &&
+            !data?.user?.isApproved
+          ) {
+            navigate(`/approve/${data?.user?.currentResumeId}`);
+          } else {
+            navigate("/dashboard");
+          }
+        }
+      } catch (error) {
+        console.log(error);
+        let data = {
+          user: {},
+          isAuth: false,
+        };
+        dispatch(setAuthFalse(false));
+        dispatch(setUser(data));
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     // Get Resume Data
