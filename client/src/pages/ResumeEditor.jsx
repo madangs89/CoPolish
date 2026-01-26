@@ -29,6 +29,8 @@ import {
   setCheckedField,
   setGlobalLoaderForStatus,
   setCurrentResumeId,
+  setScoreForChangedCheckedFields,
+  setBaseScore,
 } from "../redux/slice/resumeSlice";
 import { useRef } from "react";
 // import ImproveWithAIModal from "../components/modals/ImproveWithAIModal";
@@ -36,6 +38,7 @@ import OptimizeModal from "../components/modals/OptimizeModal";
 import ResumeTopBar from "../components/ResumeEditor/ResumeTopBar";
 import OptimizationPanel from "../components/modals/OptimizationPanel";
 import DraggableOptimizerFab from "../components/modals/DraggableOptimizerFab";
+import BlackLoader from "../components/Loaders/BlackLoader";
 const ResumeEditor = () => {
   const dispatch = useDispatch();
 
@@ -123,6 +126,38 @@ const ResumeEditor = () => {
       checkedFields: updatedCheckedFields,
     };
 
+    let scoreMinus = 0;
+
+    if (!updatedCheckedFields.includes("experience")) {
+      scoreMinus += 15;
+    }
+
+    if (!updatedCheckedFields.includes("projects")) {
+      scoreMinus += 15;
+    }
+    if (
+      !updatedCheckedFields.includes("personal") &&
+      !updatedCheckedFields.includes("skills")
+    ) {
+      scoreMinus += 10;
+    }
+
+    if (
+      !updatedCheckedFields.includes("education") &&
+      !updatedCheckedFields.includes("certifications")
+    ) {
+      scoreMinus += 5;
+    }
+
+    if (
+      !updatedCheckedFields.includes("extracurricular") &&
+      !updatedCheckedFields.includes("hobbies") &&
+      !updatedCheckedFields.includes("achievements")
+    ) {
+      scoreMinus += 2;
+    }
+
+    // dispatch(setScoreForChangedCheckedFields(scoreMinus));
     dispatch(setCheckedField(updatedCheckedFields));
     setChangeCounter((prev) => prev + 1);
   };
@@ -223,6 +258,14 @@ const ResumeEditor = () => {
         };
         dispatch(setCurrentResumeConfig(data.resume.config || configData));
         dispatch(setCurrentResumeId(data?.resume?._id));
+        dispatch(
+          setBaseScore(
+            Math.max(
+              data?.resume?.scoreBefore || 0,
+              data?.resume?.scoreAfter || 0,
+            ),
+          ),
+        );
       }
     })();
   }, []);
@@ -511,6 +554,24 @@ const ResumeEditor = () => {
           dragDetails={dragDetails}
           setDragDetails={setDragDetails}
         />
+
+        {/* Resume Id Change Trigger */}
+
+        {resumeSlice.resumeIdChangeTrigger && (
+          <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <div className="bg-white rounded-xl w-[420px] p-6 shadow-xl flex flex-col items-center gap-4">
+              {/* Loader */}
+              <BlackLoader />
+              {/* Title */}
+              <h1 className="text-xl font-semibold text-gray-900">Reloading</h1>
+
+              {/* Subtext */}
+              <p className="text-sm text-gray-500 text-center">
+                Please wait while we update your resume…
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </Suspense>
   );

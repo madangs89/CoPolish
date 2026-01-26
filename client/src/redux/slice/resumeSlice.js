@@ -176,6 +176,10 @@ const initialState = {
     score: null,
     isScoreFound: false,
   },
+  resumeIdChangeTrigger: false,
+  baseScore: 0,
+  checkedFieldPenalty: 0,
+  displayScore: 0,
 };
 
 export const resumeSlice = createSlice({
@@ -190,6 +194,15 @@ export const resumeSlice = createSlice({
     },
     setIsChanged: (state, actions) => {
       state.isChanged = actions.payload;
+    },
+    setDisplayScore: (state, actions) => {
+      state.displayScore = actions.payload;
+    },
+    setBaseScore: (state, actions) => {
+      state.baseScore = actions.payload;
+    },
+    setCheckedFieldPenalty: (state, actions) => {
+      state.checkedFieldPenalty = actions.payload;
     },
     setCurrentResumeId: (state, actions) => {
       state.currentResumeId = actions.payload;
@@ -213,13 +226,37 @@ export const resumeSlice = createSlice({
     setCurrentResumeTitle: (state, actions) => {
       state.currentResume.title = actions.payload;
     },
+    setScoreForChangedCheckedFields: (state, actions) => {
+      state.checkedFieldPenalty = actions.payload;
+
+      if (
+        state.currentResume.scoreAfter &&
+        state.currentResume.scoreBefore > state.currentResume.scoreAfter
+      ) {
+        state.currentResume.scoreBefore = Math.max(
+          0,
+          state.baseScore - actions.payload,
+        );
+      } else {
+        state.currentResume.scoreAfter = Math.max(
+          0,
+          state.baseScore - actions.payload,
+        );
+      }
+    },
+
     setStatusHelperLoader: (state, actions) => {
       state.statusHelper.loading = actions.payload;
+    },
+
+    setResumeIdTrigger: (state, actions) => {
+      state.resumeIdChangeTrigger = actions.payload;
     },
   },
 });
 
 export const {
+  setResumeIdTrigger,
   setIsChanged,
   setCurrentResumeId,
   setCurrentResume,
@@ -229,7 +266,9 @@ export const {
   setGlobalLoaderForStatus,
   setStatusHelper,
   setStatusHelperLoader,
-  setCurrentResumeTitle
+  setScoreForChangedCheckedFields,
+  setBaseScore,
+  setCurrentResumeTitle,
 } = resumeSlice.actions;
 const resumeReducer = resumeSlice.reducer;
 

@@ -1,20 +1,30 @@
 import { Pencil, Zap } from "lucide-react";
-import { useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import toast from "react-hot-toast";
+import BlackLoader from "../Loaders/BlackLoader";
+import {
+  setCurrentResume,
+  setCurrentResumeConfig,
+  setCurrentResumeId,
+  setResumeIdTrigger,
+} from "../../redux/slice/resumeSlice";
 
-export default function ResumeTopBar({
-  title = "Backend Developer Resume",
-  versions = ["Version 1", "Version 2"],
-}) {
+export default function ResumeTopBar({ title = "Backend Developer Resume" }) {
   title = useSelector((state) => state.resume.currentResume.title);
   const [isEditing, setIsEditing] = useState(false);
   const [resumeTitle, setResumeTitle] = useState(title);
-  const [selectedVersion, setSelectedVersion] = useState(versions[1]);
+  const [versions, setVersions] = useState([]);
+  const [selectedVersion, setSelectedVersion] = useState();
+  4;
+  let resumeSlice = useSelector((state) => state.resume);
 
+  const [loading, setLoading] = useState(true);
   let credits = useSelector((state) => state.auth.user?.totalCredits || 0);
   const timer = useRef(null);
+
+  const dispatch = useDispatch();
 
   const latestResumeRef = useSelector((state) => state.resume.currentResume);
 
@@ -49,6 +59,74 @@ export default function ResumeTopBar({
       console.error("Error updating resume title:", error);
     }
   };
+
+  const handleUpdateVersion = async (newVersion) => {
+    try {
+      console.log("Selected version:", newVersion);
+      setSelectedVersion(newVersion);
+      dispatch(setResumeIdTrigger(true));
+      const data = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/${newVersion}`,
+        {
+          withCredentials: true,
+        },
+      );
+      if (data.data.success) {
+        dispatch(setCurrentResume(data?.data?.resume));
+
+        const configData = {
+          ...data?.data?.resume?.config,
+          content: {
+            ...(data?.data?.resume?.config?.content || {}),
+            order: [
+              "skills",
+              "projects",
+              "experience",
+              "education",
+              "certifications",
+              "achievements",
+              "extracurricular",
+              "hobbies",
+              "personal",
+            ],
+          },
+        };
+        dispatch(setCurrentResumeConfig(data.data.resume.config || configData));
+        dispatch(setCurrentResumeId(data?.data?.resume?._id));
+      }
+    } catch (error) {
+      console.error("Error updating resume version:", error);
+    } finally {
+      setTimeout(() => {
+        dispatch(setResumeIdTrigger(false));
+      }, 600);
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/all/versions`,
+          {
+            withCredentials: true,
+          },
+        );
+
+        console.log("Resume versions fetched:", res.data);
+        if (res.data.success) {
+          setSelectedVersion(resumeSlice.currentResumeId);
+          setVersions(res.data.resumes);
+        }
+      } catch (error) {
+        console.error("Error fetching resume versions:", error);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
   return (
     <div className="flex items-center justify-between  md:px-0 w-full h-10 bg-white px-3 border-b ">
       {/* LEFT — Resume title */}
@@ -82,41 +160,49 @@ export default function ResumeTopBar({
       </div>
 
       {/* RIGHT — Version + credits */}
-      <div className="flex items-center gap-2 sm:gap-4 text-sm flex-shrink-0">
-        {/* Version dropdown (hide on small screens) */}
-        <div className="hidden sm:flex items-center">
-          <select
-            value={selectedVersion}
-            onChange={(e) => setSelectedVersion(e.target.value)}
-            className="
+      {loading ? (
+        <div className="flex items-center gap-2 sm:gap-4 text-sm flex-shrink-0">
+          <BlackLoader />
+        </div>
+      ) : (
+        versions.length > 0 && (
+          <div className="flex items-center gap-2 sm:gap-4 text-sm flex-shrink-0">
+            {/* Version dropdown (hide on small screens) */}
+            <div className="hidden sm:flex items-center">
+              <select
+                value={selectedVersion}
+                onChange={(e) => handleUpdateVersion(e.target.value)}
+                className="
         h-8 px-2 rounded-md
         border border-gray-200
         bg-gray-50 text-gray-700
         text-sm
         focus:outline-none focus:ring-2 focus:ring-blue-500
       "
-          >
-            {versions.map((v) => (
-              <option key={v} value={v}>
-                {v}
-              </option>
-            ))}
-          </select>
-        </div>
+              >
+                {versions.map((v, i) => (
+                  <option key={v._id} value={v._id}>
+                    {v?.title || "Untitled Resume"}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        {/* Credits badge */}
-        <div
-          className="
+            {/* Credits badge */}
+            <div
+              className="
     flex items-center gap-1.5
     text-sm font-medium text-gray-800
     cursor-pointer border bg-gray-100 rounded-md p-1
     group
   "
-        >
-          <Zap className="w-4 h-4 text-[#F5C56B] transition-transform group-hover:scale-110" />
-          <span className="tabular-nums">{credits}</span>credits
-        </div>
-      </div>
+            >
+              <Zap className="w-4 h-4 text-[#F5C56B] transition-transform group-hover:scale-110" />
+              <span className="tabular-nums">{credits}</span>credits
+            </div>
+          </div>
+        )
+      )}
     </div>
   );
 }

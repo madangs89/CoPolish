@@ -72,8 +72,17 @@ export default function OptimizationPanel() {
       const payload = JSON.parse(raw);
 
       console.log("Job update received:", payload);
+
+      if (STATUS.globalLoaderForStatus === false) {
+        dispatch(setGlobalLoaderForStatus(true));
+      }
       // 🔒 Backend is the source of truth
-      dispatch(setStatusHelper(payload));
+      dispatch(
+        setStatusHelper({
+          ...payload,
+          loading: true,
+        }),
+      );
 
       const isFinal =
         payload.status === "completed" ||
@@ -266,7 +275,8 @@ function SectionRow({ label, status, changes, isActive }) {
           <button onClick={() => setOpen(!open)}>
             {open ? <ArrowUp /> : <ArrowDown />}
           </button>
-        ) : changes.length == 0 && status == "completed" ? (
+        ) : changes.length === 0 &&
+          (status === "completed" || status === "success") ? (
           <span className="text-green-500 font-semibold">No Changes</span>
         ) : null}
       </div>
@@ -321,7 +331,7 @@ const Dot = ({ color, text }) => {
 
 function ApplyCommitModal() {
   return createPortal(
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/60 flex items-center z-[99999999] justify-center">
       <div className="bg-white p-6 rounded">
         <BlackLoader />
         <p className="mt-2 text-sm">Applying optimized changes…</p>

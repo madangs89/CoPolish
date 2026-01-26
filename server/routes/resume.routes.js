@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  getAllUserResumes,
   getResumeById,
   markApproveAndCreateNew,
   markApprovedAndUpdate,
@@ -12,6 +13,7 @@ import { authMiddelware } from "../middleware/auth.middelware.js";
 const resumeRouter = express.Router();
 // for getting resume by id
 resumeRouter.get("/:id", authMiddelware, getResumeById);
+resumeRouter.get("/all/versions", authMiddelware, getAllUserResumes);
 // for updating parsed resume and also updating user current resume Id
 resumeRouter.put("/mark-approved", authMiddelware, markApprovedAndUpdate);
 

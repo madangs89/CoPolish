@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { formatDistanceToNow } from "date-fns";
 import axios from "axios";
 import {
+  setBaseScore,
   setCurrentResume,
   setCurrentResumeConfig,
   setCurrentResumeId,
@@ -113,6 +114,14 @@ const Dashboard = () => {
 
         dispatch(setCurrentResumeConfig(data.resume.config || configData));
         dispatch(setCurrentResumeId(data?.resume?._id));
+        dispatch(
+          setBaseScore(
+            Math.max(
+              data?.resume?.scoreBefore || 0,
+              data?.resume?.scoreAfter || 0,
+            ),
+          ),
+        );
       }
       setResumeLoader(false);
     })();

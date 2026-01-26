@@ -429,8 +429,10 @@ const resumeOptimizeWorker = new Worker(
       let fullResumeVersion = null;
       if (
         operation === "all" &&
+        refund === 0 &&
         (job.status === "completed" || job.status === "partial")
       ) {
+        let now = new Date();
         console.log("inside all operation");
         const newResume = await ResumeTemplate.create({
           userId: job.userId,
@@ -446,6 +448,7 @@ const resumeOptimizeWorker = new Worker(
           achievements: finalResume.achievements,
           extracurricular: finalResume.extracurricular,
           hobbies: finalResume.hobbies,
+          title: finalResume.title + " (Optimized) " + now.toISOString(),
           scoreBefore,
           scoreAfter,
           atsScore,
@@ -544,6 +547,7 @@ const resumeOptimizeWorker = new Worker(
           pipe.zadd("resume:flush_index", flushAt, key);
           // await pubClient.expire(key, 60 * 30);
           await pipe.exec();
+          payload._id = resumeId;
           resumeVersionId = job.resumeId;
           fullResumeVersion = payload;
           console.log("Updated cache for resume:", resumeId);
