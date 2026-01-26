@@ -1,5 +1,7 @@
 import { aiOptimizationQueue } from "../bull/jobs/bullJobs.js";
 import { pubClient } from "../config/redis.js";
+import CreditLedger from "../models/creditLedger.model.js";
+import Job from "../models/jobs.model.js";
 import ResumeTemplate from "../models/resume.model.js";
 import User from "../models/user.model.js";
 
@@ -425,13 +427,114 @@ export const updateResumeBeacon = async (req, res) => {
   }
 };
 
+// export const optimizeResume = async (req, res) => {
+//   try {
+//     const { resumeId, operation, prompt = "" } = req.body;
+//     const userId = req.user._id;
+
+//     console.log(operation);
+
+//     if (!resumeId || !operation) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "resumeId and operation are required",
+//       });
+//     }
+
+//     const userCredit = await User.findById(userId).select("totalCredits");
+
+//     if (
+//       userCredit.totalCredits <= 0 ||
+//       userCredit.totalCredits < CREDIT_COST[operation]
+//     ) {
+//       return res.status(402).json({
+//         success: false,
+//         message: "Insufficient credits to update resume",
+//       });
+//     }
+//     await User.updateOne(
+//       { _id: userId },
+//       { $inc: { totalCredits: -CREDIT_COST[operation] } },
+//     );
+
+//     // 🔑 DETERMINISTIC jobId (PRIMARY IDENTITY)
+//     const jobId = `optimize_${resumeId}_${operation}_resume_${userId}`;
+
+//     const bullJobId = `${jobId}_${Date.now()}`;
+
+//     // 🟡 Redis = UX guard only
+//     const redisKey = `optimize-lock:${jobId}`;
+//     const lock = await pubClient.set(redisKey, "1", "EX", 300, "NX"); // 5 min lock
+
+//     console.log("Optimization lock acquired:", lock);
+
+//     if (!lock) {
+//       return res.status(429).json({
+//         success: false,
+//         message: "Optimization already in progress",
+//       });
+//     }
+
+//     let statusPayload = {
+//       status: "pending",
+//       error: null,
+//       currentOperation: "",
+//       optimizedSections: {},
+//       startedAt: Date.now(),
+//       updatedAt: null,
+//       completedAt: null,
+//       resumeId,
+//       userId,
+//       errorTask: {},
+//     };
+//     await pubClient.hset(jobId, statusPayload);
+
+//     await pubClient.expire(jobId, 60 * 60); // 60 minutes expiration
+//     // 🔥 BullMQ jobId = HARD idempotency
+//     await aiOptimizationQueue.add(
+//       "optimize-ai",
+//       {
+//         resumeId,
+//         operation,
+//         userId,
+//         jobKey: jobId,
+//         prompt,
+//         event: "resume",
+//       },
+//       {
+//         jobId: bullJobId,
+//         removeOnComplete: true,
+//         attempts: 1,
+//       },
+//     );
+//     console.log("Optimization job queued:");
+//     const counts = await aiOptimizationQueue.getJobCounts();
+//     const totalLength = counts.waiting + counts.active;
+//     console.log("Queue Length:", totalLength);
+
+//     return res.status(202).json({
+//       success: true,
+//       jobKey: jobId,
+//       jobId: bullJobId,
+//       queueLength: totalLength,
+//       message: "Optimization queued",
+//       statusPayload,
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to queue optimization",
+//     });
+//   }
+// };
+
 export const optimizeResume = async (req, res) => {
   try {
     const { resumeId, operation, prompt = "" } = req.body;
     const userId = req.user._id;
 
     console.log(operation);
-
     if (!resumeId || !operation) {
       return res.status(400).json({
         success: false,
@@ -439,68 +542,96 @@ export const optimizeResume = async (req, res) => {
       });
     }
 
-    const userCredit = await User.findById(userId).select("totalCredits");
-
-    if (
-      userCredit.totalCredits <= 0 ||
-      userCredit.totalCredits < CREDIT_COST[operation]
-    ) {
-      return res.status(402).json({
-        success: false,
-        message: "Insufficient credits to update resume",
-      });
-    }
-    await User.updateOne(
-      { _id: userId },
-      { $inc: { totalCredits: -CREDIT_COST[operation] } },
-    );
-
-    // 🔑 DETERMINISTIC jobId (PRIMARY IDENTITY)
-    const jobId = `optimize_${resumeId}_${operation}_resume_${userId}`;
-
-    const bullJobId = `${jobId}_${Date.now()}`;
+    const jobId = `optimize_${resumeId}_resume_${userId}`;
 
     // 🟡 Redis = UX guard only
     const redisKey = `optimize-lock:${jobId}`;
-    const lock = await pubClient.set(redisKey, "1", "EX", 300, "NX"); // 5 min lock
+    const lock = await pubClient.set(redisKey, "1", "EX", 1800, "NX"); // 30 min lock
 
     console.log("Optimization lock acquired:", lock);
-
     if (!lock) {
       return res.status(429).json({
         success: false,
         message: "Optimization already in progress",
       });
     }
+    const userCredit = await User.findById(userId).select("totalCredits");
+    if (
+      userCredit.totalCredits <= 0 ||
+      userCredit.totalCredits < CREDIT_COST[operation]
+    ) {
+      await pubClient.del(redisKey);
+      return res.status(402).json({
+        success: false,
+        message: "Insufficient credits to update resume",
+      });
+    }
 
-    let statusPayload = {
-      status: "pending",
-      error: null,
-      currentOperation: "",
-      optimizedSections: {},
-      startedAt: Date.now(),
-      updatedAt: null,
-      completedAt: null,
-      resumeId,
+    const sections =
+      operation === "all"
+        ? [
+            { name: "skills", creditCost: 1 },
+            { name: "projects", creditCost: 1 },
+            { name: "experience", creditCost: 1 },
+            { name: "education", creditCost: 1 },
+            { name: "certifications", creditCost: 1 },
+            { name: "achievements", creditCost: 1 },
+            { name: "extracurricular", creditCost: 1 },
+            { name: "hobbies", creditCost: 1 },
+            { name: "personal", creditCost: 1 },
+          ]
+        : [{ name: operation, creditCost: 1 }];
+
+    const totalCredits = sections.reduce((s, x) => s + x.creditCost, 0);
+
+    const job = await Job.create({
       userId,
-      errorTask: {},
-    };
-    await pubClient.hset(jobId, statusPayload);
+      resumeId,
+      sections,
+      prompt,
+      operation,
+      redisKey,
+      creditsDebited: totalCredits,
+    });
 
-    await pubClient.expire(jobId, 60 * 60); // 60 minutes expiration
-    // 🔥 BullMQ jobId = HARD idempotency
+    if (!job) {
+      await pubClient.del(redisKey);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to create optimization job",
+      });
+    }
+    await CreditLedger.create({
+      userId,
+      jobId: job._id,
+      type: "DEBIT",
+      amount: totalCredits,
+      reason: "Resume optimization started",
+    });
+
+    await pubClient.hset(`job:${job._id}`, {
+      status: "pending",
+      jobId: job._id.toString(),
+      section: "",
+      sections: [],
+      sectionStatus: "",
+      isScoreFound: false,
+      score: null,
+      fullResumeVersion: null,
+    });
+
     await aiOptimizationQueue.add(
       "optimize-ai",
       {
         resumeId,
         operation,
         userId,
-        jobKey: jobId,
+        jobId: job._id.toString(),
         prompt,
         event: "resume",
+        redisKey,
       },
       {
-        jobId: bullJobId,
         removeOnComplete: true,
         attempts: 1,
       },
@@ -512,11 +643,10 @@ export const optimizeResume = async (req, res) => {
 
     return res.status(202).json({
       success: true,
-      jobKey: jobId,
-      jobId: bullJobId,
+      jobId: job._id.toString(),
       queueLength: totalLength,
       message: "Optimization queued",
-      statusPayload,
+      statusPayload: job,
     });
   } catch (err) {
     console.error(err);
@@ -526,15 +656,3 @@ export const optimizeResume = async (req, res) => {
     });
   }
 };
-
-// | Command         | Meaning                           |
-// | --------------- | --------------------------------- |
-// | `HSET`          | Store/update fields inside a HASH |
-// | `HGET`          | Read one field from HASH          |
-// | `HGETALL`       | Read all fields from HASH         |
-// | `EXPIRE`        | Set auto-delete time              |
-// | `ZADD`          | Add item to sorted queue          |
-// | `ZRANGEBYSCORE` | Get items ready by time           |
-// | `ZREM`          | Remove item from queue            |
-// | `PIPELINE`      | Batch Redis commands              |
-// | `EXISTS`        | Check key existence               |

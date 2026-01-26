@@ -89,7 +89,7 @@ function normalizeResume(ai) {
   return ai;
 }
 
-const getResumeFromDb = async (resumeId, operation, key) => {
+export const getResumeFromDb = async (resumeId, operation, key) => {
   try {
     let isFound = false;
     let resumeData;
@@ -199,7 +199,7 @@ const getResumeFromDb = async (resumeId, operation, key) => {
   }
 };
 
-const derivePartialData = (fullResume, operation) => {
+export const derivePartialData = (fullResume, operation) => {
   switch (operation) {
     case "personal":
       return {
@@ -353,7 +353,7 @@ export const aiPartWiseOptimize = async (
       };
     } catch (err) {
       error = err;
-      let errorValue = JSON.parse(JSON.stringify(error));
+      let errorValue = JSON.parse(error);
 
       if (errorValue && errorValue?.status) {
         errorNums.push(errorValue.status);
@@ -1369,11 +1369,10 @@ export const resumeOptimizer = async (info) => {
   }
 };
 
-const buildInstruction = (operation, prompt) => {
+export const buildInstruction = (operation, prompt) => {
   return (
     baseResumeOptimizerSystemInstruction +
     systemInstructionMask[operation] +
     prompt
   );
 };
-
