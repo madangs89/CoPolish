@@ -9,8 +9,14 @@ const SectionSchema = new mongoose.Schema({
   },
   error: String,
   creditCost: Number,
-  optimizedData: null,
-  changedData: null,
+  optimizedData: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null,
+  },
+  changedData: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null,
+  },
 });
 
 const jobSchema = new mongoose.Schema(

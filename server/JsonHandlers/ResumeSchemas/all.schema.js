@@ -194,7 +194,7 @@ export const skillsSchema = {
         additionalProperties: false,
         required: ["section", "before", "after", "reason"],
         properties: {
-           section: { type: ["string", "null"] },
+          section: { type: ["string", "null"] },
           before: { type: ["string", "null"] },
           after: { type: ["string", "null"] },
           reason: { type: ["string", "null"] },
@@ -273,7 +273,7 @@ export const achievementsSchema = {
         additionalProperties: false,
         required: ["section", "before", "after", "reason"],
         properties: {
-           section: { type: ["string", "null"] },
+          section: { type: ["string", "null"] },
           before: { type: ["string", "null"] },
           after: { type: ["string", "null"] },
           reason: { type: ["string", "null"] },
@@ -300,7 +300,7 @@ export const hobbiesSchema = {
         additionalProperties: false,
         required: ["section", "before", "after", "reason"],
         properties: {
-           section: { type: ["string", "null"] },
+          section: { type: ["string", "null"] },
           before: { type: ["string", "null"] },
           after: { type: ["string", "null"] },
           reason: { type: ["string", "null"] },
@@ -336,7 +336,7 @@ export const extracurricularSchema = {
         additionalProperties: false,
         required: ["section", "before", "after", "reason"],
         properties: {
-           section: { type: ["string", "null"] },
+          section: { type: ["string", "null"] },
           before: { type: ["string", "null"] },
           after: { type: ["string", "null"] },
           reason: { type: ["string", "null"] },

@@ -534,6 +534,8 @@ export const optimizeResume = async (req, res) => {
     const { resumeId, operation, prompt = "" } = req.body;
     const userId = req.user._id;
 
+    console.log("got request to optimize");
+
     console.log(operation);
     if (!resumeId || !operation) {
       return res.status(400).json({
@@ -601,6 +603,13 @@ export const optimizeResume = async (req, res) => {
         message: "Failed to create optimization job",
       });
     }
+
+    await User.findByIdAndUpdate(
+      userId,
+      { $inc: { totalCredits: -totalCredits } },
+      { new: true },
+    );
+
     await CreditLedger.create({
       userId,
       jobId: job._id,
@@ -620,23 +629,19 @@ export const optimizeResume = async (req, res) => {
       fullResumeVersion: null,
     });
 
+    console.log("Created job:", job._id.toString());
+
     await aiOptimizationQueue.add(
       "optimize-ai",
       {
-        resumeId,
-        operation,
-        userId,
         jobId: job._id.toString(),
-        prompt,
-        event: "resume",
-        redisKey,
       },
       {
         removeOnComplete: true,
         attempts: 1,
       },
     );
-    console.log("Optimization job queued:");
+    console.log("Optimization job queued:", job._id.toString());
     const counts = await aiOptimizationQueue.getJobCounts();
     const totalLength = counts.waiting + counts.active;
     console.log("Queue Length:", totalLength);
@@ -650,6 +655,10 @@ export const optimizeResume = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
+    const { resumeId, userId } = req.body;
+    const jobId = `optimize_${resumeId}_resume_${userId}`;
+    const redisKey = `optimize-lock:${jobId}`;
+    await pubClient.del(redisKey);
     return res.status(500).json({
       success: false,
       message: "Failed to queue optimization",

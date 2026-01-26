@@ -28,6 +28,7 @@ import {
   setCurrentResumeConfig,
   setCheckedField,
   setGlobalLoaderForStatus,
+  setCurrentResumeId,
 } from "../redux/slice/resumeSlice";
 import { useRef } from "react";
 // import ImproveWithAIModal from "../components/modals/ImproveWithAIModal";
@@ -188,6 +189,42 @@ const ResumeEditor = () => {
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
+  }, []);
+
+  useEffect(() => {
+    // Get Resume Data
+    console.log("Fetching resume data for ID:", resumeSlice.currentResume._id);
+    (async () => {
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/${resumeSlice.currentResume._id}`,
+        {
+          withCredentials: true,
+        },
+      );
+      if (data.success) {
+        dispatch(setCurrentResume(data?.resume));
+
+        const configData = {
+          ...data?.resume?.config,
+          content: {
+            ...(data?.resume?.config?.content || {}),
+            order: [
+              "skills",
+              "projects",
+              "experience",
+              "education",
+              "certifications",
+              "achievements",
+              "extracurricular",
+              "hobbies",
+              "personal",
+            ],
+          },
+        };
+        dispatch(setCurrentResumeConfig(data.resume.config || configData));
+        dispatch(setCurrentResumeId(data?.resume?._id));
+      }
+    })();
   }, []);
 
   return (
@@ -371,7 +408,6 @@ const ResumeEditor = () => {
             setMobileModalState={setMobileModalState}
             setOpen={setOpen}
             open={open}
-         
           />
         </div>
         {/* optimize modal */}
@@ -392,6 +428,7 @@ const ResumeEditor = () => {
             }}
             open={open}
             setOpen={setOpen}
+            setMobileModalState={setMobileModalState}
           />
         </div>
 
@@ -453,8 +490,9 @@ const ResumeEditor = () => {
             setSelected={setSelected}
             creditsLeft={userSlice?.user?.totalCredits || 0}
             onClose={() => setOpen(false)}
-             open={open}
+            open={open}
             setOpen={setOpen}
+            setMobileModalState={setMobileModalState}
           />
         )}
         {/* Big Screen statusHelper */}
@@ -473,7 +511,6 @@ const ResumeEditor = () => {
           dragDetails={dragDetails}
           setDragDetails={setDragDetails}
         />
-
       </div>
     </Suspense>
   );

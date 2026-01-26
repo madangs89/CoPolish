@@ -4,6 +4,7 @@ import crypto from "crypto";
 import User from "../models/user.model.js";
 import { Payment } from "../models/payments.model.js";
 import { pubClient } from "../config/redis.js";
+import CreditLedger from "../models/creditLedger.model.js";
 
 export const createPayment = async (req, res) => {
   try {
@@ -110,6 +111,13 @@ export const verifyPayment = async (req, res) => {
       { $inc: { totalCredits: order.credits } },
       { new: true },
     );
+
+    await CreditLedger.create({
+      userId: order.userId,
+      type: "CREDIT", // ⬅️ YOU NEED THIS
+      amount: order.credits,
+      reason: "Credits purchased via Razorpay",
+    });
 
     await Payment.create({
       userId: order.userId,

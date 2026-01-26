@@ -167,14 +167,14 @@ const initialState = {
     status: "",
     loading: false,
     error: null,
-    currentOperation: "",
-    optimizedSections: {},
-    startedAt: Date.now(),
-    updatedAt: null,
-    completedAt: null,
-    resumeId: null,
+    jobId: null,
     userId: null,
-    errorTask: {},
+    section: null,
+    sections: null,
+    sectionStatus: null,
+    fullResumeVersion: null,
+    score: null,
+    isScoreFound: false,
   },
 };
 
@@ -210,9 +210,9 @@ export const resumeSlice = createSlice({
     setGlobalLoaderForStatus: (state, actions) => {
       state.globalLoaderForStatus = actions.payload;
     },
-    // setStatusHelper: (state, actions) => {
-    //   state.statusHelper = actions.payload;
-    // },
+    setCurrentResumeTitle: (state, actions) => {
+      state.currentResume.title = actions.payload;
+    },
     setStatusHelperLoader: (state, actions) => {
       state.statusHelper.loading = actions.payload;
     },
@@ -229,6 +229,7 @@ export const {
   setGlobalLoaderForStatus,
   setStatusHelper,
   setStatusHelperLoader,
+  setCurrentResumeTitle
 } = resumeSlice.actions;
 const resumeReducer = resumeSlice.reducer;
 

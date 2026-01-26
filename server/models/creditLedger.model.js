@@ -11,7 +11,7 @@ const CreditLedgerSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Job",
     },
-    type: { type: String, enum: ["DEBIT", "REFUND"] },
+    type: { type: String, enum: ["DEBIT", "REFUND", "CREDIT"] },
     amount: Number,
     reason: String,
     createdAt: { type: Date, default: Date.now },

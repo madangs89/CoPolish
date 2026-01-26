@@ -122,6 +122,7 @@ export default function OptimizeModal({
   onClose,
   open,
   setOpen,
+  setMobileModalState,
 }) {
   let creditsLeft = useSelector((state) => state.auth.user?.totalCredits || 0);
   const cost = selected ? CREDIT_COST[selected] : 0;
@@ -158,6 +159,7 @@ export default function OptimizeModal({
         dispatch(setStatusHelperLoader(true));
         dispatch(setCredits(creditsLeft - CREDIT_COST[selected]));
         setOpen(false);
+        setMobileModalState("");
         toast.success("Resume optimization started successfully!");
       }
     } catch (error) {

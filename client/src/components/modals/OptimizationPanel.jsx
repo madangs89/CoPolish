@@ -33,16 +33,13 @@ const refreshCredits = async (dispatch) => {
   try {
     const res = await axios.get(
       `${import.meta.env.VITE_BACKEND_URL}/api/user/v1/credits`,
-      {
-        withCredentials: true,
-      },
+      { withCredentials: true },
     );
-
     if (res.data.success) {
       dispatch(setCredits(res.data.totalCredits));
     }
   } catch (e) {
-    console.error("Failed to refresh credits", e);
+    console.error("Credit refresh failed", e);
   }
 };
 
@@ -53,124 +50,157 @@ export default function OptimizationPanel() {
   const socket = useSelector((s) => s.socket.socket);
   const STATUS = useSelector((s) => s.resume.statusHelper);
 
-  const [finalScore, setFinalScore] = useState(null);
+  const [scoreStatus, setScoreStatus] = useState({
+    isScoreFound: false,
+    score: null,
+    isCompleted: false,
+  });
+
+  const [toastMessage, setToastMessage] = useState({
+    toastMessage: "",
+    toastType: "", // 'success' | 'error' | ''
+  });
+
   const [showCommitModal, setShowCommitModal] = useState(false);
-  const [isFinalized, setIsFinalized] = useState(false);
 
   /* ---------------- SOCKET ---------------- */
 
   useEffect(() => {
     if (!socket) return;
 
-    const onUpdate = (raw) => {
-      const payload = JSON.parse(raw);
-      const { data } = payload;
-
-      dispatch(
-        setStatusHelper({
-          ...data,
-          optimizedSections: JSON.parse(data.optimizedSections || "{}"),
-          errorTask: JSON.parse(data.errorTask || "{}"),
-        }),
-      );
-    };
-
-    const onFinish = async (raw) => {
-      if (!raw) return;
-
+    const onJobUpdate = async (raw) => {
       const payload = JSON.parse(raw);
 
-      // ✅ success path
-      setFinalScore(payload.scoreAfter ?? null);
-      setIsFinalized(true);
-      setShowCommitModal(true);
-      await refreshCredits(dispatch);
-      setTimeout(() => {
-        dispatch(setCurrentResumeId(payload._id));
-        dispatch(setCurrentResume(payload));
+      console.log("Job update received:", payload);
+      // 🔒 Backend is the source of truth
+      dispatch(setStatusHelper(payload));
+
+      const isFinal =
+        payload.status === "completed" ||
+        payload.status === "partial" ||
+        payload.status === "failed";
+
+      // 🟡 Final resume arrived → show applying modal
+      if (isFinal && payload.fullResumeVersion) {
+        setShowCommitModal(true);
+        await refreshCredits(dispatch);
+        setTimeout(() => {
+          let fullRes = JSON.parse(payload.fullResumeVersion);
+          dispatch(setCurrentResumeId(fullRes._id));
+          dispatch(setCurrentResume(fullRes));
+          dispatch(setStatusHelperLoader(false));
+          setShowCommitModal(false);
+          if (payload.status === "completed") {
+            toast.success("Optimized resume applied successfully");
+          } else if (payload.status === "partial") {
+            toast.error(
+              "Optimization partially completed. Some sections may have failed.",
+            );
+          } else {
+            toast.error(
+              "All sections failed to optimize.and credits refunded.",
+            );
+          }
+        }, 800);
+      }
+
+      if (isFinal) {
+        if (payload.isScoreFound && payload.score) {
+          const parsedScore = JSON.parse(payload.score);
+
+          setScoreStatus({
+            isCompleted: true,
+            isScoreFound: true,
+            score: parsedScore,
+          });
+        } else {
+          setScoreStatus({
+            isCompleted: true,
+            isScoreFound: false,
+            score: null,
+          });
+        }
+      }
+
+      // 🟥 Final but no resume (all failed case)
+      if (isFinal && !payload.fullResumeVersion) {
+        await refreshCredits(dispatch);
         dispatch(setStatusHelperLoader(false));
-        setShowCommitModal(false);
-        toast.success("Optimized changes applied");
-      }, 800);
+        toast.error("Optimization failed");
+      }
     };
 
-    socket.on("job:update", onUpdate);
-    socket.on("job:update-finish", onFinish);
+    socket.on("job:update", onJobUpdate);
 
     return () => {
-      socket.off("job:update", onUpdate);
-      socket.off("job:update-finish", onFinish);
+      socket.off("job:update", onJobUpdate);
     };
   }, [socket, dispatch]);
 
-  /* ---------------- DERIVED ---------------- */
+  /* ---------------- SECTIONS ---------------- */
 
-  const sectionOrder =
-    STATUS.operation === "all" ? BASE_ORDER : [STATUS.operation];
+  const sectionKeys =
+    STATUS.operation === "all"
+      ? BASE_ORDER
+      : STATUS.operation
+        ? [STATUS.operation]
+        : [];
 
-  const sections = sectionOrder.map((key) => {
-    const s = STATUS.optimizedSections?.[key];
-    // if (s.status == "failed") {
-    //   // here can i credit back user credits
-    // }
+  const sections = sectionKeys.map((key) => {
+    const s = STATUS.sections?.find((x) => x.name === key);
     return {
       key,
       label: capitalize(key),
       status: s?.status || "pending",
-      changes: s?.changes || [],
-      isActive: STATUS.currentOperation === key,
+      changes: s?.changedData || [],
+      isActive: s?.status === "running",
     };
   });
 
-  // ✅ derived success count
-  const successCount = useMemo(() => {
-    return sections.filter((s) => s.status === "completed").length;
-  }, [sections]);
-
-  /* ---------------- FORCE COMPLETE (ALL FAILED) ---------------- */
-
-  useEffect(() => {
-    if (STATUS.status === "completed" && successCount === 0 && !isFinalized) {
-      setIsFinalized(true);
-      setFinalScore(null);
-
-      (async () => {
-        await refreshCredits(dispatch);
-      })();
-      dispatch(setStatusHelper(false));
-    }
-  }, [STATUS.status, successCount, isFinalized, dispatch]);
-
   /* ---------------- SCORE ROW ---------------- */
 
-  // 🟡 CASE 1: waiting for backend score (some success)
-  if (!isFinalized && successCount > 0) {
-    sections.push({
-      key: "score",
-      label: "Score",
-      status: "running",
-      changes: [],
-      isActive: true,
-    });
-  }
+  const scoreRow = {
+    key: "score",
+    label: "Score",
 
-  // 🟢 CASE 2: finalized (success or all-failed)
-  if (isFinalized) {
-    sections.push({
-      key: "score",
-      label: "Score",
-      status: "completed",
-      changes: [
-        {
-          before: "",
-          after:
-            finalScore == null
-              ? "Score unchanged (all sections failed)"
-              : `Final Resume Score: ${finalScore}`,
-        },
-      ],
-    });
-  }
+    status: !scoreStatus.isCompleted
+      ? "running"
+      : scoreStatus.isScoreFound && scoreStatus.score
+        ? "completed"
+        : "failed",
+
+    changes:
+      scoreStatus.isScoreFound && scoreStatus.score
+        ? [
+            {
+              before: `Initial Resume Score: ${scoreStatus.score.scoreBefore ?? 0}`,
+              after: `Final Resume Score: ${scoreStatus.score.scoreAfter ?? 0}`,
+            },
+          ]
+        : [],
+
+    isActive: !scoreStatus.isCompleted,
+  };
+
+  useEffect(() => {
+    dispatch(
+      setStatusHelper({
+        operation: "",
+        status: "",
+        loading: false,
+        error: null,
+        jobId: null,
+        userId: null,
+        section: null,
+        sections: null,
+        sectionStatus: null,
+        fullResumeVersion: null,
+        score: null,
+        isScoreFound: false,
+      }),
+    );
+    dispatch(setGlobalLoaderForStatus(false));
+  }, []);
 
   /* ---------------- RENDER ---------------- */
 
@@ -179,9 +209,20 @@ export default function OptimizationPanel() {
       <aside className="w-[400px] h-screen flex flex-col bg-[#F8F9FB] border-l">
         <div className="flex justify-between px-4 py-3 border-b">
           <h3 className="font-medium">
-            {isFinalized ? "Optimization Complete" : "Optimizing Resume"}
+            {scoreStatus.isCompleted
+              ? "Optimization Complete"
+              : "Optimizing Resume"}
           </h3>
-          <button onClick={() => dispatch(setGlobalLoaderForStatus(false))}>
+          <button
+            onClick={() => {
+              setScoreStatus({
+                isScoreFound: false,
+                score: null,
+                isCompleted: false,
+              });
+              dispatch(setGlobalLoaderForStatus(false));
+            }}
+          >
             ✕
           </button>
         </div>
@@ -190,6 +231,13 @@ export default function OptimizationPanel() {
           {sections.map((s) => (
             <SectionRow key={s.key} {...s} />
           ))}
+          <SectionRow
+            key="score"
+            {...(() => {
+              const { key, ...rest } = scoreRow;
+              return rest;
+            })()}
+          />
         </div>
       </aside>
 
@@ -214,11 +262,13 @@ function SectionRow({ label, status, changes, isActive }) {
           </div>
         </div>
 
-        {changes.length > 0 && (
+        {changes.length > 0 ? (
           <button onClick={() => setOpen(!open)}>
             {open ? <ArrowUp /> : <ArrowDown />}
           </button>
-        )}
+        ) : changes.length == 0 && status == "completed" ? (
+          <span className="text-green-500 font-semibold">No Changes</span>
+        ) : null}
       </div>
 
       {open &&
@@ -239,7 +289,8 @@ function SectionRow({ label, status, changes, isActive }) {
 /* ---------------- STATUS ICON ---------------- */
 
 function StatusIcon({ status, isActive }) {
-  if (status === "completed") return <Dot color="green" text="✓" />;
+  if (status === "success" || status === "completed")
+    return <Dot color="green" text="✓" />;
   if (status === "failed") return <Dot color="red" text="!" />;
   if (status === "running" || isActive)
     return (

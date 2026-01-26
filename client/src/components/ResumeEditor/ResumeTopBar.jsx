@@ -1,17 +1,54 @@
 import { Pencil, Zap } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useSelector } from "react-redux";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 export default function ResumeTopBar({
   title = "Backend Developer Resume",
   versions = ["Version 1", "Version 2"],
 }) {
+  title = useSelector((state) => state.resume.currentResume.title);
   const [isEditing, setIsEditing] = useState(false);
   const [resumeTitle, setResumeTitle] = useState(title);
   const [selectedVersion, setSelectedVersion] = useState(versions[1]);
 
   let credits = useSelector((state) => state.auth.user?.totalCredits || 0);
+  const timer = useRef(null);
 
+  const latestResumeRef = useSelector((state) => state.resume.currentResume);
+
+  const updateDbAFterDebounce = async (latestResumeData) => {
+    try {
+      console.log("Saving resume:", latestResumeData);
+
+      const response = await axios.put(
+        `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/update/${latestResumeData._id}`,
+        { resumeData: latestResumeData },
+        { withCredentials: true },
+      );
+
+      console.log("Auto saved to db", response.data);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to save changes to the server.");
+    }
+  };
+
+  const handleUpdateTitle = async (newTitle) => {
+    try {
+      clearTimeout(timer.current);
+      setResumeTitle(newTitle);
+      timer.current = setTimeout(async () => {
+        await updateDbAFterDebounce({
+          ...latestResumeRef,
+          title: newTitle,
+        });
+      }, 1000);
+    } catch (error) {
+      console.error("Error updating resume title:", error);
+    }
+  };
   return (
     <div className="flex items-center justify-between  md:px-0 w-full h-10 bg-white px-3 border-b ">
       {/* LEFT — Resume title */}
@@ -32,7 +69,7 @@ export default function ResumeTopBar({
           <input
             autoFocus
             value={resumeTitle}
-            onChange={(e) => setResumeTitle(e.target.value)}
+            onChange={(e) => handleUpdateTitle(e.target.value)}
             onBlur={() => setIsEditing(false)}
             onKeyDown={(e) => e.key === "Enter" && setIsEditing(false)}
             className="

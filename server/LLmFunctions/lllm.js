@@ -314,11 +314,12 @@ export const aiPartWiseOptimize = async (
   contents,
 ) => {
   let retries = 3;
-  let error;
-  let errorNums = [];
+  let lastError = null;
+
   while (retries > 0) {
     try {
-      console.log("ai part wise called");
+      console.log("AI part wise called");
+
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents,
@@ -327,19 +328,29 @@ export const aiPartWiseOptimize = async (
         },
       });
 
-      if (!response?.text) {
+      console.log("AI response received for operation:", operation);
+
+      if (!response || !response.text) {
         throw new Error("Empty AI response");
       }
+
       const cleaned = response.text
         .replace(/^\s*```json\s*/i, "")
         .replace(/\s*```\s*$/i, "");
 
-      const isValid = validateLLMResponse(operation, JSON.parse(cleaned));
-      const { isValid: valid, errors } = isValid;
+      let parsed;
+      try {
+        parsed = JSON.parse(cleaned);
+      } catch {
+        throw new Error("Invalid JSON from AI");
+      }
+
+      const validationResult = validateLLMResponse(operation, parsed);
+      const { isValid, errors } = validationResult;
 
       console.log("AI part wise optimize response:", cleaned);
 
-      if (!valid) {
+      if (!isValid) {
         console.error("Validation errors:", errors);
         throw new Error(
           `AI response validation failed: ${JSON.stringify(errors)}`,
@@ -349,34 +360,37 @@ export const aiPartWiseOptimize = async (
       return {
         error: null,
         isError: false,
-        data: JSON.parse(cleaned),
+        data: parsed,
       };
     } catch (err) {
-      error = err;
-      let errorValue = JSON.parse(error);
+      lastError = err;
 
-      if (errorValue && errorValue?.status) {
-        errorNums.push(errorValue.status);
-      }
+      console.error("AI part wise optimize error:", err);
 
-      if (
-        errorValue &&
-        errorValue.length > 0 &&
-        errorValue.some((e) => e == 429 || e == 503)
-      ) {
+      // safely extract status if present
+      const status =
+        err?.status || err?.response?.status || err?.error?.status || null;
+
+      // stop retrying for rate-limit / service errors
+      if (status === 429 || status === 503) {
         return {
-          error,
+          error: err,
           isError: true,
           data: null,
         };
       }
-      console.error("AI part wise optimize error:", err);
+
       retries--;
-      await sleep(2000);
+      console.log("Retrying AI call, retries left:", retries);
+
+      if (retries > 0) {
+        await sleep(2000);
+      }
     }
   }
+
   return {
-    error,
+    error: lastError,
     isError: true,
     data: null,
   };

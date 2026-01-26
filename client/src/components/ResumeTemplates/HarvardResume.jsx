@@ -7,7 +7,7 @@ const isEmpty = (value) => {
   if (Array.isArray(value)) return value.length === 0;
   if (typeof value === "object")
     return Object.values(value).every(
-      (v) => v === null || v === "" || (Array.isArray(v) && v.length === 0)
+      (v) => v === null || v === "" || (Array.isArray(v) && v.length === 0),
     );
   return false;
 };
@@ -257,7 +257,7 @@ const HarvardResume = ({ data, config }) => {
                           text={l.title || l.url}
                           config={config}
                         />
-                      )
+                      ),
                   )}
               </div>
             ))}
@@ -369,7 +369,7 @@ const HarvardResume = ({ data, config }) => {
               ...textSafe,
             }}
           >
-            {personal.address} | {personal.email} | {personal.phone}
+            {personal.title} | {personal.email} | {personal.phone}
           </p>
         </div>
       )}

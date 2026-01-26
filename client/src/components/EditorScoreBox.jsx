@@ -27,7 +27,7 @@ const EditorScoreBox = ({
     damping: 20,
   });
 
-  const [displayScore, setDisplayScore] = useState(0);
+  const [displayScore, setDisplayScore] = useState(85);
 
   useEffect(() => {
     motionProgress.set(targetScore);
@@ -202,7 +202,7 @@ const EditorScoreBox = ({
           <span className="text-sm font-semibold">
             {resumeSlice.statusHelper.loading
               ? "Optimizing..."
-              : `Optimize to ${returnOptimzerValue()}+`}
+              : `Optimize to ${returnOptimzerValue()}%`}
           </span>
         </button>
 

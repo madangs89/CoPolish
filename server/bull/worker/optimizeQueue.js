@@ -11,6 +11,7 @@ import {
 } from "../../LLmFunctions/lllm.js";
 import { aiOptimizationQueue } from "../jobs/bullJobs.js";
 import ResumeTemplate from "../../models/resume.model.js";
+import User from "../../models/user.model.js";
 
 const SUPPORTED_OPERATIONS = new Set([
   "personal",
@@ -155,12 +156,15 @@ await connectRedis();
 
 const resumeOptimizeWorker = new Worker(
   "optimize-ai",
-  async (job) => {
-    const { event } = job.data;
+  async (jobb) => {
+    const { event } = jobb.data;
 
-    const { jobId } = job.data;
+    const { jobId } = jobb.data;
 
-    const job = await Job.findById(jobId);
+    console.log(`Processing AI optimization for job ${jobId}`);
+
+    let job = await Job.findById(jobId);
+    console.log("Fetched job:", jobId, job ? "found" : "not found");
     if (!job) return;
 
     let resumeId = job.resumeId;
@@ -181,47 +185,59 @@ const resumeOptimizeWorker = new Worker(
     }
 
     const section = job.sections.find((sec) => sec.status == "pending");
+    console.log("Optimizing section:", section ? section.name : "none left");
     if (!section) return;
     section.status = "running";
     job.status = "running";
     await job.save();
-    await pubClient.hset(`job:${job._id}`, {
-      status: job.status,
-      sections: JSON.stringify(job.sections),
-      resumeId: resumeId,
-      isScoreFound: false,
-      score: null,
-      fullResumeVersion: null,
-    });
-    await redis.publish(
-      "job_updates",
-      JSON.stringify({
-        jobId,
-        userId,
-        section: section.name,
+    console.log("Job status updated to running");
+    try {
+      await pubClient.hset(`job:${job._id}`, {
         status: job.status,
-        sections: job.sections,
-        sectionStatus: section.status,
-        fullResumeVersion: null,
-        score: null,
+        sections: JSON.stringify(job.sections),
+        resumeId: resumeId,
         isScoreFound: false,
-      }),
-    );
-
+        score: null,
+        fullResumeVersion: null,
+      });
+      await pubClient.publish(
+        "job_updates",
+        JSON.stringify({
+          jobId,
+          userId,
+          section: section.name,
+          status: job.status,
+          sections: job.sections,
+          sectionStatus: section.status,
+          fullResumeVersion: null,
+          score: null,
+          isScoreFound: false,
+        }),
+      );
+    } catch (error) {
+      console.log("Error publishing job update:", error);
+    }
+    console.log("Building prompt for section:", section.name);
     const masterPrompt = buildInstruction(section.name, prompt);
+    console.log("masterPrompt built", masterPrompt);
 
     const keyR = `resume:${resumeId}:${userId}`;
 
     let resumeData = await getResumeFromDb(resumeId, section.name, keyR);
+    console.log("Fetched resume data for optimization");
     if (resumeData.isError) {
       // here need to handle one case
+
+      console.log("Error fetching resume data:", resumeData.error);
       return;
     }
+    console.log("calling all");
+
     const aiRes = await aiPartWiseOptimize(
       resumeId,
-      operation,
+      section.name,
       masterPrompt,
-      resumeData.data,
+      JSON.stringify(resumeData.data),
     );
     if (aiRes.isError) {
       section.status = "failed";
@@ -240,7 +256,7 @@ const resumeOptimizeWorker = new Worker(
       score: null,
       fullResumeVersion: null,
     });
-    await redis.publish(
+    await pubClient.publish(
       "job_updates",
       JSON.stringify({
         jobId,
@@ -280,6 +296,13 @@ const resumeOptimizeWorker = new Worker(
     }
 
     if (refund > 0 && job.creditsRefunded == 0) {
+      console.log("Processing refund of credits:", refund);
+      await User.findByIdAndUpdate(
+        job.userId,
+        { $inc: { totalCredits: refund } },
+        { new: true },
+      );
+
       await CreditLedger.create({
         userId: job.userId,
         jobId: job._id,
@@ -329,11 +352,11 @@ const resumeOptimizeWorker = new Worker(
         resumeId: resumeId,
         isScoreFound: false,
         score: null,
-        fullResumeVersion: JSON.stringify(finalResume),
+        fullResumeVersion: JSON.stringify(resumeData.data),
         userId,
       });
       await pubClient.expire(`job:${job._id}`, 900); //  15 minutes
-      await redis.publish(
+      await pubClient.publish(
         "job_updates",
         JSON.stringify({
           jobId,
@@ -342,16 +365,18 @@ const resumeOptimizeWorker = new Worker(
           status: job?.status,
           sections: job?.sections || [],
           sectionStatus: section?.status || "",
-          isScoreFound: false,
+          isScoreFound: true,
           score: null,
-          fullResumeVersion: JSON.stringify(finalResume),
+          fullResumeVersion: JSON.stringify(resumeData.data),
           creditsRefunded: job.creditsRefunded,
         }),
       );
     } else {
       let oldResumeData = resumeData.data;
       let dbChanges = changes;
+      console.log("Scoring resume with AI");
       let score = await resumeScoreWithAi({ oldResumeData, dbChanges });
+      console.log("Score received from AI", score);
       if (score.isError) {
         console.log("Error in scoring resume:", score.error);
         job.result = {
@@ -372,6 +397,7 @@ const resumeOptimizeWorker = new Worker(
         };
       } else {
         const computedScore = computeResumeScore(score.data);
+
         job.result = {
           totalScore: computedScore.rounded,
           scoreFailed: false,
@@ -398,13 +424,14 @@ const resumeOptimizeWorker = new Worker(
         suggestions,
       } = score;
 
+      console.log("Finalizing resume update in DB", score);
       let resumeVersionId = null;
       let fullResumeVersion = null;
       if (
-        operation === "all" ||
-        job.status === "completed" ||
-        job.status === "partial"
+        operation === "all" &&
+        (job.status === "completed" || job.status === "partial")
       ) {
+        console.log("inside all operation");
         const newResume = await ResumeTemplate.create({
           userId: job.userId,
           jobKey: job._id,
@@ -431,9 +458,16 @@ const resumeOptimizeWorker = new Worker(
           checkedFields: finalResume.checkedFields || checkedFields,
           config: finalResume.config || config,
           skillMap: finalResume.skillMap,
+          changes,
         });
         resumeVersionId = newResume._id;
         fullResumeVersion = newResume;
+
+        await User.findByIdAndUpdate(
+          job.userId,
+          { currentResumeId: newResume._id },
+          { new: true },
+        );
 
         let newKey = `resume:${newResume._id}:${userId}`;
 
@@ -443,12 +477,14 @@ const resumeOptimizeWorker = new Worker(
           firstEditAt: Date.now(),
           lastEditAt: Date.now(),
         });
-      } else if (job.status === "completed" || job.status === "partial") {
+      } else {
         // for single operations
-
+        console.log("Updating for single operation");
         const key = `resume:${resumeId}:${userId}`;
 
         const exists = await pubClient.exists(key);
+
+        console.log("exists", exists);
         let payload = {
           userId: job.userId,
           jobKey: job._id,
@@ -475,23 +511,30 @@ const resumeOptimizeWorker = new Worker(
           checkedFields: finalResume.checkedFields || checkedFields,
           config: finalResume.config || config,
           skillMap: finalResume.skillMap,
+          changes,
         };
         if (exists) {
           const cachedResumeData = await pubClient.hgetall(key);
           const firstEditAt = cachedResumeData?.firstEditAt || Date.now();
           const lastEditAt = Date.now();
           const now = Date.now();
+          const previousData = JSON.parse(cachedResumeData.data);
+
           const pipe = pubClient.pipeline();
 
+          let cachingPayload = {
+            ...previousData,
+            ...payload,
+            updatedAt: new Date(),
+          };
           pipe.hset(key, {
-            data: JSON.stringify(payload),
+            data: JSON.stringify(cachingPayload),
             isDirty: 1,
             firstEditAt: firstEditAt,
             lastEditAt: lastEditAt,
           });
           pipe.expire(key, 60 * 30); // 30 minutes
           const idleTime = Math.min(5 * 60 * 1000, (60 * 30 * 1000) / 2);
-
           const flushAt = Math.min(
             now + idleTime,
             now + 25 * 60 * 1000,
@@ -503,20 +546,36 @@ const resumeOptimizeWorker = new Worker(
           await pipe.exec();
           resumeVersionId = job.resumeId;
           fullResumeVersion = payload;
+          console.log("Updated cache for resume:", resumeId);
         } else {
+          console.log(
+            "cache not found, updating DB directly for resume:",
+            resumeId,
+          );
           const updateResume = await ResumeTemplate.findOneAndUpdate(
             { _id: resumeId, userId },
             { $set: payload },
             { new: true },
           );
+          const newKey = `resume:${updateResume._id}:${userId}`;
+
+          await pubClient.hset(newKey, {
+            data: JSON.stringify(updateResume),
+            isDirty: 0,
+            firstEditAt: Date.now(),
+            lastEditAt: Date.now(),
+          });
           resumeVersionId = updateResume._id;
           fullResumeVersion = updateResume;
+
+          console.log("Updated DB for resume:", resumeId);
         }
       }
-
+      console.log("out of else");
       job.result.resumeVersionId = resumeVersionId;
       job.finishedAt = new Date();
       await job.save();
+      console.log("Job marked as finished at", job.finishedAt);
 
       if (job.finishedAt) {
         await pubClient.del(redisKey);
@@ -531,7 +590,7 @@ const resumeOptimizeWorker = new Worker(
         fullResumeVersion: JSON.stringify(fullResumeVersion),
       });
       await pubClient.expire(`job:${job._id}`, 900); //  15 minutes
-      await redis.publish(
+      await pubClient.publish(
         "job_updates",
         JSON.stringify({
           jobId,
@@ -545,6 +604,8 @@ const resumeOptimizeWorker = new Worker(
           fullResumeVersion: JSON.stringify(fullResumeVersion),
         }),
       );
+
+      console.log("Published final job update");
     }
 
     return { success: true };
