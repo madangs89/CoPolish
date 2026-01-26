@@ -1,14 +1,16 @@
 import { Pencil, Zap } from "lucide-react";
 import { useState } from "react";
+import { useSelector } from "react-redux";
 
 export default function ResumeTopBar({
   title = "Backend Developer Resume",
-  credits = 9,
   versions = ["Version 1", "Version 2"],
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [resumeTitle, setResumeTitle] = useState(title);
   const [selectedVersion, setSelectedVersion] = useState(versions[1]);
+
+  let credits = useSelector((state) => state.auth.user?.totalCredits || 0);
 
   return (
     <div className="flex items-center justify-between  md:px-0 w-full h-10 bg-white px-3 border-b ">

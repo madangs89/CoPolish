@@ -5,12 +5,15 @@ import {
   setCurrentResumeId,
   setGlobalLoaderForStatus,
   setStatusHelper,
+  setStatusHelperLoader,
 } from "../../redux/slice/resumeSlice";
 import DiffViewer from "react-diff-viewer";
 import BlackLoader from "../Loaders/BlackLoader";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { createPortal } from "react-dom";
+import axios from "axios";
+import { setCredits } from "../../redux/slice/authSlice";
 
 /* ---------------- CONSTANTS ---------------- */
 
@@ -25,6 +28,23 @@ const BASE_ORDER = [
   "hobbies",
   "personal",
 ];
+
+const refreshCredits = async (dispatch) => {
+  try {
+    const res = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/api/user/v1/credits`,
+      {
+        withCredentials: true,
+      },
+    );
+
+    if (res.data.success) {
+      dispatch(setCredits(res.data.totalCredits));
+    }
+  } catch (e) {
+    console.error("Failed to refresh credits", e);
+  }
+};
 
 /* ---------------- MAIN ---------------- */
 
@@ -55,7 +75,7 @@ export default function OptimizationPanel() {
       );
     };
 
-    const onFinish = (raw) => {
+    const onFinish = async (raw) => {
       if (!raw) return;
 
       const payload = JSON.parse(raw);
@@ -64,10 +84,11 @@ export default function OptimizationPanel() {
       setFinalScore(payload.scoreAfter ?? null);
       setIsFinalized(true);
       setShowCommitModal(true);
+      await refreshCredits(dispatch);
       setTimeout(() => {
         dispatch(setCurrentResumeId(payload._id));
         dispatch(setCurrentResume(payload));
-        dispatch(setStatusHelper(false));
+        dispatch(setStatusHelperLoader(false));
         setShowCommitModal(false);
         toast.success("Optimized changes applied");
       }, 800);
@@ -89,6 +110,9 @@ export default function OptimizationPanel() {
 
   const sections = sectionOrder.map((key) => {
     const s = STATUS.optimizedSections?.[key];
+    // if (s.status == "failed") {
+    //   // here can i credit back user credits
+    // }
     return {
       key,
       label: capitalize(key),
@@ -109,6 +133,10 @@ export default function OptimizationPanel() {
     if (STATUS.status === "completed" && successCount === 0 && !isFinalized) {
       setIsFinalized(true);
       setFinalScore(null);
+
+      (async () => {
+        await refreshCredits(dispatch);
+      })();
       dispatch(setStatusHelper(false));
     }
   }, [STATUS.status, successCount, isFinalized, dispatch]);

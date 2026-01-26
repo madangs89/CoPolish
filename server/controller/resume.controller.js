@@ -76,6 +76,19 @@ let checkedFields = [
   "hobbies",
   "personal",
 ];
+
+const CREDIT_COST = {
+  all: 10,
+  personal: 1,
+  experience: 1,
+  projects: 1,
+  skills: 1,
+  education: 1,
+  certifications: 1,
+  achievements: 1,
+  extracurricular: 1,
+  hobbies: 1,
+};
 export const getResumeById = async (req, res) => {
   try {
     const resumeId = req.params.id;
@@ -417,9 +430,7 @@ export const optimizeResume = async (req, res) => {
     const { resumeId, operation, prompt = "" } = req.body;
     const userId = req.user._id;
 
-
     console.log(operation);
-    
 
     if (!resumeId || !operation) {
       return res.status(400).json({
@@ -427,6 +438,22 @@ export const optimizeResume = async (req, res) => {
         message: "resumeId and operation are required",
       });
     }
+
+    const userCredit = await User.findById(userId).select("totalCredits");
+
+    if (
+      userCredit.totalCredits <= 0 ||
+      userCredit.totalCredits < CREDIT_COST[operation]
+    ) {
+      return res.status(402).json({
+        success: false,
+        message: "Insufficient credits to update resume",
+      });
+    }
+    await User.updateOne(
+      { _id: userId },
+      { $inc: { totalCredits: -CREDIT_COST[operation] } },
+    );
 
     // 🔑 DETERMINISTIC jobId (PRIMARY IDENTITY)
     const jobId = `optimize_${resumeId}_${operation}_resume_${userId}`;

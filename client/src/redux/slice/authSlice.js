@@ -24,10 +24,13 @@ export const authSlice = createSlice({
       state.isAuth = actions.payload.isAuth;
       state.user = actions.payload.user;
     },
+    setCredits: (state, actions) => {
+      state.user.totalCredits = actions.payload;
+    },
   },
 });
 
-export const { setAuthTrue, setUser, setAuthFalse, setAuthOpen } =
+export const { setAuthTrue, setCredits, setUser, setAuthFalse, setAuthOpen } =
   authSlice.actions;
 const authReducer = authSlice.reducer;
 

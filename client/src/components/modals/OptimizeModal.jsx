@@ -10,6 +10,7 @@ import {
 import BlackLoader from "../Loaders/BlackLoader";
 import ButtonLoader from "../Loaders/ButtonLoader";
 import toast from "react-hot-toast";
+import { setCredits } from "../../redux/slice/authSlice";
 
 const CREDIT_COST = {
   ALL: 10,
@@ -116,13 +117,13 @@ const ScorePreview = ({ current = 40, after = 70 }) => {
 };
 
 export default function OptimizeModal({
-  creditsLeft = 0,
   selected,
   setSelected,
   onClose,
   open,
   setOpen,
 }) {
+  let creditsLeft = useSelector((state) => state.auth.user?.totalCredits || 0);
   const cost = selected ? CREDIT_COST[selected] : 0;
   const hasEnoughCredits = creditsLeft >= cost;
   const missingCredits = Math.max(cost - creditsLeft, 0);
@@ -155,6 +156,7 @@ export default function OptimizeModal({
       if (response.data.success) {
         dispatch(setGlobalLoaderForStatus(true));
         dispatch(setStatusHelperLoader(true));
+        dispatch(setCredits(creditsLeft - CREDIT_COST[selected]));
         setOpen(false);
         toast.success("Resume optimization started successfully!");
       }

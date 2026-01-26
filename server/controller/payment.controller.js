@@ -108,7 +108,7 @@ export const verifyPayment = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       order.userId,
       { $inc: { totalCredits: order.credits } },
-      { new: true }
+      { new: true },
     );
 
     await Payment.create({
@@ -127,10 +127,14 @@ export const verifyPayment = async (req, res) => {
         email: req.user.email,
         credits: order.credits,
         totalCredits: updatedUser.totalCredits,
-      })
+      }),
     );
 
-    res.json({ success: true, message: "Payment verified successfully" });
+    res.json({
+      success: true,
+      message: "Payment verified successfully",
+      credits: order.credits,
+    });
   } catch (error) {
     console.log(error);
     return res

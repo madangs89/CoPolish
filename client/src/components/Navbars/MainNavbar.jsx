@@ -3,18 +3,24 @@ import { gsap } from "gsap";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { setCredits } from "../../redux/slice/authSlice";
 
 const MainNavbar = () => {
   const location = useLocation();
   const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_ID;
+  const dispatch = useDispatch();
 
+  const totalCredits = useSelector(
+    (state) => state.auth.user?.totalCredits || 0,
+  );
   const handlePayment = async () => {
     try {
       // 2️⃣ Create order from backend
       const { data: order } = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/payment/v1/create-payment`,
         { credits: 10 },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       // 3️⃣ Razorpay options
@@ -28,7 +34,9 @@ const MainNavbar = () => {
 
         handler: async function (response) {
           try {
-            await axios.post(
+            console.log(response);
+
+            const paymentDetails = await axios.post(
               `${
                 import.meta.env.VITE_BACKEND_URL
               }/api/payment/v1/verify-payment`,
@@ -36,11 +44,17 @@ const MainNavbar = () => {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
+                // amount:
               },
-              { withCredentials: true }
+              { withCredentials: true },
             );
 
-            alert("Payment successful 🎉");
+            if (paymentDetails?.data) {
+              toast.success("Payment successful");
+              dispatch(
+                setCredits(totalCredits + (paymentDetails?.data?.credits || 0)),
+              );
+            }
           } catch (err) {
             console.log(err);
             alert("Verification failed");
@@ -81,7 +95,7 @@ const MainNavbar = () => {
         opacity: 1,
         duration: 0.6,
         ease: "power3.out",
-      }
+      },
     );
   }, [location]);
 
@@ -118,7 +132,7 @@ const MainNavbar = () => {
           >
             <span className="font-medium">Credits</span>
             <span className="px-2 py-[2px] rounded-full text-[12px] bg-yellow-600 text-white">
-              52
+              {totalCredits}
             </span>
           </button>
 

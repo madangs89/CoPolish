@@ -33,6 +33,19 @@ function extractSectionValue(op, sectionData) {
   return data;
 }
 
+const CREDIT_COST = {
+  all: 10,
+  personal: 1,
+  experience: 1,
+  projects: 1,
+  skills: 1,
+  education: 1,
+  certifications: 1,
+  achievements: 1,
+  extracurricular: 1,
+  hobbies: 1,
+};
+
 const ALL_OPERATION_ORDER = [
   "skills",
   "projects",
@@ -297,6 +310,14 @@ const resumeOptimizeWorker = new Worker(
               ? sectionData.changes
               : [];
           }
+
+          if (isAnyError) {
+            await User.updateOne(
+              { _id: userId },
+              { $inc: { totalCredits: +CREDIT_COST[operation] } },
+            );
+          }
+
           let oldResumeData = null;
           let newSuggestions = [];
 
@@ -447,6 +468,14 @@ const resumeOptimizeWorker = new Worker(
           } else {
             isAnyError = true;
           }
+          if (isAnyError) {
+            console.log("reAdding Credits");
+            await User.updateOne(
+              { _id: userId },
+              { $inc: { totalCredits: +CREDIT_COST[operation] } },
+            );
+          }
+
           const value = extractSectionValue(operation, sectionData);
           let dbChanges = {};
           dbChanges[operation] = Array.isArray(sectionData.changes)
@@ -560,7 +589,6 @@ const resumeOptimizeWorker = new Worker(
               }
             }
           }
-
           console.log("Final Score:", score);
           console.log("New Suggestions:", newSuggestions);
 

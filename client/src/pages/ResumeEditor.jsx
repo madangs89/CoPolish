@@ -385,7 +385,7 @@ const ResumeEditor = () => {
           <OptimizeModal
             selected={selected}
             setSelected={setSelected}
-            creditsLeft={userSlice?.totalCredits || 0}
+            creditsLeft={userSlice?.user?.totalCredits || 0}
             onClose={() => {
               setMobileModalState(null);
               setOpen(false);
@@ -451,7 +451,7 @@ const ResumeEditor = () => {
           <OptimizeModal
             selected={selected}
             setSelected={setSelected}
-            creditsLeft={userSlice?.totalCredits || 0}
+            creditsLeft={userSlice?.user?.totalCredits || 0}
             onClose={() => setOpen(false)}
              open={open}
             setOpen={setOpen}

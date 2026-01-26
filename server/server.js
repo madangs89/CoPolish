@@ -25,6 +25,7 @@ import {
 } from "./LLmFunctions/llmHelpers/allSystemInstructoin.js";
 import { mailTransporter } from "./config/mail.js";
 import ResumeTemplate from "./models/resume.model.js";
+import userRouter from "./routes/user.routes.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -53,6 +54,7 @@ app.get("/", (req, res) => {
 
 //Auth
 app.use("/api/auth/v1", authRouter);
+app.use("/api/user/v1", userRouter);
 
 //Parse
 app.use("/api/parse/v1", parseRouter);
@@ -132,7 +134,6 @@ setInterval(async () => {
     0,
     50,
   );
-
 
   console.log("keys", keys);
   if (!keys.length) return;
