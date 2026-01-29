@@ -196,32 +196,59 @@ const Dashboard = () => {
             <p className="text-sm font-medium">LinkedIn</p>
           </div>
 
-          <p className="text-sm text-gray-500 mb-3">
-            Full Stack Developer | MERN | AI
-          </p>
+          {userDetails?.currentLinkedInId ? (
+            <>
+              <p className="text-sm text-gray-500 mb-3">
+                Full Stack Developer | MERN | AI
+              </p>
 
-          <div className="flex items-end gap-1">
-            <span className="text-5xl font-semibold">{linkedinScore}</span>
-            <span className="text-gray-400">/100</span>
-          </div>
+              <div className="flex items-end gap-1">
+                <span className="text-5xl font-semibold">{linkedinScore}</span>
+                <span className="text-gray-400">/100</span>
+              </div>
 
-          <p className="text-sm text-gray-500 mt-2">
-            Last checked: {linkedinChecked}
-          </p>
+              <p className="text-sm text-gray-500 mt-2">
+                Last checked: {linkedinChecked}
+              </p>
 
-          <div className="flex gap-3 mt-6">
-            <button className="px-5 py-2 rounded-full border text-sm font-medium hover:bg-gray-50">
-              View Suggestions
-            </button>
-            <button
-              onClick={() =>
-                navigate(`/editor/linkedin/${resumeSlice?.currentResume?._id}`)
-              }
-              className="px-5 py-2 rounded-full bg-blue-600 text-white text-sm font-medium hover:opacity-90"
-            >
-              Improve LinkedIn →
-            </button>
-          </div>
+              <div className="flex gap-3 mt-6">
+                <button className="px-5 py-2 rounded-full border text-sm font-medium hover:bg-gray-50">
+                  View Suggestions
+                </button>
+                <button
+                  onClick={() =>
+                    navigate(
+                      `/editor/linkedin/${resumeSlice?.currentResume?._id}`,
+                    )
+                  }
+                  className="px-5 py-2 rounded-full bg-blue-600 text-white text-sm font-medium hover:opacity-90"
+                >
+                  Improve LinkedIn →
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Status */}
+              <div className="flex items-center  gap-2 mt-4 mb-4">
+                <span className="w-3.5 h-3.5 rounded-full bg-red-500"></span>
+                <p className="text-sm text-gray-700 font-medium">
+                  LinkedIn data not connected
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col gap-2">
+                <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+                  Import from Resume
+                </button>
+
+                <button className="w-full px-4 py-2 border border-gray-200 text-gray-700 rounded-lg bg-gray-200 text-sm font-medium hover:bg-gray-50 transition">
+                  Upload LinkedIn Data
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* ================= PORTFOLIO CARD ================= */}

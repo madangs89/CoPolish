@@ -7,7 +7,6 @@ const linkedInProfileSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-
     extractedFrom: {
       type: String,
       enum: ["resume", "linkedin"],
