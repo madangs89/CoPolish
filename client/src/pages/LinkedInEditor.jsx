@@ -187,6 +187,118 @@ const LinkedInEditor = () => {
       impact: 94,
     },
   };
+  const fakePostData = [
+    {
+      postId: "post_1001",
+      userId: "user_55421",
+      platform: "linkedin",
+      content: {
+        text: "Today is a special milestone for our team — we’ve officially crossed 10,000 users. What started as a small idea has grown into a community we’re incredibly proud of. Huge thanks to every early supporter who believed in us. This is just the beginning.",
+        hashtags: ["#StartupJourney", "#Milestone", "#Grateful", "#Growth"],
+        mentions: ["@TeamAlpha"],
+        link: "https://example.com/milestone",
+      },
+      media: [
+        {
+          type: "image",
+          url: "https://example.com/media/team-celebration.jpg",
+          thumbnail: "https://example.com/media/thumb-team.jpg",
+        },
+      ],
+      posting: {
+        status: "posted",
+        scheduledAt: "2026-01-20T09:00:00Z",
+        postedAt: "2026-01-20T09:01:12Z",
+        linkedinPostUrn: "urn:li:activity:1001",
+      },
+      privacy: {
+        visibility: "public",
+      },
+      aiMeta: {
+        generatedByAI: true,
+        tone: "celebratory",
+        topic: "company milestone",
+      },
+      createdAt: "2026-01-19T15:10:00Z",
+      updatedAt: "2026-01-20T09:05:00Z",
+    },
+
+    {
+      postId: "post_1002",
+      userId: "user_77892",
+      platform: "linkedin",
+      content: {
+        text: "We’re expanding our team and looking for passionate frontend developers who love crafting beautiful user experiences. If you enjoy solving real-world problems and building products that impact people, we’d love to hear from you.",
+        hashtags: ["#Hiring", "#FrontendDeveloper", "#Careers", "#TechJobs"],
+        mentions: ["@TechCareers"],
+        link: "https://example.com/jobs/frontend",
+      },
+      media: [],
+      posting: {
+        status: "scheduled",
+        scheduledAt: "2026-02-02T11:00:00Z",
+        postedAt: null,
+        linkedinPostUrn: null,
+      },
+      privacy: {
+        visibility: "public",
+      },
+      analytics: {
+        likes: 0,
+        comments: 0,
+        shares: 0,
+        impressions: 0,
+      },
+      aiMeta: {
+        generatedByAI: true,
+        tone: "professional",
+        topic: "job hiring",
+      },
+      createdAt: "2026-01-29T10:20:00Z",
+      updatedAt: "2026-01-29T10:20:00Z",
+    },
+
+    {
+      postId: "post_1003",
+      userId: "user_33211",
+      platform: "linkedin",
+      content: {
+        text: "Our latest blog explores how AI is reshaping small businesses in 2026 — from automation to smarter decision-making. If you're curious about where technology is heading and how it affects growth, this is worth a read.",
+        hashtags: ["#ArtificialIntelligence", "#BusinessGrowth", "#TechTrends"],
+        mentions: ["@BusinessInsights"],
+        link: "https://example.com/blog/ai-business",
+      },
+      media: [
+        {
+          type: "image",
+          url: "https://example.com/media/blog-cover.jpg",
+          thumbnail: "https://example.com/media/thumb-blog.jpg",
+        },
+      ],
+      posting: {
+        status: "draft",
+        scheduledAt: null,
+        postedAt: null,
+        linkedinPostUrn: null,
+      },
+      privacy: {
+        visibility: "connections",
+      },
+      analytics: {
+        likes: 0,
+        comments: 0,
+        shares: 0,
+        impressions: 0,
+      },
+      aiMeta: {
+        generatedByAI: false,
+        tone: "informational",
+        topic: "AI trends",
+      },
+      createdAt: "2026-01-28T18:00:00Z",
+      updatedAt: "2026-01-28T18:00:00Z",
+    },
+  ];
 
   // ---------------- STATE ----------------
   const [headlineId, setHeadlineId] = useState(fakeData.headline.currentId);
@@ -363,8 +475,8 @@ const LinkedInEditor = () => {
       </div>
 
       {/* Fixed Score Section */}
-      <div className="fixed top-20 bg-white left-5 z-50">
-        <div className="bg-transparent rounded-xl  p-4 w-[250px] flex flex-col gap-4">
+      <div className="fixed top-20 min-h-screen gap-3 flex flex-col  w-[250px] left-5 z-50">
+        <div className="bg-transparent rounded-xl  p-4 w-full flex bg-white flex-col gap-4">
           {/* Main Score */}
           <div className="flex  items-center  gap-4">
             <div className="relative  score  overflow-hidden  w-24 h-24">
@@ -402,18 +514,66 @@ const LinkedInEditor = () => {
               </div>
             ))}
           </div>
+        </div>
 
-         
+        <div className="h-[300px] overflow-y-scroll scrollbar-minimal  flex flex-col w-full gap-2">
+          <h1 className="text-lg p-2  font-medium sticky top-0 bg-white">
+            Post Suggestions
+          </h1>
+          {fakePostData.map((post) => {
+            const isPosted = post.posting.status === "posted";
+
+            return (
+              <div
+                key={post.postId}
+                className="w-full bg-white rounded-lg shadow p-4 border"
+              >
+                {/* Text */}
+                <p className="text-sm text-gray-800">{post.content.text}</p>
+
+                {/* Hashtags */}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {post.content.hashtags.map((tag, i) => (
+                    <span key={i} className="text-blue-600 text-xs">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Link */}
+                {post.content.link && (
+                  <a
+                    href={post.content.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-green-600 mt-2 block"
+                  >
+                    {post.content.link}
+                  </a>
+                )}
+
+                {/* Status / Action */}
+                <div className="mt-3 flex items-center justify-between">
+                  {isPosted ? (
+                    <span className="text-xs text-green-600 font-medium">
+                      ✅ Posted
+                    </span>
+                  ) : (
+                    <button
+                      className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                      onClick={() => console.log("Post now:", post.postId)}
+                    >
+                      Post Now
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-
-
-
-      <div className="fixed w-[250px] right-10 top-20 z-50 h-[300px] bg-white"> 
-      
-      
-      </div>
+      <div className="fixed w-[250px] right-10 top-20 z-50 h-[300px] bg-white"></div>
     </div>
   );
 };

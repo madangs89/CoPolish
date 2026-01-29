@@ -98,6 +98,7 @@ const App = () => {
           {/* Public */}
           <Route element={<PublicLayout />}>
             <Route index element={<Hero />} />
+            <Route path="/auth/linkedin/callback" element={<Hero />} />
           </Route>
 
           {/* Protected */}
