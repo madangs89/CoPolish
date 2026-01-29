@@ -300,6 +300,8 @@ const LinkedInEditor = () => {
     },
   ];
 
+  const [connected, setConnected] = useState(true);
+
   // ---------------- STATE ----------------
   const [headlineId, setHeadlineId] = useState(fakeData.headline.currentId);
   const [aboutId, setAboutId] = useState(fakeData.about.currentId);
@@ -573,7 +575,39 @@ const LinkedInEditor = () => {
         </div>
       </div>
 
-      <div className="fixed w-[250px] right-10 top-20 z-50 h-[300px] bg-white"></div>
+      <div className="fixed w-[250px] right-10 top-20 z-50 h-[300px] ">
+        <div className="fixed w-[250px] right-10 top-20 z-50 h-fit">
+          <div className="w-full bg-white border rounded-xl p-5 flex flex-col gap-3 h-full justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {connected ? "LinkedIn Connected" : "LinkedIn not connected"}
+              </h2>
+
+              <p className="text-sm text-gray-500 mt-2">
+                {connected
+                  ? "You can now post directly to LinkedIn from this platform."
+                  : "Connect your LinkedIn account to start posting directly from this platform."}
+              </p>
+            </div>
+
+            {connected ? (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                <p className="text-sm text-gray-700 font-medium">
+                  Account connected
+                </p>
+              </div>
+            ) : (
+              <button
+                // onClick={handleConnect}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition"
+              >
+                Connect LinkedIn
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
