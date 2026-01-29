@@ -39,6 +39,7 @@ import ResumeTopBar from "../components/ResumeEditor/ResumeTopBar";
 import OptimizationPanel from "../components/modals/OptimizationPanel";
 import DraggableOptimizerFab from "../components/modals/DraggableOptimizerFab";
 import BlackLoader from "../components/Loaders/BlackLoader";
+import JobMatch from "../components/JobMatch";
 const ResumeEditor = () => {
   const dispatch = useDispatch();
 
@@ -339,6 +340,10 @@ const ResumeEditor = () => {
                 setResumeConfig={setResumeConfig}
               />
             </>
+          ) : mobileEditorState === "job match" ? (
+            <div className="h-full flex md:hidden flex-col items-center shadow-xl  relative overflow-hidden">
+              <JobMatch />
+            </div>
           ) : null}
         </div>
 
@@ -392,7 +397,11 @@ const ResumeEditor = () => {
               }}
             >
               <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center">
-                <span className="text-xs font-semibold">40</span>
+                <span className="text-xs font-semibold">
+                  {resumeData.scoreAfter
+                    ? resumeData.scoreAfter
+                    : resumeData.scoreBefore}
+                </span>
               </div>
             </div>
             <span className="text-[11px] text-gray-500">Score</span>

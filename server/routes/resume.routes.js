@@ -2,6 +2,7 @@ import express from "express";
 import {
   getAllUserResumes,
   getResumeById,
+  jobMatcher,
   markApproveAndCreateNew,
   markApprovedAndUpdate,
   optimizeResume,
@@ -26,6 +27,7 @@ resumeRouter.post(
 
 // for optimizing full resume
 resumeRouter.post("/optimize-resume", authMiddelware, optimizeResume);
+resumeRouter.post("/job-match", authMiddelware, jobMatcher);
 
 // for real time update of resume
 resumeRouter.put("/update/:id", authMiddelware, updateResume);

@@ -14,6 +14,7 @@ import ResumeConfigEditor from "./ResumeConfigEditor";
 import { useDispatch, useSelector } from "react-redux";
 import { setCurrentResumeConfig } from "../redux/slice/resumeSlice";
 import TemplateShower from "./TemplateShower";
+import JobMatch from "./JobMatch";
 
 const sectionTitles = {
   personal: "Personal Details",
@@ -226,6 +227,9 @@ const Editor = ({
       )}
       {editorState === "template" && (
         <TemplateShower setResumeTemplate={setResumeTemplate} />
+      )}
+      {editorState === "job match" && (
+        <JobMatch selectedSection={selectedSection} setSelectedSection={setSelectedSection} />
       )}
     </div>
   );

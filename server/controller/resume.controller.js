@@ -1,5 +1,7 @@
 import { aiOptimizationQueue } from "../bull/jobs/bullJobs.js";
+import { ai } from "../config/google.js";
 import { pubClient } from "../config/redis.js";
+import { jobMatchSystemInstruction } from "../LLmFunctions/llmHelpers/allSystemInstructoin.js";
 import CreditLedger from "../models/creditLedger.model.js";
 import Job from "../models/jobs.model.js";
 import ResumeTemplate from "../models/resume.model.js";
@@ -427,108 +429,6 @@ export const updateResumeBeacon = async (req, res) => {
   }
 };
 
-// export const optimizeResume = async (req, res) => {
-//   try {
-//     const { resumeId, operation, prompt = "" } = req.body;
-//     const userId = req.user._id;
-
-//     console.log(operation);
-
-//     if (!resumeId || !operation) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "resumeId and operation are required",
-//       });
-//     }
-
-//     const userCredit = await User.findById(userId).select("totalCredits");
-
-//     if (
-//       userCredit.totalCredits <= 0 ||
-//       userCredit.totalCredits < CREDIT_COST[operation]
-//     ) {
-//       return res.status(402).json({
-//         success: false,
-//         message: "Insufficient credits to update resume",
-//       });
-//     }
-//     await User.updateOne(
-//       { _id: userId },
-//       { $inc: { totalCredits: -CREDIT_COST[operation] } },
-//     );
-
-//     // 🔑 DETERMINISTIC jobId (PRIMARY IDENTITY)
-//     const jobId = `optimize_${resumeId}_${operation}_resume_${userId}`;
-
-//     const bullJobId = `${jobId}_${Date.now()}`;
-
-//     // 🟡 Redis = UX guard only
-//     const redisKey = `optimize-lock:${jobId}`;
-//     const lock = await pubClient.set(redisKey, "1", "EX", 300, "NX"); // 5 min lock
-
-//     console.log("Optimization lock acquired:", lock);
-
-//     if (!lock) {
-//       return res.status(429).json({
-//         success: false,
-//         message: "Optimization already in progress",
-//       });
-//     }
-
-//     let statusPayload = {
-//       status: "pending",
-//       error: null,
-//       currentOperation: "",
-//       optimizedSections: {},
-//       startedAt: Date.now(),
-//       updatedAt: null,
-//       completedAt: null,
-//       resumeId,
-//       userId,
-//       errorTask: {},
-//     };
-//     await pubClient.hset(jobId, statusPayload);
-
-//     await pubClient.expire(jobId, 60 * 60); // 60 minutes expiration
-//     // 🔥 BullMQ jobId = HARD idempotency
-//     await aiOptimizationQueue.add(
-//       "optimize-ai",
-//       {
-//         resumeId,
-//         operation,
-//         userId,
-//         jobKey: jobId,
-//         prompt,
-//         event: "resume",
-//       },
-//       {
-//         jobId: bullJobId,
-//         removeOnComplete: true,
-//         attempts: 1,
-//       },
-//     );
-//     console.log("Optimization job queued:");
-//     const counts = await aiOptimizationQueue.getJobCounts();
-//     const totalLength = counts.waiting + counts.active;
-//     console.log("Queue Length:", totalLength);
-
-//     return res.status(202).json({
-//       success: true,
-//       jobKey: jobId,
-//       jobId: bullJobId,
-//       queueLength: totalLength,
-//       message: "Optimization queued",
-//       statusPayload,
-//     });
-//   } catch (err) {
-//     console.error(err);
-//     return res.status(500).json({
-//       success: false,
-//       message: "Failed to queue optimization",
-//     });
-//   }
-// };
-
 export const optimizeResume = async (req, res) => {
   try {
     const { resumeId, operation, prompt = "" } = req.body;
@@ -686,6 +586,47 @@ export const getAllUserResumes = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch resumes",
+    });
+  }
+};
+
+export const jobMatcher = async (req, res) => {
+  try {
+    const { resumeData, jobDescription } = req.body;
+
+    console.log("Received job match request");
+    if (!resumeData || !jobDescription) {
+      return res.status(400).json({
+        success: false,
+        message: "Resume data and job description are required",
+      });
+    }
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: JSON.stringify({ resume: resumeData, jobDescription }),
+      config: {
+        systemInstruction: jobMatchSystemInstruction,
+      },
+    });
+    const cleaned = response.text
+      .replace(/^\s*```json\s*/i, "")
+      .replace(/\s*```\s*$/i, "");
+
+    const result = JSON.parse(cleaned);
+
+    console.log(result);
+
+    return res.status(200).json({
+      success: true,
+      message: "Job match completed",
+      result,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to match job",
     });
   }
 };
