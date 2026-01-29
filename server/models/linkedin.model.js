@@ -22,10 +22,10 @@ const linkedInProfileSchema = new mongoose.Schema(
       phone: String,
       linkedinUrl: String,
       portfolioUrl: String,
-
       githubUrl: String,
+      bannerUrl: String,
+      profilePicUrl: String,
     },
-    // ---------- HEADLINE ----------
     headline: {
       currentId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -52,7 +52,6 @@ const linkedInProfileSchema = new mongoose.Schema(
       ],
     },
 
-    // ---------- ABOUT ----------
     about: {
       currentId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -78,7 +77,6 @@ const linkedInProfileSchema = new mongoose.Schema(
       ],
     },
 
-    // ---------- EXPERIENCE ----------
     experience: [
       {
         role: String,
@@ -88,8 +86,10 @@ const linkedInProfileSchema = new mongoose.Schema(
 
         bullets: {
           current: [String],
+          currentId: String,
           suggestions: [
             {
+              _id: mongoose.Schema.Types.ObjectId,
               bullets: [String],
               improvementType: {
                 type: String,
@@ -105,7 +105,6 @@ const linkedInProfileSchema = new mongoose.Schema(
       },
     ],
 
-    // ---------- SKILLS ----------
     skills: {
       current: [String],
       suggestions: [
@@ -123,7 +122,6 @@ const linkedInProfileSchema = new mongoose.Schema(
       ],
     },
 
-    // ---------- SEO / KEYWORDS ----------
     seo: {
       activeKeywords: [String],
       suggestedSets: [
@@ -134,8 +132,6 @@ const linkedInProfileSchema = new mongoose.Schema(
         },
       ],
     },
-
-    // ---------- SCORING ----------
     score: {
       before: {
         type: Number,
@@ -149,10 +145,57 @@ const linkedInProfileSchema = new mongoose.Schema(
       clarity: Number,
       impact: Number,
     },
-
-    // ---------- META ----------
     lastOptimizedAt: Date,
     sectionsTouched: [String],
+
+    posts: [
+      {
+        postId: {
+          type: mongoose.Schema.Types.ObjectId,
+
+          required: true,
+        },
+
+        content: {
+          text: String,
+          hashtags: [String],
+          mentions: [String],
+          links: [
+            {
+              url: String,
+              title: String,
+            },
+          ],
+        },
+        media: [
+          {
+            type: String,
+            url: String,
+            thumbnailUrl: String,
+          },
+        ],
+
+        posting: {
+          status: String,
+          scheduledAt: Date,
+          postedAt: Date,
+          linkedInPostUrl: String,
+        },
+        privacy: {
+          visibility: String,
+          enum: ["public", "private", "connections"],
+        },
+        aiMeta: {
+          generatedByAi: Boolean,
+          tone: String,
+          topic: String,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   { timestamps: true },
 );

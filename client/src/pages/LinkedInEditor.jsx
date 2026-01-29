@@ -86,6 +86,7 @@ const LinkedInEditor = () => {
         to: "Present",
         bullets: {
           currentTone: "FORMAL",
+          currentId: "401",
           current: [
             "Led architecture and development of distributed systems serving over 10M+ monthly active users",
             "Drove technical decisions across multiple teams, improving system reliability and performance",
@@ -93,6 +94,7 @@ const LinkedInEditor = () => {
           ],
           suggestions: [
             {
+              _id: 401,
               bullets: [
                 "Architected and scaled a core platform handling 100K+ requests per second with 99.99% uptime",
                 "Reduced infrastructure costs by 35% through system redesign and cloud optimization",
@@ -110,6 +112,8 @@ const LinkedInEditor = () => {
         from: "2019-06-01",
         to: "Present",
         bullets: {
+          currentTone: "FORMAL",
+          currentId: "401",
           current: [
             "Led architecture and development of distributed systems serving over 10M+ monthly active users",
             "Drove technical decisions across multiple teams, improving system reliability and performance",
@@ -117,6 +121,7 @@ const LinkedInEditor = () => {
           ],
           suggestions: [
             {
+              _id: 401,
               bullets: [
                 "Architected and scaled a core platform handling 100K+ requests per second with 99.99% uptime",
                 "Reduced infrastructure costs by 35% through system redesign and cloud optimization",
