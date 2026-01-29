@@ -8,6 +8,8 @@ const linkedInProfileSchema = new mongoose.Schema(
       required: true,
     },
 
+    isLinkedInConnected: Boolean,
+    linkedInToken: String,
     targetRole: [String],
     industry: [String],
     experienceLevel: {
