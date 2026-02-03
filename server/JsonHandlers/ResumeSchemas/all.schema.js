@@ -146,7 +146,6 @@ export const projectsSchema = {
             default: [],
             items: {
               type: "object",
-              additionalProperties: false,
               properties: {
                 title: { type: ["string", "null"] },
                 url: {
