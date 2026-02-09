@@ -197,10 +197,10 @@ export const markApprovedAndUpdate = async (req, res) => {
           skills: resumeData?.skills || resume.skills,
           certifications: resumeData?.certifications || resume.certifications,
           achievements: resumeData?.achievements || resume.achievements,
-          extracurricular: resumeData?.extracurricular || resume.extracurricular,
+          extracurricular:
+            resumeData?.extracurricular || resume.extracurricular,
           hobbies: resumeData?.hobbies || resume.hobbies,
-          title: "madan navya resume",
-
+          title: resumeData?.title || resume.title,
         }, // DO NOT inject undefined vars
       },
       {
@@ -216,11 +216,24 @@ export const markApprovedAndUpdate = async (req, res) => {
       { new: true },
     );
 
+    let newVal = await ResumeTemplate.findById(resumeId);
+
+    const key = `resume:${resumeId}:${user._id}`;
+    await pubClient.hset(key, {
+      data: JSON.stringify(newVal.toObject()),
+      isDirty: 0, // not edited yet
+      firstEditAt: "", // editing not started
+      lastEditAt: "", // editing not started
+    });
+
+    await pubClient.expire(key, 60 * 30);
+
     return res.status(200).json({
       success: true,
       message: "Resume updated and approved",
       resume: updatedResume,
       user: updatedUser,
+      newVal,
     });
   } catch (error) {
     console.error("UPDATE ERROR:", error);

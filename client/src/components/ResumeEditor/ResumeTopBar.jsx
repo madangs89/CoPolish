@@ -11,13 +11,13 @@ import {
   setResumeIdTrigger,
 } from "../../redux/slice/resumeSlice";
 
-export default function ResumeTopBar({ title = "Backend Developer Resume" }) {
-  title = useSelector((state) => state.resume.currentResume.title);
+export default function ResumeTopBar() {
   const [isEditing, setIsEditing] = useState(false);
-  const [resumeTitle, setResumeTitle] = useState(title);
+  const [resumeTitle, setResumeTitle] = useState(
+    useSelector((state) => state.resume.currentResume.title),
+  );
   const [versions, setVersions] = useState([]);
   const [selectedVersion, setSelectedVersion] = useState();
-  4;
   let resumeSlice = useSelector((state) => state.resume);
 
   const [loading, setLoading] = useState(true);
