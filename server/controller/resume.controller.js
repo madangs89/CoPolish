@@ -157,7 +157,6 @@ export const getResumeById = async (req, res) => {
 export const markApprovedAndUpdate = async (req, res) => {
   try {
     const user = req.user;
-
     const { resumeId, resumeData } = req.body;
 
     if (!resumeId || !resumeData) {
@@ -167,35 +166,67 @@ export const markApprovedAndUpdate = async (req, res) => {
       });
     }
 
-    if (user._id.toString() !== resumeData.userId.toString()) {
-      return res.status(403).json({
+    // 1️⃣ Fetch resume from DB
+    const resume = await ResumeTemplate.findById(resumeId);
+    if (!resume) {
+      return res.status(404).json({
         success: false,
-        message: "Unauthorized to update this resume",
+        message: "Resume not found",
       });
     }
 
+    // 2️⃣ Proper authorization
+    if (resume.userId.toString() !== user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    console.log("Updating resume with data:", resumeData);
+
+    // 3️⃣ Update safely
     const updatedResume = await ResumeTemplate.findByIdAndUpdate(
       resumeId,
-      { ...resumeData, config, checkedFields },
-      { new: true },
+      {
+        $set: {
+          personal: resumeData?.personal || resume.personal,
+          education: resumeData?.education || resume.education,
+          experience: resumeData?.experience || resume.experience,
+          projects: resumeData?.projects || resume.projects,
+          skills: resumeData?.skills || resume.skills,
+          certifications: resumeData?.certifications || resume.certifications,
+          achievements: resumeData?.achievements || resume.achievements,
+          extracurricular: resumeData?.extracurricular || resume.extracurricular,
+          hobbies: resumeData?.hobbies || resume.hobbies,
+          title: "madan navya resume",
+
+        }, // DO NOT inject undefined vars
+      },
+      {
+        new: true,
+        runValidators: true, // 🔥 IMPORTANT
+      },
     );
 
-    const makeUserApproved = await User.findByIdAndUpdate(
+    // 4️⃣ Approve user
+    const updatedUser = await User.findByIdAndUpdate(
       user._id,
       { isApproved: true },
       { new: true },
     );
+
     return res.status(200).json({
       success: true,
-      message: "Resume updated and marked as approved",
+      message: "Resume updated and approved",
       resume: updatedResume,
-      user: makeUserApproved,
+      user: updatedUser,
     });
   } catch (error) {
-    console.error(error);
+    console.error("UPDATE ERROR:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to update resume",
+      message: error.message,
     });
   }
 };

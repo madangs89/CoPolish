@@ -91,6 +91,8 @@ const ApprovePage = () => {
           toast.success("Resume approved. Redirecting to dashboard");
         }
       } else {
+
+        console.log("Updating and approving resume with id:", resumeData);
         const response = await axios.put(
           `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/mark-approved`,
           { resumeId: params.id, resumeData },
