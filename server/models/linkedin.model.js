@@ -67,6 +67,7 @@ const linkedInProfileSchema = new mongoose.Schema(
           text: String,
           structure: {
             type: String,
+            default: "PARAGRAPH",
             enum: ["PARAGRAPH", "BULLETS"],
           },
           tone: {

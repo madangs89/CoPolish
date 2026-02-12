@@ -193,7 +193,12 @@ const Dashboard = () => {
         <div className="bg-white rounded-3xl p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <Linkedin className="w-5 h-5 text-blue-600" />
-            <p className="text-sm font-medium">LinkedIn</p>
+            <p
+            
+            onClick={()=>{
+              navigate("/editor/linkedin/123")
+            }}
+            className="text-sm font-medium">LinkedIn</p>
           </div>
 
           {userDetails?.currentLinkedInId ? (
