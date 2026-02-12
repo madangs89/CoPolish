@@ -228,6 +228,16 @@ export const markApprovedAndUpdate = async (req, res) => {
 
     await pubClient.expire(key, 60 * 30);
 
+    const idleTime = Math.min(5 * 60 * 1000, (60 * 30 * 1000) / 2);
+
+    const flushAt = Math.min(
+      now + idleTime,
+      now + 25 * 60 * 1000,
+      firstEditAt + 10 * 60 * 1000,
+    );
+
+    await pubClient.zadd("resume:flush_index", flushAt, key);
+
     return res.status(200).json({
       success: true,
       message: "Resume updated and approved",
