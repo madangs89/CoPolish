@@ -11,7 +11,13 @@ const resumeParserWorker = new Worker(
     console.log("Processing job:", job.id);
     console.log(job.data);
 
-    const { filePath, fileType: mimetype, userId, jobKey } = job.data;
+    const {
+      filePath,
+      fileType: mimetype,
+      userId,
+      jobKey,
+      operation,
+    } = job.data;
     let text = "";
     try {
       if (mimetype === "application/pdf") {
@@ -34,10 +40,11 @@ const resumeParserWorker = new Worker(
           parsedText: text,
           userId,
           jobKey,
+          operation,
         },
         {
           jobId: jobKey,
-        }
+        },
       );
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
@@ -54,7 +61,7 @@ const resumeParserWorker = new Worker(
   {
     connection: bullClient,
     concurrency: 5, // run 5 jobs in parallel
-  }
+  },
 );
 
 resumeParserWorker.on("completed", async (job) => {
@@ -68,7 +75,7 @@ resumeParserWorker.on("completed", async (job) => {
       userId: data.userId,
       isError: false,
       error: null,
-    })
+    }),
   );
   console.log("completed", data);
 });
@@ -88,7 +95,7 @@ resumeParserWorker.on("failed", async (job, err) => {
         userId: data.userId,
         isError: true,
         error: err?.message,
-      })
+      }),
     );
   }
   console.log("failed", job);

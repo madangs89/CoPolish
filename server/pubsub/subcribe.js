@@ -128,6 +128,7 @@ export const initSubscribers = async () => {
               usage,
               error,
               isError,
+              operation,
             } = payload;
 
             console.log({ parsedNewResume });
@@ -148,6 +149,7 @@ export const initSubscribers = async () => {
                       parsedNewResume,
                       error,
                       isError,
+                      operation,
                     }),
                   );
                 }
@@ -165,6 +167,7 @@ export const initSubscribers = async () => {
                       parsedNewResume,
                       error,
                       isError,
+                      operation,
                     }),
                   );
                 }

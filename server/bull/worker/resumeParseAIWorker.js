@@ -110,90 +110,105 @@ function computeResumeScore(scores) {
 const resumeParseAIWorker = new Worker(
   "resume-parse-ai",
   async (job) => {
-    const { parsedText, userId, jobKey } = job.data;
-    const res = await aiResumeParser(parsedText);
+    const { parsedText, userId, jobKey, operation } = job.data;
+    if (operation == "resume") {
+      const res = await aiResumeParser(parsedText);
 
-    console.log(res);
+      console.log(res);
 
-    const { text, usage, error, isError } = res;
+      const { text, usage, error, isError } = res;
 
-    if (isError) {
-      await pubClient.publish(
-        "resume:events",
-        JSON.stringify({
-          event: "RESUME_PARSE_AI_COMPLETED",
-          jobId: job.id,
-          userId,
-          parsedNewResume: "",
-          userUpdateCurrentResumeId: "",
-          usage: 0,
-          isError: true,
-          error: error,
-        }),
-      );
-      throw error;
-    }
-
-    const payload = {
-      userId,
-      resumeGroupId: uuidv4(),
-      version: 1,
-      templateId: "HarvardResume",
-      scoreBefore: scoreReturn(computeResumeScore(text)),
-      atsScore: scoreReturn(text?.atsScore),
-      contentClarityScore: scoreReturn(text?.contentClarityScore),
-      structureScore: scoreReturn(text?.structureScore),
-      impactScore: scoreReturn(text?.impactScore),
-      projectScore: scoreReturn(text?.projectScore),
-      experienceScore: scoreReturn(text?.experienceScore),
-      suggestions: text?.optimizationSuggestions || [],
-      skillMap: text?.skillMap || {
-        "Programming Languages": [],
-        "Frameworks & Libraries": [],
-        "Databases & Data Technologies": [],
-        "Tools, Platforms & DevOps": [],
-        "Core Concepts & Technical Skills": [],
-      },
-      // AI output FIRST
-      ...text,
-
-      // Manual control LAST (always wins)
-      config,
-      checkedFields,
-    };
-
-    let parsedNewResume;
-    let userUpdateCurrentResumeId;
-    try {
-      payload.jobKey = jobKey;
-
-      parsedNewResume = await ResumeTemplate.findOne({ jobKey });
-
-      if (!parsedNewResume) {
-        try {
-          console.log("payload to create:", payload);
-          parsedNewResume = await ResumeTemplate.create({
-            ...payload,
-          });
-        } catch (err) {
-          // Handle race condition
-          parsedNewResume = await ResumeTemplate.findOne({ jobKey });
-        }
+      if (isError) {
+        await pubClient.publish(
+          "resume:events",
+          JSON.stringify({
+            event: "RESUME_PARSE_AI_COMPLETED",
+            jobId: job.id,
+            userId,
+            parsedNewResume: "",
+            userUpdateCurrentResumeId: "",
+            usage: 0,
+            isError: true,
+            error: error,
+          }),
+        );
+        throw error;
       }
 
-      userUpdateCurrentResumeId = await User.findByIdAndUpdate(userId, {
-        currentResumeId: parsedNewResume._id,
-      });
-    } catch (error) {
-      console.error("Error saving parsed resume to DB:", error);
+      const payload = {
+        userId,
+        resumeGroupId: uuidv4(),
+        version: 1,
+        templateId: "HarvardResume",
+        scoreBefore: scoreReturn(computeResumeScore(text)),
+        atsScore: scoreReturn(text?.atsScore),
+        contentClarityScore: scoreReturn(text?.contentClarityScore),
+        structureScore: scoreReturn(text?.structureScore),
+        impactScore: scoreReturn(text?.impactScore),
+        projectScore: scoreReturn(text?.projectScore),
+        experienceScore: scoreReturn(text?.experienceScore),
+        suggestions: text?.optimizationSuggestions || [],
+        skillMap: text?.skillMap || {
+          "Programming Languages": [],
+          "Frameworks & Libraries": [],
+          "Databases & Data Technologies": [],
+          "Tools, Platforms & DevOps": [],
+          "Core Concepts & Technical Skills": [],
+        },
+        // AI output FIRST
+        ...text,
+
+        // Manual control LAST (always wins)
+        config,
+        checkedFields,
+      };
+
+      let parsedNewResume;
+      let userUpdateCurrentResumeId;
+      try {
+        payload.jobKey = jobKey;
+
+        parsedNewResume = await ResumeTemplate.findOne({ jobKey });
+
+        if (!parsedNewResume) {
+          try {
+            console.log("payload to create:", payload);
+            parsedNewResume = await ResumeTemplate.create({
+              ...payload,
+            });
+          } catch (err) {
+            // Handle race condition
+            parsedNewResume = await ResumeTemplate.findOne({ jobKey });
+          }
+        }
+
+        userUpdateCurrentResumeId = await User.findByIdAndUpdate(userId, {
+          currentResumeId: parsedNewResume._id,
+        });
+      } catch (error) {
+        console.error("Error saving parsed resume to DB:", error);
+      }
+
+      return {
+        jobKey,
+        userId,
+        parsedNewResume,
+        userUpdateCurrentResumeId,
+        usage,
+        operation,
+      };
+    } else if (operation == "linkedin") {
+      console.log("LinkedIn parsing not implemented yet");
+
+      return {
+        jobKey,
+        userId,
+        parsedNewResume: "",
+        userUpdateCurrentResumeId: "",
+        usage: "",
+        operation,
+      };
     }
-    return {
-      jobKey,
-      userId,
-      parsedNewResume,
-      userUpdateCurrentResumeId,
-      usage,
-    };
   },
   {
     connection: bullClient,
@@ -222,6 +237,7 @@ resumeParseAIWorker.on("completed", async (job) => {
       usage: data.usage,
       isError: false,
       error: null,
+      operation: data.operation,
     }),
   );
 });
@@ -245,6 +261,7 @@ resumeParseAIWorker.on("failed", async (job, err) => {
         usage: 0,
         isError: true,
         error: err?.message ?? "Unknown error",
+        operation: job.data?.operation ?? "unknown",
       }),
     );
   }

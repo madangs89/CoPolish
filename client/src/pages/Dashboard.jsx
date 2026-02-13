@@ -97,7 +97,6 @@ const Dashboard = () => {
   useEffect(() => {
     if (isStatusTrue) {
       updateModalState();
-
     }
   }, [isStatusTrue]);
 
@@ -345,7 +344,7 @@ const Dashboard = () => {
             setErrorStates={setErrorStates}
             title="Upload your resume"
             subtitle="Supported formats: PDF, DOCX"
-            operation="resume"
+            operation="linkedin"
           />
         </div>
       )}

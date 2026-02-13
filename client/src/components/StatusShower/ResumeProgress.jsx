@@ -56,13 +56,13 @@ export default function ResumeProgress({
       ) {
         dispatch(setJobSeenJobs({ id: newId, data: isError }));
         setstatus((prev) =>
-          prev.includes("parsed") ? prev : [...prev, "parsed"]
+          prev.includes("parsed") ? prev : [...prev, "parsed"],
         );
       }
     };
 
     const onAIParsed = (data) => {
-      const { userId, event, parsedNewResume, isError, jobId } =
+      const { userId, event, parsedNewResume, isError, jobId, operation } =
         JSON.parse(data);
 
       console.log("RESUME_PARSE_AI_COMPLETED");
@@ -100,11 +100,17 @@ export default function ResumeProgress({
           dispatch(setCurrentResume(parsedNewResume));
         }
         dispatch(setJobSeenJobs({ id: newId, data: isError }));
-        navigate(`/approve/${parsedNewResume?._id}`, {
-          state: {
-            resume: parsedNewResume,
-          },
-        });
+
+        console.log({ operation });
+        if (operation == "resume") {
+          navigate(`/approve/${parsedNewResume?._id}`, {
+            state: {
+              resume: parsedNewResume,
+            },
+          });
+        } else if (operation == "linkedin") {
+          navigate(`/editor/linkedin/132`);
+        }
       }
     };
 
@@ -141,7 +147,7 @@ export default function ResumeProgress({
         console.log("PARSE ERROR:", error);
         toast.error(
           safeMessage ||
-            "There was an error parsing your resume. Please try again."
+            "There was an error parsing your resume. Please try again.",
         );
       }
     };
@@ -180,7 +186,7 @@ export default function ResumeProgress({
 
         toast.error(
           safeMessage ||
-            "There was an error analyzing your resume. Please try again."
+            "There was an error analyzing your resume. Please try again.",
         );
       }
     };
