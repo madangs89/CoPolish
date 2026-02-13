@@ -69,3 +69,25 @@ export const aiOptimizationQueue = new Queue("optimize-ai", {
     duration: 1000,
   },
 });
+export const aiOptimizationLinkedInQueue = new Queue("optimize-ai-linkedin", {
+  connection: bullClient,
+  defaultJobOptions: {
+    attempts: 1,
+    backoff: {
+      type: "exponential",
+      delay: 3000,
+    },
+    timeout: 5 * 60 * 1000,
+    removeOnComplete: {
+      age: 3600,
+      count: 1000,
+    },
+    removeOnFail: {
+      age: 24 * 3600,
+    },
+  },
+  limiter: {
+    max: 2, // 🔥 SAFE for AI
+    duration: 1000,
+  },
+});

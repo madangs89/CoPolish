@@ -35,6 +35,13 @@ export const initSubscribers = async () => {
       console.log("Subscribed successfully to job:updates");
     }
   });
+  await subClient.subscribe("job_updates_linkedIn", (err) => {
+    if (err) {
+      console.error("Failed to subscribe: ", err);
+    } else {
+      console.log("Subscribed successfully to job:updates_linkedIn");
+    }
+  });
 
   subClient.on("message", async (channel, message) => {
     try {
@@ -176,6 +183,20 @@ export const initSubscribers = async () => {
         if (io) {
           io.to(`user:${userId}`).emit(
             "job:update",
+            JSON.stringify(jobPayload),
+          );
+        }
+      }
+      if (channel === "job_updates_linkedIn") {
+        const jobPayload = JSON.parse(message);
+
+        const { userId } = jobPayload;
+
+        const io = getIO();
+
+        if (io) {
+          io.to(`user:${userId}`).emit(
+            "job:update:linkedin",
             JSON.stringify(jobPayload),
           );
         }

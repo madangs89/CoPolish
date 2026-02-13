@@ -26,6 +26,7 @@ import {
 import { mailTransporter } from "./config/mail.js";
 import ResumeTemplate from "./models/resume.model.js";
 import userRouter from "./routes/user.routes.js";
+import linkedInRouter from "./routes/linkedIn.routes.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -59,6 +60,7 @@ app.use("/api/user/v1", userRouter);
 //Parse
 app.use("/api/parse/v1", parseRouter);
 app.use("/api/resume/v1", resumeRouter);
+app.use("/api/linkedin/v1", linkedInRouter);
 app.use("/api/payment/v1", paymentRouter);
 
 // const instruction =

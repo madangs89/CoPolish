@@ -29,6 +29,10 @@ const jobSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "ResumeTemplate",
     },
+    linkedInId: {
+        type: String,
+        required: true,
+    },
     status: {
       type: String,
       enum: [
@@ -47,8 +51,6 @@ const jobSchema = new mongoose.Schema(
     creditsRefunded: { type: Number, default: 0 },
 
     result: {
-      resumeVersionId: mongoose.Types.ObjectId,
-      
       totalScore: Number,
       scoreFailed: Boolean,
     },
@@ -62,5 +64,5 @@ const jobSchema = new mongoose.Schema(
   },
 );
 
-const Job = mongoose.model("Job", jobSchema);
-export default Job;
+const LinkedinJob = mongoose.model("LinkedinJob", jobSchema);
+export default LinkedinJob;

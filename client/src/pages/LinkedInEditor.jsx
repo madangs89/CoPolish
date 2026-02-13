@@ -1,6 +1,9 @@
-import React, { useState } from "react";
-
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { useSelector } from "react-redux";
 const LinkedInEditor = () => {
+  const resumeSlice = useSelector((state) => state.resume.currentResume);
+  const socketSlice = useSelector((state) => state.socket);
   const fakeData = {
     personalInfo: {
       fullName: "Aarav Mehta",
@@ -318,10 +321,38 @@ const LinkedInEditor = () => {
   const currentAbout = fakeData.about.options.find((o) => o._id === aboutId);
 
   // ---------------- HANDLERS ----------------
-  const handleOptimize = (section, tone) => {
+  const handleOptimize = async (section, tone) => {
     console.log("Optimize request:", section, tone);
-    // 👉 Call API here
+
+    const d = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/api/linkedin/v1/optimize-linkedin`,
+      {
+        section,
+        tone,
+        resumeId: resumeSlice._id,
+        linkedInId: "fake_linkedIn_id_123",
+      },
+      {
+        withCredentials: true,
+      },
+    );
+
+    console.log("Optimization response:", d.data);
   };
+
+  useEffect(() => {
+    if (socketSlice.socket) {
+      socketSlice.socket.on("job:update:linkedin", (data) => {
+        console.log("job:update:linkedIn", data);
+      });
+    }
+
+    return () => {
+      if (socketSlice.socket) {
+        socketSlice.socket.off("job:update:linkedin");
+      }
+    };
+  }, [socketSlice.socket]);
 
   return (
     <div className="min-h-screen bg-[#F4F2EE] flex justify-center">
