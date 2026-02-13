@@ -13,6 +13,7 @@ import { aiOptimizationQueue } from "../jobs/bullJobs.js";
 import ResumeTemplate from "../../models/resume.model.js";
 import User from "../../models/user.model.js";
 import LinkedinJob from "../../models/linkedinJobs.model.js";
+import { buildPromptsForLinkedIn } from "../../LLmFunctions/linkedInLLHelper/linkedInLlm.js";
 
 const SUPPORTED_OPERATIONS = new Set([
   "all",
@@ -214,9 +215,9 @@ const resumeOptimizeWorker = new Worker(
     } catch (error) {
       console.log("Error publishing job update:", error);
     }
-    // console.log("Building prompt for section:", section.name);
-    // const masterPrompt = buildInstruction(section.name, prompt);
-    // console.log("masterPrompt built", masterPrompt);
+    console.log("Building prompt for section:", section.name);
+    const masterPrompt = buildPromptsForLinkedIn(section.name);
+    console.log("masterPrompt built", masterPrompt);
 
     // const keyR = `resume:${resumeId}:${userId}`;
 

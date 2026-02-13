@@ -1,5 +1,7 @@
 import {
+  linkedinAboutSystemInstruction,
   linkedinBaseSystemInstruction,
+  linkedinExperienceSystemInstruction,
   linkedinHeadlineSystemInstruction,
 } from "./allLinkedInLLmInstruction.js";
 
@@ -27,9 +29,11 @@ export const buildPromptsForLinkedIn = (operation) => {
     case "headline":
       return linkedinBaseSystemInstruction + linkedinHeadlineSystemInstruction;
     case "about":
-      break;
+      return linkedinBaseSystemInstruction + linkedinAboutSystemInstruction;
     case "experience":
-      break;
+      return (
+        linkedinBaseSystemInstruction + linkedinExperienceSystemInstruction
+      );
     case "projects":
       break;
     case "posts":
