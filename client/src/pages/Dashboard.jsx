@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { Linkedin, FileText } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { formatDistanceToNow } from "date-fns";
@@ -12,6 +12,8 @@ import {
 import SkeletonLoader from "../components/Loaders/SkeletonLoader";
 import { useLocation, useNavigate } from "react-router-dom";
 import { setAuthFalse, setUser } from "../redux/slice/authSlice";
+import UploadBox from "../components/UploadBox";
+import ResumeProgress from "../components/StatusShower/ResumeProgress";
 
 let nowTime = new Date();
 
@@ -20,7 +22,14 @@ const Dashboard = () => {
   const resumeSlice = useSelector((state) => state.resume);
   const location = useLocation();
 
+  const [status, setstatus] = useState([]);
+  const [isStatusTrue, setIsStatusTrue] = useState(false);
+
+  const [errorStates, setErrorStates] = useState([]);
+
   const [resumeLoader, setResumeLoader] = useState(false);
+
+  const [linkedInUploadModalShow, setLinkedInUploadModalShow] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -81,6 +90,17 @@ const Dashboard = () => {
     })();
   }, []);
 
+  const updateModalState = useEffectEvent(() => {
+    setLinkedInUploadModalShow(false);
+  });
+
+  useEffect(() => {
+    if (isStatusTrue) {
+      updateModalState();
+
+    }
+  }, [isStatusTrue]);
+
   useEffect(() => {
     // Get Resume Data
     (async () => {
@@ -128,7 +148,7 @@ const Dashboard = () => {
   }, [userDetails?.currentResumeId, location.state?.id, dispatch]);
 
   return (
-    <div className="min-h-screen mt-10 bg-[#f7f7f7] px-6 md:px-14 py-10">
+    <div className="min-h-screen mt-10 bg-[#f7f7f7] relative px-6 overflow-hidden md:px-14 py-10">
       {/* ================= TOP MESSAGE ================= */}
       <div className="bg-[#eaf2ff] rounded-2xl px-6 py-4 flex items-center gap-3 mb-10">
         <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center">
@@ -194,11 +214,13 @@ const Dashboard = () => {
           <div className="flex items-center gap-2 mb-2">
             <Linkedin className="w-5 h-5 text-blue-600" />
             <p
-            
-            onClick={()=>{
-              navigate("/editor/linkedin/123")
-            }}
-            className="text-sm font-medium">LinkedIn</p>
+              onClick={() => {
+                navigate("/editor/linkedin/123");
+              }}
+              className="text-sm font-medium"
+            >
+              LinkedIn
+            </p>
           </div>
 
           {userDetails?.currentLinkedInId ? (
@@ -248,7 +270,12 @@ const Dashboard = () => {
                   Import from Resume
                 </button>
 
-                <button className="w-full px-4 py-2 border border-gray-200 text-gray-700 rounded-lg bg-gray-200 text-sm font-medium hover:bg-gray-50 transition">
+                <button
+                  onClick={() => {
+                    setLinkedInUploadModalShow(true);
+                  }}
+                  className="w-full px-4 py-2 border border-gray-200 text-gray-700 rounded-lg bg-gray-200 text-sm font-medium hover:bg-gray-50 transition"
+                >
                   Upload LinkedIn Data
                 </button>
               </div>
@@ -307,6 +334,33 @@ const Dashboard = () => {
           </button>
         </div>
       </div>
+
+      {linkedInUploadModalShow && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[999999]">
+          <UploadBox
+            setIsStatusTrue={setIsStatusTrue}
+            status={status}
+            setstatus={setstatus}
+            errorStates={errorStates}
+            setErrorStates={setErrorStates}
+            title="Upload your resume"
+            subtitle="Supported formats: PDF, DOCX"
+            operation="resume"
+          />
+        </div>
+      )}
+
+      {isStatusTrue && (
+        <div className="fixed z-[999999] inset-0 w-full h-full overflow-hidden bg-black bg-opacity-50 flex items-center justify-center">
+          <ResumeProgress
+            status={status}
+            setIsStatusTrue={setIsStatusTrue}
+            setstatus={setstatus}
+            errorStates={errorStates}
+            setErrorStates={setErrorStates}
+          />
+        </div>
+      )}
     </div>
   );
 };

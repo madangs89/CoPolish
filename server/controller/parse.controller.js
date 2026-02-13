@@ -32,7 +32,7 @@ export const parseData = async (req, res) => {
       });
     }
 
-    const { mimetype, buffer, size, path } = req.file;
+    const { mimetype, buffer, size, path, operation } = req.file;
 
     if (size > 5 * 1024 * 1024) {
       return res.status(400).json({
@@ -59,10 +59,11 @@ export const parseData = async (req, res) => {
         fileType: mimetype,
         userId,
         jobKey,
+        operation,
       },
       {
         jobId: jobKey,
-      }
+      },
     );
 
     return res.status(200).json({

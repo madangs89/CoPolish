@@ -91,6 +91,7 @@ const OnboardingSource = () => {
             setErrorStates={setErrorStates}
             title="Upload your resume"
             subtitle="Supported formats: PDF, DOCX"
+            operation="resume"
           />
         )}
       </div>

@@ -6,7 +6,7 @@ import { authMiddelware } from "../middleware/auth.middelware.js";
 const parseRouter = express.Router();
 
 parseRouter.post(
-  "/parse-resume",
+  "/parse",
   authMiddelware,
   upload.single("resume"),
   parseData

@@ -11,6 +11,7 @@ const UploadBox = ({
   setstatus,
   errorStates,
   setErrorStates,
+  operation
 }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const navigate = useNavigate();
@@ -32,11 +33,12 @@ const UploadBox = ({
     if (!selectedFile) return;
     const formdata = new FormData();
     formdata.append("resume", selectedFile);
+    formdata.append("operation", operation);
 
     setIsStatusTrue(true);
     try {
       const uploadData = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/parse/v1/parse-resume`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/parse/v1/parse`,
         formdata,
         {
           withCredentials: true,
