@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import ResumeTemplate from "../../models/resume.model.js";
 import User from "../../models/user.model.js";
 import { connectDB } from "../../config/connectDB.js";
+import { aiLinkedInParser } from "../../LLmFunctions/linkedInLLHelper/linkedInLlm.js";
 await connectDB();
 
 let config = {
@@ -200,6 +201,7 @@ const resumeParseAIWorker = new Worker(
     } else if (operation == "linkedin") {
       console.log("LinkedIn parsing not implemented yet");
 
+      const res = aiLinkedInParser(parsedText, userId);
       return {
         jobKey,
         userId,

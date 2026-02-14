@@ -1,10 +1,13 @@
+import { ai } from "../../config/google.js";
 import LinkedInProfile from "../../models/linkedin.model.js";
 import ResumeTemplate from "../../models/resume.model.js";
+import User from "../../models/user.model.js";
 import {
   linkedinAboutSystemInstruction,
   linkedinBaseSystemInstruction,
   linkedinExperienceSystemInstruction,
   linkedinHeadlineSystemInstruction,
+  parseLinkedInSystemInstruction,
 } from "./allLinkedInLLmInstruction.js";
 
 const SUPPORTED_OPERATIONS = new Set([
@@ -166,4 +169,70 @@ export const aiPartWiseOptimize = async (
   };
 };
 
-// export const optimize
+export const aiLinkedInParser = async (text, userId) => {
+  try {
+    let resumeData = "";
+    if (userId) {
+      const userDetails = await User.findById(userId);
+      if (userDetails && userDetails.currentResumeId) {
+        let resume = await ResumeTemplate.findById(userDetails.currentResumeId);
+        if (resume) {
+          resumeData = resume;
+        }
+      }
+    }
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: JSON.stringify({
+        linkedInData: text,
+        resumeData,
+      }),
+      config: {
+        systemInstruction: parseLinkedInSystemInstruction,
+      },
+    });
+    const newText = response.text
+      .replace(/^\s*```json\s*/, "")
+      .replace(/\s*```\s*$/, "");
+
+    // console.log(response.usageMetadata);
+    // console.log(newText);
+
+    console.log("AI resume parser response received", newText);
+
+    // const normalized = normalizeResume(JSON.parse(newText));
+
+    // const isValid = validateLLMResponse("parsed", normalized);
+
+    // const { isValid: valid, errors } = isValid;
+
+    // if (!valid) {
+    //   console.error("Validation errors:", errors);
+
+    //   return {
+    //     text: null,
+    //     usage: response.usageMetadata,
+    //     error: errors,
+    //     isError: true,
+    //   };
+    // }
+
+    // const payload = {
+    //   text: JSON.parse(newText),
+    //   usage: response.usageMetadata,
+    //   error: null,
+    //   isError: false,
+    // };
+
+    // return payload;
+  } catch (error) {
+    const payload = {
+      text: null,
+      usage: null,
+      error: error,
+      isError: true,
+    };
+    console.error("Error parsing resume:", error);
+    return payload;
+  }
+};
