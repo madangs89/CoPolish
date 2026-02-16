@@ -108,6 +108,11 @@ const linkedInProfileSchema = new mongoose.Schema(
                 type: String,
                 enum: ["IMPACT", "ATS", "CLARITY"],
               },
+              tone: {
+                type: String,
+                enum: ["FORMAL", "CONFIDENT", "BOLD"],
+                required: true,
+              },
               createdAt: {
                 type: Date,
                 default: Date.now,
@@ -118,22 +123,7 @@ const linkedInProfileSchema = new mongoose.Schema(
       },
     ],
 
-    skills: {
-      current: [String],
-      suggestions: [
-        {
-          skills: [String],
-          reason: {
-            type: String,
-            enum: ["JD_MATCH", "GAP_FILL", "TRENDING"],
-          },
-          createdAt: {
-            type: Date,
-            default: Date.now,
-          },
-        },
-      ],
-    },
+    skills: [String],
 
     seo: {
       activeKeywords: [String],

@@ -1,6 +1,7 @@
 import { aiOptimizationLinkedInQueue } from "../bull/jobs/bullJobs.js";
 import { pubClient } from "../config/redis.js";
 import CreditLedger from "../models/creditLedger.model.js";
+import LinkedInProfile from "../models/linkedin.model.js";
 import LinkedinJob from "../models/linkedinJobs.model.js";
 import User from "../models/user.model.js";
 
@@ -132,6 +133,39 @@ export const optimizeLinkedIn = async (req, res) => {
     });
   } catch (error) {
     console.error("Error optimizing LinkedIn profile:", error);
+    return res.status(500).json({ message: "Server error", success: false });
+  }
+};
+
+export const getLinkedInDataFromId = async (req, res) => {
+  try {
+    const { linkedInId } = req.params;
+
+    const userId = req?.user?._id;
+
+    if (!linkedInId || !userId) {
+      return res
+        .status(400)
+        .json({ message: "Required fields are missing", success: false });
+    }
+
+    const linkedInData = await LinkedInProfile.findOne({
+      userId,
+      _id: linkedInId,
+    });
+
+    if (!linkedInData) {
+      return res
+        .status(404)
+        .json({ message: "LinkedIn profile not found", success: false });
+    }
+    return res.status(200).json({
+      message: "LinkedIn profile data retrieved successfully",
+      success: true,
+      data: linkedInData,
+    });
+  } catch (error) {
+    console.log(error);
     return res.status(500).json({ message: "Server error", success: false });
   }
 };

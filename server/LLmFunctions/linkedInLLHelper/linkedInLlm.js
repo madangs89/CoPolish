@@ -199,8 +199,6 @@ export const aiLinkedInParser = async (text, userId) => {
     // console.log(response.usageMetadata);
     // console.log(newText);
 
-    console.log("AI resume parser response received", newText);
-
     // const normalized = normalizeResume(JSON.parse(newText));
 
     // const isValid = validateLLMResponse("parsed", normalized);

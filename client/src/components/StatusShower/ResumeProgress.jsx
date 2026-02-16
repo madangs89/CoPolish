@@ -10,6 +10,7 @@ import {
 import toast from "react-hot-toast";
 import { setJobSeenJobs } from "../../redux/slice/jobSlice";
 import { useRef } from "react";
+import { setCurrentLinkedInData } from "../../redux/slice/linkedInSlice";
 
 export default function ResumeProgress({
   status,
@@ -103,13 +104,19 @@ export default function ResumeProgress({
 
         console.log({ operation });
         if (operation == "resume") {
+          dispatch(setCurrentResume(parsedNewResume));
           navigate(`/approve/${parsedNewResume?._id}`, {
             state: {
               resume: parsedNewResume,
             },
           });
         } else if (operation == "linkedin") {
-          navigate(`/editor/linkedin/132`);
+          dispatch(setCurrentLinkedInData(parsedNewResume));
+          navigate(`/editor/linkedin/${parsedNewResume?._id}`, {
+            state: {
+              linkedin: parsedNewResume,
+            },
+          });
         }
       }
     };

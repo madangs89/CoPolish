@@ -1,9 +1,60 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  setCurrentLinkedInData,
+  setCurrentToneForHeadline,
+} from "../redux/slice/linkedInSlice";
+import { useLocation, useParams } from "react-router-dom";
+import toast from "react-hot-toast";
+import BlackLoader from "../components/Loaders/BlackLoader";
+
+const returnProperData = (data) => {
+  const { currentTone, options } = data || {};
+
+  const currentOption = options?.find((option) => option.tone === currentTone);
+
+  if (currentOption?.text.length > 0) {
+    return currentOption.text;
+  } else {
+    return "Your LinkedIn headline is not set. Set it to get a better score.";
+  }
+};
+
+const returnRequestedData = (data, tone) => {
+  const { options } = data || {};
+
+  const currentOption = options?.find((option) => option.tone === tone);
+
+  if (currentOption?.text.length > 0) {
+    return currentOption.text;
+  } else {
+    return "No data available. Optimize this section to get suggestions.";
+  }
+};
+
+const returnProperExperienceBullets = (data, tone) => {
+  const bullets = data.find((option) => option.tone === tone);
+
+  if (bullets?.bullets && bullets?.bullets.length > 0) {
+    return bullets.bullets;
+  } else {
+    return ["No data available. Optimize this section to get suggestions."];
+  }
+};
 const LinkedInEditor = () => {
   const resumeSlice = useSelector((state) => state.resume.currentResume);
   const socketSlice = useSelector((state) => state.socket);
+  const currentLinkedIn = useSelector(
+    (state) => state.linkedin.currentLinkedInData,
+  );
+
+  const { id } = useParams();
+  const location = useLocation();
+
+  const [loading, setLoading] = useState(false);
+
+  const dispatch = useDispatch();
   const fakeData = {
     personalInfo: {
       fullName: "Aarav Mehta",
@@ -308,9 +359,26 @@ const LinkedInEditor = () => {
     },
   ];
 
+  const [headlineTone, setHeadlineTone] = useState(
+    currentLinkedIn?.headline?.currentTone || "FORMAL",
+  );
+  const [headlineCurrentText, setHeadlineCurrentText] = useState(
+    returnProperData(currentLinkedIn?.headline),
+  );
+
+  const [aboutTone, setAboutTone] = useState(
+    currentLinkedIn?.about?.currentTone || "FORMAL",
+  );
+  const [aboutCurrentText, setAboutCurrentText] = useState(
+    returnProperData(currentLinkedIn?.about),
+  );
+
+  const [experienceData, setExperienceData] = useState(
+    currentLinkedIn?.experience || [],
+  );
+
   const [connected, setConnected] = useState(true);
 
-  // ---------------- STATE ----------------
   const [headlineId, setHeadlineId] = useState(fakeData.headline.currentId);
   const [aboutId, setAboutId] = useState(fakeData.about.currentId);
 
@@ -340,6 +408,63 @@ const LinkedInEditor = () => {
     console.log("Optimization response:", d.data);
   };
 
+  const handleUpdateHeadlineStates = (tone) => {
+    setHeadlineTone(tone);
+    setHeadlineCurrentText(
+      returnRequestedData(currentLinkedIn?.headline, tone),
+    );
+  };
+
+  const handleUpdateAboutStates = (tone) => {
+    setAboutTone(tone);
+    setAboutCurrentText(returnRequestedData(currentLinkedIn?.about, tone));
+  };
+
+  const updateExperienceCurrentTone = (tone, index) => {
+    setExperienceData((prev) => {
+      const updated = [...prev];
+
+      updated[index] = {
+        ...updated[index],
+        bullets: {
+          ...updated[index].bullets,
+          currentTone: tone,
+        },
+      };
+
+      return updated;
+    });
+  };
+
+  useEffect(() => {
+    console.log(id);
+
+    (async () => {
+      if (id.length > 0 || location.state?.linkedin?._id.length > 0) {
+        try {
+          setLoading(true);
+          const linkedinData = await axios.get(
+            `${import.meta.env.VITE_BACKEND_URL}/api/linkedin/v1/linkedin/${id || location.state?.linkedin?._id}`,
+            {
+              withCredentials: true,
+            },
+          );
+
+          console.log(linkedinData.data);
+
+          if (linkedinData.data.success) {
+            dispatch(setCurrentLinkedInData(linkedinData.data.data));
+          }
+        } catch (error) {
+          toast.error("Failed to fetch LinkedIn data. Please try again.");
+          console.log("Error fetching LinkedIn data:", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    })();
+  }, [location.state?.linkedin?._id, dispatch, id]);
+
   useEffect(() => {
     if (socketSlice.socket) {
       socketSlice.socket.on("job:update:linkedin", (data) => {
@@ -354,6 +479,20 @@ const LinkedInEditor = () => {
     };
   }, [socketSlice.socket]);
 
+  useEffect(() => {
+    if (currentLinkedIn?.experience) {
+      setExperienceData(currentLinkedIn.experience);
+    }
+  }, [currentLinkedIn?.experience]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center w-screen  justify-center">
+        <BlackLoader />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F4F2EE] flex justify-center">
       <div className="w-full max-w-3xl my-20 flex flex-col gap-5">
@@ -365,54 +504,69 @@ const LinkedInEditor = () => {
               className="w-full h-full object-cover"
             />
             <img
-              src={fakeData.personalInfo.profileUrl}
+              src={
+                currentLinkedIn?.personalInfo?.profileUrl ||
+                "https://www.gravatar.com/avatar/?d=mp&s=150"
+              }
               className="absolute left-6 -bottom-12 w-32 h-32 rounded-full border-4 border-white object-cover"
             />
           </div>
 
           <div className="pt-16 px-6 pb-4">
             <h1 className="text-xl font-semibold">
-              {fakeData.personalInfo.fullName.toUpperCase()}
+              {currentLinkedIn?.personalInfo?.fullName?.toUpperCase()}
             </h1>
 
-            <p className="text-sm text-gray-800 mt-1">{currentHeadline.text}</p>
+            <p className="text-sm text-gray-800 mt-1">
+              {returnProperData(currentLinkedIn?.headline)}
+            </p>
 
             <p className="text-xs text-gray-500 mt-1">
-              {fakeData.personalInfo.location}
+              {currentLinkedIn?.personalInfo?.location}
             </p>
           </div>
         </div>
 
         {/* ================= HEADLINE OPTIMIZER ================= */}
-        <div className="bg-white rounded-xl px-6 py-4">
+        <div className="bg-white rounded-xl px-6 min-h-[200px] py-4">
           <div className="flex justify-between items-center">
             <h2 className="font-semibold text-lg">Headline</h2>
             <button
               className="text-blue-600 text-sm font-medium"
-              onClick={() => handleOptimize("headline", currentHeadline.tone)}
+              onClick={() => handleOptimize("headline", headlineTone)}
             >
               ✨ Optimize
             </button>
           </div>
 
           <div className="flex gap-2 mt-3">
-            {fakeData.headline.options.map((opt) => (
-              <button
-                key={opt._id}
-                onClick={() => setHeadlineId(opt._id)}
-                className={`px-3 py-1 text-xs rounded-md border
+            {currentLinkedIn?.headline.options &&
+              currentLinkedIn?.headline.options.length > 0 &&
+              [...currentLinkedIn?.headline.options]
+                .sort((a, b) => {
+                  if (a.tone === currentLinkedIn?.headline.currentTone)
+                    return -1;
+                  if (b.tone === currentLinkedIn?.headline.currentTone)
+                    return 1;
+                  return 0;
+                })
+                .map((opt) => (
+                  <button
+                    key={opt._id}
+                    onClick={() => handleUpdateHeadlineStates(opt.tone)}
+                    className={`px-3 py-1 text-xs rounded-md border
                   ${
-                    opt._id === headlineId
+                    headlineTone === opt.tone
                       ? "bg-blue-600 text-white"
                       : "bg-white text-gray-700"
                   }`}
-              >
-                {opt.tone}
-              </button>
-            ))}
+                  >
+                    {opt.tone}
+                  </button>
+                ))}
           </div>
 
-          <p className="text-sm mt-3 text-gray-900">{currentHeadline.text}</p>
+          <p className="text-sm mt-3 text-gray-900">{headlineCurrentText}</p>
         </div>
 
         {/* ================= ABOUT OPTIMIZER ================= */}
@@ -421,31 +575,39 @@ const LinkedInEditor = () => {
             <h2 className="font-semibold text-lg">About</h2>
             <button
               className="text-blue-600 text-sm font-medium"
-              onClick={() => handleOptimize("about", currentAbout.tone)}
+              onClick={() => handleOptimize("about", aboutTone)}
             >
               ✨ Optimize
             </button>
           </div>
 
           <div className="flex gap-2 mt-3">
-            {fakeData.about.options.map((opt) => (
-              <button
-                key={opt._id}
-                onClick={() => setAboutId(opt._id)}
-                className={`px-3 py-1 text-xs rounded-md border
+            {currentLinkedIn?.about?.options &&
+              currentLinkedIn?.about?.options.length > 0 &&
+              [...currentLinkedIn?.about?.options]
+                .sort((a, b) => {
+                  if (a.tone === currentLinkedIn?.about.currentTone) return -1;
+                  if (b.tone === currentLinkedIn?.about.currentTone) return 1;
+                  return 0;
+                })
+                .map((opt) => (
+                  <button
+                    key={opt._id}
+                    onClick={() => handleUpdateAboutStates(opt.tone)}
+                    className={`px-3 py-1 text-xs rounded-md border
                   ${
-                    opt._id === aboutId
+                    opt.tone === aboutTone
                       ? "bg-blue-600 text-white"
                       : "bg-white text-gray-700"
                   }`}
-              >
-                {opt.tone}
-              </button>
-            ))}
+                  >
+                    {opt.tone}
+                  </button>
+                ))}
           </div>
 
           <p className="text-sm mt-3 whitespace-pre-line text-gray-900">
-            {currentAbout.text}
+            {aboutCurrentText}
           </p>
         </div>
 
@@ -453,41 +615,72 @@ const LinkedInEditor = () => {
         <div className="bg-white rounded-xl px-6 py-4">
           <div className="flex justify-between items-center">
             <h2 className="font-semibold text-lg">Experience</h2>
-            <button className="text-blue-600 text-sm font-medium">
+            <button
+              className="text-blue-600 text-sm font-medium"
+              onClick={() => handleOptimize("experience", "ALL")}
+            >
               ✨ Optimize
             </button>
           </div>
 
-          {fakeData.experience.map((exp, idx) => (
-            <div key={idx} className="mt-3 bg-gray-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between">
-                <p className="font-medium text-sm">
-                  {exp.role} · {exp.company}
-                </p>
-                {/* <div className="flex items-center justify-center gap-2 mt-3"> */}
-                {exp.bullets.suggestions.map((opt, sindex) => (
-                  <button
-                    key={sindex}
-                    //   onClick={() => setAboutId(opt._id)}
-                    className={`px-3 py-1 text-xs rounded-md border
-                  ${
-                    opt.improvementType === opt.bullets.currentTone
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-700"
-                  }`}
-                  >
-                    {opt.improvementType}
-                  </button>
-                ))}
-                {/* </div> */}
-              </div>
-              <ul className="list-disc ml-5 mt-2 text-sm text-gray-700">
-                {exp.bullets.current.map((b, i) => (
-                  <li key={i}>{b}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {experienceData && experienceData.length > 0 ? (
+            experienceData.map((exp, index) => {
+              const currentTone = exp?.bullets?.currentTone;
+              const suggestions = exp?.bullets?.suggestions || [];
+
+              // Find suggestion matching selected tone
+              const matchedSuggestion = suggestions.find(
+                (s) => s.tone === currentTone,
+              );
+
+              const bulletsToRender =
+                matchedSuggestion?.bullets?.length > 0
+                  ? matchedSuggestion.bullets
+                  : exp?.bullets?.current?.length > 0
+                    ? exp.bullets.current
+                    : [
+                        "No data available. Optimize this section to get suggestions.",
+                      ];
+
+              return (
+                <div key={index} className="mt-4 bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-medium text-sm text-gray-900">
+                    {exp?.role} at {exp?.company}
+                  </h3>
+
+                  {/* Tone Switch */}
+                  <div className="flex gap-2 mt-3">
+                    {["FORMAL", "CONFIDENT", "BOLD"].map((tone) => (
+                      <button
+                        key={tone}
+                        onClick={() => updateExperienceCurrentTone(tone, index)}
+                        className={`px-3 py-1 text-xs rounded-md border ${
+                          tone === currentTone
+                            ? "bg-blue-600 text-white"
+                            : "bg-white text-gray-700"
+                        }`}
+                      >
+                        {tone}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Render Bullets */}
+                  <ul className="list-disc ml-5 mt-3">
+                    {bulletsToRender.map((bullet, bId) => (
+                      <li key={bId} className="text-sm text-gray-900">
+                        {bullet}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-sm text-gray-500 mt-3">
+              No experience added yet.
+            </p>
+          )}
         </div>
 
         {/* ================= SKILLS ================= */}
@@ -500,14 +693,20 @@ const LinkedInEditor = () => {
           </div>
 
           <div className="flex flex-wrap gap-2 mt-3">
-            {fakeData.skills.current.map((skill) => (
-              <span
-                key={skill}
-                className="px-3 py-1 bg-gray-100 rounded-full text-xs"
-              >
-                {skill}
-              </span>
-            ))}
+            {currentLinkedIn?.skills && currentLinkedIn?.skills.length > 0 ? (
+              currentLinkedIn?.skills.map((skill) => (
+                <span
+                  key={skill}
+                  className="px-3 py-1 bg-gray-100 rounded-full text-xs"
+                >
+                  {skill}
+                </span>
+              ))
+            ) : (
+              <p className="text-sm mt-3 text-gray-900">
+                No skills added yet. Optimize this section to get suggestions.
+              </p>
+            )}
           </div>
         </div>
       </div>

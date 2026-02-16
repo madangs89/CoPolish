@@ -195,6 +195,7 @@ export const normalizeAllFields = (data, field) => {
               bullets: data.bullets || [],
               improvementType: data.improvementType || "CLARITY",
               createdAt: new Date(),
+              tone: currentTone,
             };
           } else {
             return {
@@ -202,6 +203,7 @@ export const normalizeAllFields = (data, field) => {
               bullets: [],
               improvementType: "CLARITY",
               createdAt: new Date(),
+              tone,
             };
           }
         }),
@@ -305,7 +307,7 @@ const resumeParseAIWorker = new Worker(
     } else if (operation == "linkedin") {
       console.log("LinkedIn parsing not implemented yet");
 
-      const res = aiLinkedInParser(parsedText, userId);
+      const res = await aiLinkedInParser(parsedText, userId);
 
       console.log(res);
 
@@ -343,6 +345,7 @@ const resumeParseAIWorker = new Worker(
           bannerUrl: "",
           profilePicUrl: "",
         },
+        extractedFrom: "linkedin",
         skills: text?.skills || [],
         score: {
           currentScore: text?.score?.currentScore || 0,
@@ -369,11 +372,10 @@ const resumeParseAIWorker = new Worker(
         await userDetails.save();
       }
 
+      console.log({ newLinkedIn });
 
-      console.log(newLinkedIn);
+      console.log({ userDetails });
 
-      console.log(userD)
-      
       return {
         jobKey,
         userId,
