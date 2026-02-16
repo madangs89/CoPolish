@@ -154,7 +154,6 @@ const linkedInProfileSchema = new mongoose.Schema(
     },
     lastOptimizedAt: Date,
     sectionsTouched: [String],
-
     posts: [
       {
         postId: {
@@ -203,6 +202,11 @@ const linkedInProfileSchema = new mongoose.Schema(
         },
       },
     ],
+    changes: {
+      headline: [],
+      about: [],
+      experience: [],
+    },
   },
   { timestamps: true },
 );

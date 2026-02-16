@@ -13,7 +13,11 @@ import { aiOptimizationQueue } from "../jobs/bullJobs.js";
 import ResumeTemplate from "../../models/resume.model.js";
 import User from "../../models/user.model.js";
 import LinkedinJob from "../../models/linkedinJobs.model.js";
-import { buildPromptsForLinkedIn } from "../../LLmFunctions/linkedInLLHelper/linkedInLlm.js";
+import {
+  aiLinkedInOptimize,
+  buildPromptsForLinkedIn,
+  getLinkedInDataAndResumeData,
+} from "../../LLmFunctions/linkedInLLHelper/linkedInLlm.js";
 
 const SUPPORTED_OPERATIONS = new Set([
   "all",
@@ -217,31 +221,35 @@ const resumeOptimizeWorker = new Worker(
     }
     console.log("Building prompt for section:", section.name);
     const masterPrompt = buildPromptsForLinkedIn(section.name);
-    console.log("masterPrompt built", masterPrompt);
 
     // const keyR = `resume:${resumeId}:${userId}`;
 
-    // let resumeData = await getResumeFromDb(resumeId, section.name, keyR);
+    let wholeDataForAi = await getLinkedInDataAndResumeData(
+      resumeId,
+      linkedInId,
+      section.name,
+    );
+
+    console.log({ wholeDataForAi });
     // console.log("Fetched resume data for optimization");
-    // if (resumeData.isError) {
-    //   // here need to handle one case
+    if (wholeDataForAi.isError || !wholeDataForAi.data) {
+      // here need to handle one case
+      console.log("Error fetching resume data:", wholeDataForAi.error);
+      return;
+    }
+    const aiRes = await aiLinkedInOptimize(
+      resumeId,
+      section.name,
+      masterPrompt,
+      JSON.stringify({ ...wholeDataForAi.data, requestedTone: section.tone }),
+    );
 
-    //   console.log("Error fetching resume data:", resumeData.error);
-    //   return;
-    // }
-    // console.log("calling all");
-
-    // const aiRes = await aiPartWiseOptimize(
-    //   resumeId,
-    //   section.name,
-    //   masterPrompt,
-    //   JSON.stringify(resumeData.data),
-    // );
+    console.log("ai res", aiRes.data);
     // if (aiRes.isError) {
     //   section.status = "failed";
     //   section.error = aiRes.error;
     // } else {
-    //   section.optimizedData = aiRes.data[section.name];
+    //   section.optimizedData = aiRes.data;
     //   section.changedData = aiRes.data["changes"];
     //   section.status = "success";
     // }

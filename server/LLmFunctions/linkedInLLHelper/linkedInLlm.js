@@ -50,7 +50,11 @@ export const buildPromptsForLinkedIn = (operation) => {
   }
 };
 
-export const getLinkedInDataAndResumeData = async (resumeId, linkedInId) => {
+export const getLinkedInDataAndResumeData = async (
+  resumeId,
+  linkedInId,
+  section,
+) => {
   let payLoad = {
     isError: false,
     error: null,
@@ -77,10 +81,68 @@ export const getLinkedInDataAndResumeData = async (resumeId, linkedInId) => {
       payLoad.error = new Error("LinkedIn profile not found");
       return payLoad;
     }
-  } catch (error) {}
+
+    switch (section) {
+      case "headline":
+        payLoad.data = {
+          resumeData: {
+            projects: resumeData?.projects,
+            experience: resumeData?.experience,
+            skills: resumeData?.skills,
+            certifications: resumeData?.certifications,
+            education: resumeData?.education,
+          },
+
+          linkedInData: {
+            existedHeadline: linkedInData?.headline,
+            targetRoles: linkedInData?.targetRole,
+            experience: linkedInData?.experience,
+          },
+        };
+
+        return payLoad;
+        break;
+      case "about":
+        payLoad.data = {
+          resumeData: {
+            projects: resumeData?.projects,
+            experience: resumeData?.experience,
+            skills: resumeData?.skills,
+            certifications: resumeData?.certifications,
+            education: resumeData?.education,
+          },
+          linkedInData: {
+            existedAbout: linkedInData?.about,
+            targetRoles: linkedInData?.targetRole,
+            experience: linkedInData?.experience,
+          },
+        };
+        return payLoad;
+        break;
+      case "experience":
+        payLoad.data = {
+          resumeData: {
+            projects: resumeData?.projects,
+            experience: resumeData?.experience,
+            skills: resumeData?.skills,
+          },
+          linkedInData: {
+            existedExperience: linkedInData?.experience,
+            targetRoles: linkedInData?.targetRole,
+            skills: linkedInData?.skills,
+          },
+        };
+        return payLoad;
+        break;
+    }
+  } catch (error) {
+    payLoad.isError = true;
+    payLoad.error = error;
+    return payLoad;
+  }
 };
 
-export const aiPartWiseOptimize = async (
+export const aiLinkedInOptimize = async (
   resumeId,
   operation,
   instruction,
@@ -91,7 +153,7 @@ export const aiPartWiseOptimize = async (
 
   while (retries > 0) {
     try {
-      console.log("AI part wise called");
+      console.log("AI LinkedIn optimize called");
 
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
@@ -118,17 +180,17 @@ export const aiPartWiseOptimize = async (
         throw new Error("Invalid JSON from AI");
       }
 
-      const validationResult = validateLLMResponse(operation, parsed);
-      const { isValid, errors } = validationResult;
+        // const validationResult = validateLLMResponse(operation, parsed);
+        // const { isValid, errors } = validationResult;
 
-      console.log("AI part wise optimize response:", cleaned);
+        // console.log("AI part wise optimize response:", cleaned);
 
-      if (!isValid) {
-        console.error("Validation errors:", errors);
-        throw new Error(
-          `AI response validation failed: ${JSON.stringify(errors)}`,
-        );
-      }
+        // if (!isValid) {
+        //   console.error("Validation errors:", errors);
+        //   throw new Error(
+        //     `AI response validation failed: ${JSON.stringify(errors)}`,
+        //   );
+        // }
 
       return {
         error: null,
@@ -138,7 +200,7 @@ export const aiPartWiseOptimize = async (
     } catch (err) {
       lastError = err;
 
-      console.error("AI part wise optimize error:", err);
+      console.error("AI LinkedIn optimize error:", err);
 
       // safely extract status if present
       const status =
@@ -171,7 +233,6 @@ export const aiPartWiseOptimize = async (
 
 export const aiLinkedInParser = async (text, userId) => {
   try {
-    
     let resumeData = "";
     if (userId) {
       const userDetails = await User.findById(userId);

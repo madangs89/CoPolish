@@ -212,7 +212,7 @@ const LinkedInEditor = () => {
         section,
         tone,
         resumeId: resumeSlice._id,
-        linkedInId: "fake_linkedIn_id_123",
+        linkedInId: currentLinkedIn?._id,
       },
       {
         withCredentials: true,
@@ -347,7 +347,7 @@ const LinkedInEditor = () => {
             <h2 className="font-semibold text-lg">Headline</h2>
             <button
               className="text-blue-600 text-sm font-medium"
-              onClick={() => handleOptimize("headline", headlineTone)}
+              onClick={() => handleOptimize("headline", "ALL")}
             >
               ✨ Optimize
             </button>
@@ -389,7 +389,7 @@ const LinkedInEditor = () => {
             <h2 className="font-semibold text-lg">About</h2>
             <button
               className="text-blue-600 text-sm font-medium"
-              onClick={() => handleOptimize("about", aboutTone)}
+              onClick={() => handleOptimize("about", "ALL")}
             >
               ✨ Optimize
             </button>

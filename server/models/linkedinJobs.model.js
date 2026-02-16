@@ -17,6 +17,10 @@ const SectionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.Mixed,
     default: null,
   },
+  tone: {
+    type: String,
+    required: true,
+  },
 });
 
 const jobSchema = new mongoose.Schema(
@@ -30,8 +34,8 @@ const jobSchema = new mongoose.Schema(
       ref: "ResumeTemplate",
     },
     linkedInId: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     status: {
       type: String,
