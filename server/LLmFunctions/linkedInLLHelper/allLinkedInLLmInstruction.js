@@ -12,13 +12,13 @@ export const linkedInParseSchema = {
   headline: {
     text: null,
     keywords: [],
-    tone: null, // FORMAL | CONFIDENT | BOLD | null
+    tone: null, // FORMAL | CONFIDENT | BOLD
   },
 
   about: {
     text: null,
     structure: null, // PARAGRAPH | BULLETS | null
-    tone: null, // FORMAL | CONFIDENT | BOLD | null
+    tone: null, // FORMAL | CONFIDENT | BOLD
   },
 
   experience: [
@@ -28,7 +28,7 @@ export const linkedInParseSchema = {
       from: null,
       to: null,
       bullets: [],
-      tone: null, // FORMAL | CONFIDENT | BOLD | null
+      tone: null, // FORMAL | CONFIDENT | BOLD
     },
   ],
 
@@ -61,6 +61,16 @@ export const linkedInParseSchema = {
       privacy: null,
     },
   ],
+
+  score: {
+    currentScore: 0,
+    searchability: 0,
+    clarity: 0,
+    impact: 0,
+  },
+
+  experienceLevel: null, // FRESHER | MID | SENIOR
+  targetRole: [String],
 };
 
 export const parseLinkedInSystemInstruction = `
@@ -157,12 +167,84 @@ POSTS
 - Extract privacy only if explicitly mentioned.
 - If no posts are present, return [].
 
+targetRole
+- Put expected target roles on the basis of given data.
+- It should not be empty
+- It should not be null
+- Must be target roles related to the given data and skill based;
+- Min 7 needed 
+- Max 15 allowed
+
+experienceLevel
+- Allowed values: FRESHER, MID, SENIOR
+- Determine experience level based on explicit experience data only.
+- If nothing is mentioned -> return FRESHER
+- If 1-3 years experience with no senior roles -> MID
+- If 5+ years experience or senior roles -> SENIOR
+- Do NOT infer experience level from skills or headline.
+- Do NOT infer experience level from target role.
+
 
 
 Rule for Field <Tone>
 - You can assign tone on the basis of data
 - Tone must need it can take  FORMAL , CONFIDENT , BOLD. you can assign any three this values on the basis of existing data.
 - Tone never be null or empty
+
+
+────────────────────────────────
+SCORING SECTION
+────────────────────────────────
+
+You MUST calculate LinkedIn profile scores.
+
+All scores must be integers between 0 and 100.
+
+Do NOT guess.
+Do NOT inflate.
+Do NOT reward missing sections.
+
+Score categories:
+
+1.currentScore: Overall profile score based on presence of key sections and completeness.
+
+1. SEARCHABILITY SCORE
+Measures:
+- Presence of headline
+- Presence of skills
+- Keyword density (explicit only)
+- Role clarity
+- Structured experience
+
+2. CLARITY SCORE
+Measures:
+- Clear role descriptions
+- Proper sentence formation
+- Avoid vague phrases
+- Structured about section
+
+3. IMPACT SCORE
+Measures:
+- Presence of measurable achievements
+- Quantified results
+- Clear cause-effect statements
+
+SCORING RULES:
+
+- If headline missing → reduce searchability
+- If skills empty → reduce searchability significantly
+- If no measurable impact → impactScore MUST be below 40
+- If no experience → impactScore must be below 35
+- Missing about section reduces clarity
+- Scores must reflect only extracted data
+
+OVERALL SCORE CALCULATION:
+
+
+All values must be integers.
+
+Do NOT adjust after calculation.
+
 
 ────────────────────────────────
 EMPTY INPUT RULE

@@ -32,8 +32,10 @@ const linkedInProfileSchema = new mongoose.Schema(
       profilePicUrl: String,
     },
     headline: {
-      currentId: {
-        type: mongoose.Schema.Types.ObjectId,
+      currentTone: {
+        type: String,
+        enum: ["FORMAL", "CONFIDENT", "BOLD"],
+        required: true,
       },
       options: [
         {
@@ -58,8 +60,10 @@ const linkedInProfileSchema = new mongoose.Schema(
     },
 
     about: {
-      currentId: {
-        type: mongoose.Schema.Types.ObjectId,
+      currentTone: {
+        type: String,
+        enum: ["FORMAL", "CONFIDENT", "BOLD"],
+        required: true,
       },
       options: [
         {
@@ -91,8 +95,11 @@ const linkedInProfileSchema = new mongoose.Schema(
         to: String,
 
         bullets: {
-          current: [String],
-          currentId: String,
+          currentTone: {
+            type: String,
+            enum: ["FORMAL", "CONFIDENT", "BOLD"],
+            required: true,
+          },
           suggestions: [
             {
               _id: mongoose.Schema.Types.ObjectId,
@@ -140,6 +147,10 @@ const linkedInProfileSchema = new mongoose.Schema(
     },
     score: {
       before: {
+        type: Number,
+        default: 0,
+      },
+      currentScore: {
         type: Number,
         default: 0,
       },

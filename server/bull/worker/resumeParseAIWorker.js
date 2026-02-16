@@ -6,6 +6,8 @@ import ResumeTemplate from "../../models/resume.model.js";
 import User from "../../models/user.model.js";
 import { connectDB } from "../../config/connectDB.js";
 import { aiLinkedInParser } from "../../LLmFunctions/linkedInLLHelper/linkedInLlm.js";
+import mongoose from "mongoose";
+import LinkedInProfile from "../../models/linkedin.model.js";
 await connectDB();
 
 let config = {
@@ -108,6 +110,108 @@ function computeResumeScore(scores) {
   );
 }
 
+const TONES = ["FORMAL", "CONFIDENT", "BOLD"];
+
+export const normalizeAllFields = (data, field) => {
+  if (!data || !data.tone) return null;
+
+  const currentTone = data.tone;
+  const options = [];
+
+  // ===== HEADLINE NORMALIZATION =====
+  if (field === "headline") {
+    TONES.forEach((tone) => {
+      if (tone === currentTone) {
+        options.push({
+          _id: new mongoose.Types.ObjectId(),
+          text: data.text || "",
+          type: data.type || "SAFE",
+          keywords: data.keywords || [],
+          tone,
+          score: data.score || 0,
+          createdAt: new Date(),
+        });
+      } else {
+        options.push({
+          _id: new mongoose.Types.ObjectId(),
+          text: "",
+          type: "SAFE",
+          keywords: [],
+          tone,
+          score: 0,
+          createdAt: new Date(),
+        });
+      }
+    });
+
+    return {
+      currentTone,
+      options,
+    };
+  }
+
+  // ===== ABOUT NORMALIZATION =====
+  if (field === "about") {
+    TONES.forEach((tone) => {
+      if (tone === currentTone) {
+        options.push({
+          _id: new mongoose.Types.ObjectId(),
+          text: data.text || "",
+          structure: data.structure || "PARAGRAPH",
+          tone,
+          hookScore: data.hookScore || 0,
+          createdAt: new Date(),
+        });
+      } else {
+        options.push({
+          _id: new mongoose.Types.ObjectId(),
+          text: "",
+          structure: "PARAGRAPH",
+          tone,
+          hookScore: 0,
+          createdAt: new Date(),
+        });
+      }
+    });
+
+    return {
+      currentTone,
+      options,
+    };
+  }
+
+  if (field === "experience") {
+    return {
+      role: data.role || "",
+      company: data.company || "",
+      from: data.from || "",
+      to: data.to || "",
+      bullets: {
+        currentTone,
+        suggestions: TONES.map((tone) => {
+          if (tone === currentTone) {
+            return {
+              _id: new mongoose.Types.ObjectId(),
+              bullets: data.bullets || [],
+              improvementType: data.improvementType || "CLARITY",
+              createdAt: new Date(),
+            };
+          } else {
+            return {
+              _id: new mongoose.Types.ObjectId(),
+              bullets: [],
+              improvementType: "CLARITY",
+              createdAt: new Date(),
+            };
+          }
+        }),
+      },
+    };
+  }
+
+  return null;
+};
+
 const resumeParseAIWorker = new Worker(
   "resume-parse-ai",
   async (job) => {
@@ -202,11 +306,79 @@ const resumeParseAIWorker = new Worker(
       console.log("LinkedIn parsing not implemented yet");
 
       const res = aiLinkedInParser(parsedText, userId);
+
+      console.log(res);
+
+      const { text, usage, error, isError } = res;
+
+      if (isError) {
+        await pubClient.publish(
+          "resume:events",
+          JSON.stringify({
+            event: "RESUME_PARSE_AI_COMPLETED",
+            jobId: job.id,
+            userId,
+            parsedNewResume: "",
+            userUpdateCurrentResumeId: "",
+            usage: 0,
+            isError: true,
+            error: error,
+          }),
+        );
+        throw error;
+      }
+
+      const payload = {
+        userId,
+        targetRole: text?.targetRole || [],
+        experienceLevel: text?.experienceLevel || "FRESHER",
+        personalInfo: text?.personalInfo || {
+          fullName: "",
+          location: "",
+          email: "",
+          phone: "",
+          linkedinUrl: "",
+          portfolioUrl: "",
+          githubUrl: "",
+          bannerUrl: "",
+          profilePicUrl: "",
+        },
+        skills: text?.skills || [],
+        score: {
+          currentScore: text?.score?.currentScore || 0,
+          searchability: text?.score?.searchability || 0,
+          clarity: text?.score?.clarity || 0,
+          impact: text?.score?.impact || 0,
+        },
+        headline: normalizeAllFields(text?.headline, "headline"),
+        about: normalizeAllFields(text?.about, "about"),
+        experience:
+          text?.experience && text.experience.length > 0
+            ? text.experience.map((exp) =>
+                normalizeAllFields(exp, "experience"),
+              )
+            : [],
+      };
+
+      let newLinkedIn = await LinkedInProfile.create(payload);
+
+      let userDetails = await User.findById(userId);
+
+      if (userDetails) {
+        userDetails.currentLinkedInId = newLinkedIn._id;
+        await userDetails.save();
+      }
+
+
+      console.log(newLinkedIn);
+
+      console.log(userD)
+      
       return {
         jobKey,
         userId,
-        parsedNewResume: "",
-        userUpdateCurrentResumeId: "",
+        parsedNewResume: newLinkedIn,
+        userUpdateCurrentResumeId: userDetails?.currentLinkedInId,
         usage: "",
         operation,
       };

@@ -171,6 +171,7 @@ export const aiPartWiseOptimize = async (
 
 export const aiLinkedInParser = async (text, userId) => {
   try {
+    
     let resumeData = "";
     if (userId) {
       const userDetails = await User.findById(userId);
@@ -191,7 +192,7 @@ export const aiLinkedInParser = async (text, userId) => {
         systemInstruction: parseLinkedInSystemInstruction,
       },
     });
-    const newText = response.text
+    const newText = response.candidates[0].content.parts[0].text
       .replace(/^\s*```json\s*/, "")
       .replace(/\s*```\s*$/, "");
 
@@ -217,14 +218,14 @@ export const aiLinkedInParser = async (text, userId) => {
     //   };
     // }
 
-    // const payload = {
-    //   text: JSON.parse(newText),
-    //   usage: response.usageMetadata,
-    //   error: null,
-    //   isError: false,
-    // };
+    const payload = {
+      text: JSON.parse(newText),
+      usage: response.usageMetadata,
+      error: null,
+      isError: false,
+    };
 
-    // return payload;
+    return payload;
   } catch (error) {
     const payload = {
       text: null,
