@@ -42,6 +42,18 @@ const returnProperExperienceBullets = (data, tone) => {
     return ["No data available. Optimize this section to get suggestions."];
   }
 };
+
+const returnLevelOnScore = (score) => {
+  if (score >= 90) {
+    return "Excellent";
+  } else if (score >= 75) {
+    return "Good";
+  } else if (score >= 60) {
+    return "Average";
+  } else {
+    return "Poor";
+  }
+};
 const LinkedInEditor = () => {
   const resumeSlice = useSelector((state) => state.resume.currentResume);
   const socketSlice = useSelector((state) => state.socket);
@@ -55,197 +67,7 @@ const LinkedInEditor = () => {
   const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
-  const fakeData = {
-    personalInfo: {
-      fullName: "Aarav Mehta",
-      location: "Bengaluru, Karnataka, India",
-      email: "aarav.mehta@protonmail.com",
-      phone: "+91 98XXX XXXXX",
-      linkedinUrl: "https://www.linkedin.com/in/aaravmehta",
-      portfolioUrl: "https://aaravmehta.dev",
-      githubUrl: "https://github.com/aaravmehta",
-      banner: "",
-      profileUrl:
-        "https://images.unsplash.com/photo-1603415526960-f7e0328c63b1",
-    },
 
-    // ================= HEADLINE =================
-    headline: {
-      currentId: "201",
-      options: [
-        {
-          _id: "201",
-          text: "Staff Software Engineer | Designing Large-Scale Distributed Systems | Node.js, React, Cloud & AI Platforms | Building Products Used by Millions",
-          structure: "PARAGRAPH",
-          tone: "FORMAL",
-          hookScore: 0.92,
-          createdAt: new Date(),
-        },
-        {
-          _id: "202",
-          text: "Staff Engineer building high-scale platforms used by millions 🚀 | Distributed Systems, Cloud, Node.js, React | Turning complex problems into reliable products",
-          structure: "PARAGRAPH",
-          tone: "CONFIDENT",
-          hookScore: 0.9,
-          createdAt: new Date(),
-        },
-        {
-          _id: "203",
-          text: "Driving engineering excellence at scale | Architecting systems that power millions of users | Staff Engineer | Cloud, Distributed Systems, AI",
-          structure: "PARAGRAPH",
-          tone: "BOLD",
-          hookScore: 0.88,
-          createdAt: new Date(),
-        },
-      ],
-    },
-
-    // ================= ABOUT =================
-    about: {
-      currentId: "301",
-      options: [
-        {
-          _id: "301",
-          text: "I am a Staff Software Engineer with 10+ years of experience building and scaling high-impact software products. I specialize in designing distributed systems, leading complex technical initiatives, and mentoring engineering teams. Over my career, I have architected platforms serving millions of users with a strong focus on reliability, performance, and long-term maintainability.\n\nI have deep expertise in Node.js, React, cloud-native architectures, and data-driven systems. I enjoy working at the intersection of business and engineering—translating ambiguous problems into clear technical solutions. I believe great engineering is not just about writing code, but about making thoughtful decisions that scale teams and products sustainably.",
-          structure: "PARAGRAPH",
-          tone: "FORMAL",
-          hookScore: 0.93,
-          createdAt: new Date(),
-        },
-        {
-          _id: "302",
-          text: "• Staff Software Engineer with 10+ years of experience building large-scale systems\n• Architected platforms serving millions of users with high availability and low latency\n• Expert in Node.js, React, cloud-native architecture, and distributed systems\n• Led critical technical initiatives across multiple teams and stakeholders\n• Strong believer in clean architecture, engineering rigor, and mentorship\n• Passionate about solving complex problems with simple, scalable solutions\n• Experienced in guiding teams through growth, scale, and technical transformation",
-          structure: "BULLETS",
-          tone: "CONFIDENT",
-          hookScore: 0.91,
-          createdAt: new Date(),
-        },
-        {
-          _id: "303",
-          text: "• STAFF ENGINEER driving large-scale systems used by millions\n• ARCHITECT of resilient, cloud-native platforms\n• TECHNICAL LEADER mentoring teams and setting engineering standards\n• PROBLEM SOLVER trusted with mission-critical systems\n• BUILDER focused on long-term scalability, reliability, and impact",
-          structure: "BULLETS",
-          tone: "BOLD",
-          hookScore: 0.88,
-          createdAt: new Date(),
-        },
-      ],
-    },
-
-    // ================= EXPERIENCE =================
-    experience: [
-      {
-        role: "Staff Software Engineer",
-        company: "Global Tech Company",
-        from: "2019-06-01",
-        to: "Present",
-        bullets: {
-          currentTone: "FORMAL",
-          currentId: "401",
-          current: [
-            "Led architecture and development of distributed systems serving over 10M+ monthly active users",
-            "Drove technical decisions across multiple teams, improving system reliability and performance",
-            "Mentored senior and mid-level engineers, setting engineering standards and best practices",
-          ],
-          suggestions: [
-            {
-              _id: 401,
-              bullets: [
-                "Architected and scaled a core platform handling 100K+ requests per second with 99.99% uptime",
-                "Reduced infrastructure costs by 35% through system redesign and cloud optimization",
-              ],
-              improvementType: "IMPACT",
-              createdAt: new Date(),
-            },
-          ],
-        },
-        type: "FULL_TIME",
-      },
-      {
-        role: "Staff Software Engineer",
-        company: "Global Tech Company",
-        from: "2019-06-01",
-        to: "Present",
-        bullets: {
-          currentTone: "FORMAL",
-          currentId: "401",
-          current: [
-            "Led architecture and development of distributed systems serving over 10M+ monthly active users",
-            "Drove technical decisions across multiple teams, improving system reliability and performance",
-            "Mentored senior and mid-level engineers, setting engineering standards and best practices",
-          ],
-          suggestions: [
-            {
-              _id: 401,
-              bullets: [
-                "Architected and scaled a core platform handling 100K+ requests per second with 99.99% uptime",
-                "Reduced infrastructure costs by 35% through system redesign and cloud optimization",
-              ],
-              improvementType: "IMPACT",
-              createdAt: new Date(),
-            },
-          ],
-        },
-      },
-    ],
-
-    // ================= SKILLS =================
-    skills: {
-      current: [
-        "Distributed Systems",
-        "System Design",
-        "Node.js",
-        "React",
-        "Cloud Architecture",
-        "Microservices",
-        "Leadership",
-        "Mentorship",
-      ],
-      suggestions: [
-        {
-          skills: [
-            "Event-Driven Architecture",
-            "Kubernetes",
-            "AI Platform Design",
-          ],
-          reason: "JD_MATCH",
-          createdAt: new Date(),
-        },
-      ],
-    },
-
-    // ================= SEO =================
-    seo: {
-      activeKeywords: [
-        "Staff Software Engineer",
-        "Distributed Systems",
-        "System Design",
-        "Cloud Architecture",
-        "Technical Leadership",
-      ],
-      suggestedSets: [
-        {
-          keywords: ["Staff Engineer", "System Design", "Distributed Systems"],
-          jobRole: "Staff Software Engineer",
-          matchScore: 0.97,
-        },
-      ],
-    },
-
-    // ================= SCORE =================
-    score: {
-      before: {
-        type: 0,
-        default: 0,
-      },
-      after: {
-        type: 0,
-        default: 0,
-      },
-      searchability: 92,
-      clarity: 90,
-      impact: 94,
-    },
-  };
   const fakePostData = [
     {
       postId: "post_1001",
@@ -377,18 +199,10 @@ const LinkedInEditor = () => {
     currentLinkedIn?.experience || [],
   );
 
-  const [connected, setConnected] = useState(true);
-
-  const [headlineId, setHeadlineId] = useState(fakeData.headline.currentId);
-  const [aboutId, setAboutId] = useState(fakeData.about.currentId);
-
-  const currentHeadline = fakeData.headline.options.find(
-    (o) => o._id === headlineId,
+  const [connected, setConnected] = useState(
+    currentLinkedIn?.linkedInConnected || false,
   );
 
-  const currentAbout = fakeData.about.options.find((o) => o._id === aboutId);
-
-  // ---------------- HANDLERS ----------------
   const handleOptimize = async (section, tone) => {
     console.log("Optimize request:", section, tone);
 
@@ -612,74 +426,99 @@ const LinkedInEditor = () => {
         </div>
 
         {/* ================= EXPERIENCE ================= */}
-        <div className="bg-white rounded-xl px-6 py-4">
-          <div className="flex justify-between items-center">
-            <h2 className="font-semibold text-lg">Experience</h2>
+        {/* ================= EXPERIENCE ================= */}
+        <div className="bg-white rounded-xl px-6 py-6 shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-semibold text-lg text-gray-900">Experience</h2>
+
             <button
-              className="text-blue-600 text-sm font-medium"
+              className="text-blue-600 text-sm font-medium hover:underline"
               onClick={() => handleOptimize("experience", "ALL")}
             >
-              ✨ Optimize
+              ✨ Optimize All
             </button>
           </div>
 
           {experienceData && experienceData.length > 0 ? (
-            experienceData.map((exp, index) => {
-              const currentTone = exp?.bullets?.currentTone;
-              const suggestions = exp?.bullets?.suggestions || [];
+            <div className="flex flex-col gap-6">
+              {experienceData.map((exp, index) => {
+                const currentTone = exp?.bullets?.currentTone;
+                const suggestions = exp?.bullets?.suggestions || [];
 
-              // Find suggestion matching selected tone
-              const matchedSuggestion = suggestions.find(
-                (s) => s.tone === currentTone,
-              );
+                const matchedSuggestion = suggestions.find(
+                  (s) => s.tone === currentTone,
+                );
 
-              const bulletsToRender =
-                matchedSuggestion?.bullets?.length > 0
-                  ? matchedSuggestion.bullets
-                  : exp?.bullets?.current?.length > 0
-                    ? exp.bullets.current
-                    : [
-                        "No data available. Optimize this section to get suggestions.",
-                      ];
+                const bulletsToRender =
+                  matchedSuggestion?.bullets?.length > 0
+                    ? matchedSuggestion.bullets
+                    : exp?.bullets?.current?.length > 0
+                      ? exp.bullets.current
+                      : [
+                          "No data available. Optimize this section to get suggestions.",
+                        ];
 
-              return (
-                <div key={index} className="mt-4 bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-medium text-sm text-gray-900">
-                    {exp?.role} at {exp?.company}
-                  </h3>
+                return (
+                  <div
+                    key={index}
+                    className="border rounded-lg p-5 bg-gray-50 hover:shadow-md transition"
+                  >
+                    {/* HEADER */}
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-semibold text-gray-900 text-base">
+                          {exp?.role}
+                        </h3>
+                        <p className="text-sm text-gray-600">{exp?.company}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {exp?.from} — {exp?.to || "Present"}
+                        </p>
+                      </div>
 
-                  {/* Tone Switch */}
-                  <div className="flex gap-2 mt-3">
-                    {["FORMAL", "CONFIDENT", "BOLD"].map((tone) => (
-                      <button
-                        key={tone}
-                        onClick={() => updateExperienceCurrentTone(tone, index)}
-                        className={`px-3 py-1 text-xs rounded-md border ${
-                          tone === currentTone
-                            ? "bg-blue-600 text-white"
-                            : "bg-white text-gray-700"
-                        }`}
-                      >
-                        {tone}
-                      </button>
-                    ))}
+                      {/* Suggestion Type Badge */}
+                      {matchedSuggestion?.improvementType && (
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                          {matchedSuggestion.improvementType}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Tone Switch */}
+                    <div className="flex gap-2 mt-4">
+                      {["FORMAL", "CONFIDENT", "BOLD"].map((tone) => (
+                        <button
+                          key={tone}
+                          onClick={() =>
+                            updateExperienceCurrentTone(tone, index)
+                          }
+                          className={`px-3 py-1 text-xs rounded-full border transition ${
+                            tone === currentTone
+                              ? "bg-blue-600 text-white border-blue-600"
+                              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                          }`}
+                        >
+                          {tone}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* BULLETS */}
+                    <ul className="list-disc ml-5 mt-4 space-y-2">
+                      {bulletsToRender.map((bullet, bId) => (
+                        <li
+                          key={bId}
+                          className="text-sm text-gray-800 leading-relaxed"
+                        >
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-
-                  {/* Render Bullets */}
-                  <ul className="list-disc ml-5 mt-3">
-                    {bulletsToRender.map((bullet, bId) => (
-                      <li key={bId} className="text-sm text-gray-900">
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           ) : (
-            <p className="text-sm text-gray-500 mt-3">
-              No experience added yet.
-            </p>
+            <p className="text-sm text-gray-500">No experience added yet.</p>
           )}
         </div>
 
@@ -720,22 +559,27 @@ const LinkedInEditor = () => {
               <div className="absolute inset-0 rounded-full bg-gray-200"></div>
               <div className="absolute inset-0 rounded-full bg-blue-600"></div>
               <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white">
-                92
+                {currentLinkedIn?.score?.currentScore}
               </div>
             </div>
 
             <div className="flex flex-col">
               <p className="text-xs text-gray-500">Overall</p>
-              <p className="text-sm font-medium text-gray-900">Excellent</p>
+              <p className="text-sm font-medium text-gray-900">
+                {returnLevelOnScore(currentLinkedIn?.score?.currentScore)}
+              </p>
             </div>
           </div>
 
           {/* Breakdown */}
           <div className="flex flex-col gap-2">
             {[
-              { label: "Searchability", value: 92 },
-              { label: "Clarity", value: 90 },
-              { label: "Impact", value: 94 },
+              {
+                label: "Searchability",
+                value: currentLinkedIn?.score?.searchability || 0,
+              },
+              { label: "Clarity", value: currentLinkedIn?.score?.clarity || 0 },
+              { label: "Impact", value: currentLinkedIn?.score?.impact || 0 },
             ].map((item) => (
               <div key={item.label} className="flex items-center ">
                 <span className="text-xs w-24 text-gray-600">{item.label}</span>
