@@ -43,7 +43,7 @@ const linkedInProfileSchema = new mongoose.Schema(
           text: String,
           type: {
             type: String,
-            enum: ["KEYWORD", "IMPACT", "SAFE", "STARTUP"],
+            // enum: ["KEYWORD", "IMPACT", "SAFE", "STARTUP"],
           },
           keywords: [String],
           tone: {

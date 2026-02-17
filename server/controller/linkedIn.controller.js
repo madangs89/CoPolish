@@ -42,12 +42,12 @@ export const optimizeLinkedIn = async (req, res) => {
     const lock = await pubClient.set(redisKey, "1", "EX", 1800, "NX"); // 30 min lock
 
     console.log("Optimization lock acquired:", lock);
-    // if (!lock) {
-    //   return res.status(429).json({
-    //     success: false,
-    //     message: "Optimization already in progress",
-    //   });
-    // }
+    if (!lock) {
+      return res.status(429).json({
+        success: false,
+        message: "Optimization already in progress",
+      });
+    }
     const userCredit = await User.findById(userId).select("totalCredits");
     if (
       userCredit.totalCredits <= 0 ||
@@ -75,7 +75,7 @@ export const optimizeLinkedIn = async (req, res) => {
     const job = await LinkedinJob.create({
       userId,
       resumeId,
-      
+
       sections,
       prompt: "",
       operation,
@@ -133,6 +133,8 @@ export const optimizeLinkedIn = async (req, res) => {
     return res.status(200).json({
       message: "LinkedIn profile optimized successfully",
       success: true,
+      sections: job.sections,
+      totalCredits,
     });
   } catch (error) {
     console.error("Error optimizing LinkedIn profile:", error);

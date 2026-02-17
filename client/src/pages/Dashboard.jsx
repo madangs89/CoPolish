@@ -24,7 +24,7 @@ const returnProperData = (data) => {
 
   const currentOption = options?.find((option) => option.tone === currentTone);
 
-  if (currentOption?.text.length > 0) {
+  if (currentOption &&currentOption?.text?.length > 0) {
     return currentOption.text;
   } else {
     return "Your LinkedIn headline is not set. Set it to get a better score.";

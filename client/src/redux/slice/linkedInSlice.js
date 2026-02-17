@@ -2,6 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   currentLinkedInData: null,
+  globalLoader: "",
+  sectionLoaders: [],
 };
 
 export const linkedInSlice = createSlice({
@@ -16,11 +18,21 @@ export const linkedInSlice = createSlice({
         state.currentLinkedInData.headline.currentTone = actions.payload;
       }
     },
+    setGlobalLoader: (state, actions) => {
+      state.globalLoader = actions.payload;
+    },
+    setSectionLoader: (state, actions) => {
+      state.sectionLoaders = actions.payload;
+    },
   },
 });
 
-export const { setCurrentLinkedInData, setCurrentToneForHeadline } =
-  linkedInSlice.actions;
+export const {
+  setCurrentLinkedInData,
+  setCurrentToneForHeadline,
+  setGlobalLoader,
+  setSectionLoader,
+} = linkedInSlice.actions;
 const linkedInReducer = linkedInSlice.reducer;
 
 export default linkedInReducer;

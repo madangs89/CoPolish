@@ -264,8 +264,7 @@ export const aiLinkedInOptimize = async (
     } catch (err) {
       lastError = err;
 
-      console.error("AI LinkedIn optimize error:", err);
-
+    
       // safely extract status if present
       const status =
         err?.status || err?.response?.status || err?.error?.status || null;

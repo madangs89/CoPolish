@@ -4,17 +4,22 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   setCurrentLinkedInData,
   setCurrentToneForHeadline,
+  setGlobalLoader,
+  setSectionLoader,
 } from "../redux/slice/linkedInSlice";
 import { useLocation, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import BlackLoader from "../components/Loaders/BlackLoader";
+import ButtonLoader from "../components/Loaders/ButtonLoader";
+import StatusBadge from "../components/StatusShower/StatusBadge";
+import { setCredits } from "../redux/slice/authSlice";
 
 const returnProperData = (data) => {
   const { currentTone, options } = data || {};
 
   const currentOption = options?.find((option) => option.tone === currentTone);
 
-  if (currentOption?.text.length > 0) {
+  if (currentOption && currentOption?.text?.length > 0) {
     return currentOption.text;
   } else {
     return "Your LinkedIn headline is not set. Set it to get a better score.";
@@ -23,10 +28,9 @@ const returnProperData = (data) => {
 
 const returnRequestedData = (data, tone) => {
   const { options } = data || {};
-
   const currentOption = options?.find((option) => option.tone === tone);
 
-  if (currentOption?.text.length > 0) {
+  if (currentOption && currentOption?.text?.length > 0) {
     return currentOption.text;
   } else {
     return "No data available. Optimize this section to get suggestions.";
@@ -57,9 +61,13 @@ const returnLevelOnScore = (score) => {
 const LinkedInEditor = () => {
   const resumeSlice = useSelector((state) => state.resume.currentResume);
   const socketSlice = useSelector((state) => state.socket);
+  const authSlice = useSelector((state) => state.auth);
   const currentLinkedIn = useSelector(
     (state) => state.linkedin.currentLinkedInData,
   );
+  const [updateDataLoader, setUpdateDataLoader] = useState(false);
+
+  const linkedInSlice = useSelector((state) => state.linkedin);
 
   const { id } = useParams();
   const location = useLocation();
@@ -206,20 +214,33 @@ const LinkedInEditor = () => {
   const handleOptimize = async (section, tone) => {
     console.log("Optimize request:", section, tone);
 
-    const d = await axios.post(
-      `${import.meta.env.VITE_BACKEND_URL}/api/linkedin/v1/optimize-linkedin`,
-      {
-        section,
-        tone,
-        resumeId: resumeSlice._id,
-        linkedInId: currentLinkedIn?._id,
-      },
-      {
-        withCredentials: true,
-      },
-    );
+    try {
+      const d = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/linkedin/v1/optimize-linkedin`,
+        {
+          section,
+          tone,
+          resumeId: resumeSlice._id,
+          linkedInId: currentLinkedIn?._id,
+        },
+        {
+          withCredentials: true,
+        },
+      );
 
-    console.log("Optimization response:", d.data);
+      if (d.data.success) {
+        dispatch(setGlobalLoader("running"));
+
+        dispatch(setSectionLoader(d?.data?.sections || []));
+        dispatch(setCredits(authSlice.user.totalCredits - d.data.totalCredits));
+      }
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message ||
+          "Failed to optimize LinkedIn section. Please try again.",
+      );
+      console.log("Error optimizing LinkedIn section:", error);
+    }
   };
 
   const handleUpdateHeadlineStates = (tone) => {
@@ -282,7 +303,59 @@ const LinkedInEditor = () => {
   useEffect(() => {
     if (socketSlice.socket) {
       socketSlice.socket.on("job:update:linkedin", (data) => {
-        console.log("job:update:linkedIn", data);
+        let parsedData = JSON.parse(data);
+        const {
+          jobId,
+          userId,
+          sections,
+          status,
+          isScoreFound,
+          score,
+          fullLinkedInVersion,
+          creditsRefunded,
+        } = parsedData;
+        if (status) {
+          dispatch(setGlobalLoader(status));
+
+          const isAllSectionCompleted =
+            sections &&
+            sections.length > 0 &&
+            sections.every(
+              (section) =>
+                section.status === "success" ||
+                section.status === "failed" ||
+                section.status === "completed",
+            );
+          if (isAllSectionCompleted && fullLinkedInVersion && !score) {
+            setUpdateDataLoader(true);
+            setTimeout(() => {
+              dispatch(setCurrentLinkedInData(JSON.parse(fullLinkedInVersion)));
+              toast.success("LinkedIn optimization completed!");
+              setUpdateDataLoader(false);
+            }, 1200);
+          }
+          if (
+            status == "completed" &&
+            isScoreFound &&
+            score &&
+            fullLinkedInVersion
+          ) {
+            setUpdateDataLoader(true);
+            setTimeout(() => {
+              dispatch(setCurrentLinkedInData(JSON.parse(fullLinkedInVersion)));
+              toast.success("LinkedIn optimization completed!");
+              setUpdateDataLoader(false);
+            }, 1200);
+          }
+        }
+        if (sections && sections.length > 0) {
+          dispatch(setSectionLoader(sections));
+        }
+
+        if (creditsRefunded && creditsRefunded > 0) {
+          dispatch(setCredits(authSlice.user.totalCredits + creditsRefunded));
+        }
+        console.log(status, score, sections, fullLinkedInVersion);
       });
     }
 
@@ -311,27 +384,46 @@ const LinkedInEditor = () => {
     <div className="min-h-screen bg-[#F4F2EE] flex justify-center">
       <div className="w-full max-w-3xl my-20 flex flex-col gap-5">
         {/* ================= PROFILE HEADER ================= */}
-        <div className="bg-white rounded-xl overflow-hidden">
+        <div className="bg-white rounded-xl overflow-hidden shadow-sm">
           <div className="relative h-36">
+            {/* Cover Image */}
             <img
               src="https://img.freepik.com/free-vector/half-tone-blue-abstract-background-with-text-space_1017-41428.jpg"
               className="w-full h-full object-cover"
+              alt="cover"
             />
+
+            {/* Status Badge */}
+
+            {/* Profile Image */}
             <img
               src={
                 currentLinkedIn?.personalInfo?.profileUrl ||
                 "https://www.gravatar.com/avatar/?d=mp&s=150"
               }
-              className="absolute left-6 -bottom-12 w-32 h-32 rounded-full border-4 border-white object-cover"
+              className="absolute left-6 -bottom-12 w-32 h-32 rounded-full border-4 border-white object-cover shadow-md"
+              alt="profile"
             />
           </div>
 
           <div className="pt-16 px-6 pb-4">
-            <h1 className="text-xl font-semibold">
-              {currentLinkedIn?.personalInfo?.fullName?.toUpperCase()}
-            </h1>
+            <div className="flex items-center justify-between w-full">
+              <h1 className="text-xl font-semibold">
+                {currentLinkedIn?.personalInfo?.fullName?.toUpperCase()}
+              </h1>
+              <StatusBadge
+                status={linkedInSlice.globalLoader}
+                sections={linkedInSlice.sectionLoaders}
+              />
+            </div>
 
-            <p className="text-sm text-gray-800 mt-1">
+            <p
+              className={`text-sm mt-1 transition-opacity duration-300 ${
+                linkedInSlice.globalLoader === "running"
+                  ? "text-gray-500 opacity-70"
+                  : "text-gray-800"
+              }`}
+            >
               {returnProperData(currentLinkedIn?.headline)}
             </p>
 
@@ -342,7 +434,12 @@ const LinkedInEditor = () => {
         </div>
 
         {/* ================= HEADLINE OPTIMIZER ================= */}
-        <div className="bg-white rounded-xl px-6 min-h-[200px] py-4">
+        <div
+          className={`
+          bg-white   rounded-xl px-6 min-h-[200px] py-4
+          ${linkedInSlice.globalLoader == "running" && linkedInSlice.sectionLoaders && linkedInSlice.sectionLoaders.length > 0 && linkedInSlice.sectionLoaders.find((section) => section.name == "headline" && section.status == "running") ? "linkedInLoader cursor-not-allowed" : ""}
+          `}
+        >
           <div className="flex justify-between items-center">
             <h2 className="font-semibold text-lg">Headline</h2>
             <button
@@ -384,7 +481,16 @@ const LinkedInEditor = () => {
         </div>
 
         {/* ================= ABOUT OPTIMIZER ================= */}
-        <div className="bg-white rounded-xl px-6 py-4">
+        <div
+          className={`
+          
+          bg-white rounded-xl px-6 py-4
+
+          ${linkedInSlice.globalLoader == "running" && linkedInSlice.sectionLoaders && linkedInSlice.sectionLoaders.length > 0 && linkedInSlice.sectionLoaders.find((section) => section.name == "about" && section.status == "running") ? "linkedInLoader cursor-not-allowed" : ""}
+            
+          
+          `}
+        >
           <div className="flex justify-between items-center">
             <h2 className="font-semibold text-lg">About</h2>
             <button
@@ -687,6 +793,20 @@ const LinkedInEditor = () => {
           </div>
         </div>
       </div>
+
+      {updateDataLoader && (
+        <div className="fixed inset-0 z-[99999999] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="flex items-center gap-4 px-6 py-4 bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-2xl">
+            {/* Spinner */}
+            <div className="h-6 w-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+
+            {/* Text */}
+            <p className="text-white text-sm font-medium tracking-wide">
+              Updating enhanced data...
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -158,11 +158,22 @@ const normalizeAndGiveProperValue = (sectionName, tone, data, linkedInData) => {
     if (tone === "ALL") {
       let options = newData.options.map((opt, index) => {
         const currentTone = opt.tone.toLowerCase();
-        opt.text = data[currentTone] ? data[currentTone].text : opt.text;
-        opt.type = data[currentTone] ? data[currentTone].type : opt.type;
-        opt.keywords = data[currentTone]
-          ? data[currentTone].keywords
-          : opt.keywords;
+        opt.text =
+          data[currentTone] &&
+          data[currentTone]?.text &&
+          data[currentTone]?.text?.length > 0
+            ? data[currentTone].text
+            : opt.text;
+        opt.type =
+          data[currentTone] && data[currentTone]?.type
+            ? data[currentTone].type
+            : opt.type;
+        opt.keywords =
+          data[currentTone] &&
+          data[currentTone]?.keywords &&
+          data[currentTone]?.keywords?.length > 0
+            ? data[currentTone].keywords
+            : opt.keywords;
         return opt;
       });
       newData.options = options;
@@ -170,11 +181,24 @@ const normalizeAndGiveProperValue = (sectionName, tone, data, linkedInData) => {
       let options = newData.options.map((opt, index) => {
         const currentTone = opt.tone.toLowerCase();
         if (currentTone === tone.toLowerCase()) {
-          opt.text = data[currentTone] ? data[currentTone].text : opt.text;
-          opt.type = data[currentTone] ? data[currentTone].type : opt.type;
-          opt.keywords = data[currentTone]
-            ? data[currentTone].keywords
-            : opt.keywords;
+          opt.text =
+            data[currentTone] &&
+            data[currentTone].text &&
+            data[currentTone].text.length > 0
+              ? data[currentTone].text
+              : opt.text;
+          opt.type =
+            data[currentTone] &&
+            data[currentTone].type &&
+            data[currentTone].type.length > 0
+              ? data[currentTone].type
+              : opt.type;
+          opt.keywords =
+            data[currentTone] &&
+            data[currentTone]?.keywords &&
+            data[currentTone]?.keywords?.length > 0
+              ? data[currentTone].keywords
+              : opt.keywords;
         }
         return opt;
       });
@@ -187,7 +211,12 @@ const normalizeAndGiveProperValue = (sectionName, tone, data, linkedInData) => {
     if (tone == "ALL") {
       let options = newData.options.map((opt, index) => {
         const currentTone = opt.tone.toLowerCase();
-        opt.text = data[currentTone] ? data[currentTone].text : opt.text;
+        opt.text =
+          data[currentTone] &&
+          data[currentTone].text &&
+          data[currentTone].text.length > 0
+            ? data[currentTone].text
+            : opt.text;
         opt.hookScore = data[currentTone]
           ? data[currentTone].hookScore
           : opt.hookScore;
@@ -198,7 +227,12 @@ const normalizeAndGiveProperValue = (sectionName, tone, data, linkedInData) => {
       let options = newData.options.map((opt, index) => {
         const currentTone = opt.tone.toLowerCase();
         if (currentTone === tone.toLowerCase()) {
-          opt.text = data[currentTone] ? data[currentTone].text : opt.text;
+          opt.text =
+            data[currentTone] &&
+            data[currentTone].text &&
+            data[currentTone].text.length > 0
+              ? data[currentTone].text
+              : opt.text;
           opt.hookScore = data[currentTone]
             ? data[currentTone].hookScore
             : opt.hookScore;
@@ -219,12 +253,18 @@ const normalizeAndGiveProperValue = (sectionName, tone, data, linkedInData) => {
           : {};
         exp.bullets.suggestions.forEach((sug, sugIndex) => {
           const currentSuggTone = sug.tone.toLowerCase();
-          sug.bullets = aiData[currentSuggTone]
-            ? aiData[currentSuggTone].bullets
-            : sug.bullets;
-          sug.improvementType = aiData[currentSuggTone]
-            ? aiData[currentSuggTone].improvementType
-            : sug.improvementType;
+          sug.bullets =
+            aiData[currentSuggTone] &&
+            aiData[currentSuggTone].bullets &&
+            aiData[currentSuggTone].bullets.length > 0
+              ? aiData[currentSuggTone].bullets
+              : sug.bullets;
+          sug.improvementType =
+            aiData[currentSuggTone] &&
+            aiData[currentSuggTone].improvementType &&
+            aiData[currentSuggTone].improvementType.length > 0
+              ? aiData[currentSuggTone].improvementType
+              : sug.improvementType;
         });
       });
 
@@ -238,12 +278,18 @@ const normalizeAndGiveProperValue = (sectionName, tone, data, linkedInData) => {
         exp.bullets.suggestions.forEach((sug, sugIndex) => {
           const currentSuggTone = sug.tone.toLowerCase();
           if (currentSuggTone === tone.toLowerCase()) {
-            sug.bullets = aiData[currentSuggTone]
-              ? aiData[currentSuggTone].bullets
-              : sug.bullets;
-            sug.improvementType = aiData[currentSuggTone]
-              ? aiData[currentSuggTone].improvementType
-              : sug.improvementType;
+            sug.bullets =
+              aiData[currentSuggTone] &&
+              aiData[currentSuggTone].bullets &&
+              aiData[currentSuggTone].bullets.length > 0
+                ? aiData[currentSuggTone].bullets
+                : sug.bullets;
+            sug.improvementType =
+              aiData[currentSuggTone] &&
+              aiData[currentSuggTone].improvementType &&
+              aiData[currentSuggTone].improvementType.length > 0
+                ? aiData[currentSuggTone].improvementType
+                : sug.improvementType;
           }
         });
       });
@@ -289,38 +335,148 @@ const resumeOptimizeWorker = new Worker(
 
     console.log(`Processing AI optimization for job ${jobId}`);
 
-    let job = await LinkedinJob.findById(jobId);
-    console.log("Fetched job:", jobId, job ? "found" : "not found");
-
-    console.log("Job details:", job);
-    if (!job) return;
-
-    let resumeId = job.resumeId;
-    let operation = job.operation;
-    let userId = job.userId;
-    let prompt = job.prompt;
-    let redisKey = job.redisKey;
-    let linkedInId = job.linkedInId;
-
-    const stuck = job.sections.find((s) => s.status === "running");
-    if (stuck) {
-      stuck.status = "pending";
-      await job.save();
-    }
-
-    if (["completed", "partial", "failed"].includes(job.status)) {
-      await pubClient.del(redisKey);
-      return;
-    }
-
-    const section = job.sections.find((sec) => sec.status == "pending");
-    console.log("Optimizing section:", section ? section.name : "none left");
-    if (!section) return;
-    section.status = "running";
-    job.status = "running";
-    await job.save();
-    console.log("Job status updated to running");
     try {
+      let job = await LinkedinJob.findById(jobId);
+      console.log("Fetched job:", jobId, job ? "found" : "not found");
+
+      console.log("Job details:", job);
+      if (!job) return;
+
+      let resumeId = job.resumeId;
+      let operation = job.operation;
+      let userId = job.userId;
+      let prompt = job.prompt;
+      let redisKey = job.redisKey;
+      let linkedInId = job.linkedInId;
+
+      const stuck = job.sections.find((s) => s.status === "running");
+      if (stuck) {
+        stuck.status = "pending";
+        await job.save();
+      }
+
+      if (["completed", "partial", "failed"].includes(job.status)) {
+        await pubClient.del(redisKey);
+        return;
+      }
+
+      const section = job.sections.find((sec) => sec.status == "pending");
+      console.log("Optimizing section:", section ? section.name : "none left");
+      if (!section) return;
+      section.status = "running";
+      job.status = "running";
+      await job.save();
+      console.log("Job status updated to running");
+      try {
+        await pubClient.hset(`job:${job._id}`, {
+          status: job.status,
+          sections: JSON.stringify(job.sections),
+          resumeId: resumeId,
+          linkedInId,
+          jobId: job._id.toString(),
+          isScoreFound: false,
+          score: null,
+          fullLinkedInVersion: null,
+        });
+        await pubClient.publish(
+          "job_updates_linkedIn",
+          JSON.stringify({
+            jobId,
+            userId,
+            section: section.name,
+            status: job.status,
+            sections: job.sections,
+            sectionStatus: section.status,
+            fullLinkedInVersion: null,
+            score: null,
+            isScoreFound: false,
+            creditsRefunded: 0,
+          }),
+        );
+      } catch (error) {
+        console.log("Error publishing job update:", error);
+      }
+      console.log("Building prompt for section:", section.name);
+      const masterPrompt = buildPromptsForLinkedIn(section.name);
+      let wholeDataForAi = await getLinkedInDataAndResumeData(
+        resumeId,
+        linkedInId,
+        section.name,
+      );
+
+      console.log({ wholeDataForAi });
+      // console.log("Fetched resume data for optimization");
+      if (wholeDataForAi.isError || !wholeDataForAi.data) {
+        // here need to handle one case
+        console.log("Error fetching resume data:", wholeDataForAi.error);
+        return;
+      }
+
+      let currentLinkedInData = await LinkedInProfile.findById(linkedInId);
+      let oldLinkedInData = JSON.parse(JSON.stringify(currentLinkedInData));
+
+      const aiRes = await aiLinkedInOptimize(
+        resumeId,
+        section.name,
+        masterPrompt,
+        JSON.stringify({ ...wholeDataForAi.data, requestedTone: section.tone }),
+      );
+
+      console.log("ai res", JSON.stringify(aiRes.data, null, 2));
+      if (aiRes.isError) {
+        console.log("aires Error", aiRes.error);
+
+        section.status = "failed";
+        section.error = aiRes.error;
+      } else {
+        section.optimizedData = handleOptimizedData(
+          section.name,
+          section.tone,
+          aiRes,
+          currentLinkedInData,
+        );
+        section.changedData = aiRes?.data?.changes || [];
+        section.status = "success";
+
+        currentLinkedInData.changes ??= {};
+        currentLinkedInData.changes.experience ??= [];
+        currentLinkedInData.changes.headline ??= [];
+        currentLinkedInData.changes.about ??= [];
+        if (section.name == "experience") {
+          currentLinkedInData.experience = normalizeAndGiveProperValue(
+            section.name,
+            section.tone,
+            aiRes.data.data,
+            currentLinkedInData,
+          );
+          currentLinkedInData.changes.experience.push(
+            ...(aiRes.data.changes || []),
+          );
+          await currentLinkedInData.save();
+        } else if (section.name == "headline") {
+          currentLinkedInData.headline = normalizeAndGiveProperValue(
+            section.name,
+            section.tone,
+            aiRes.data,
+            currentLinkedInData,
+          );
+          currentLinkedInData.changes.headline.push(
+            ...(aiRes.data.changes || []),
+          );
+          await currentLinkedInData.save();
+        } else if (section.name == "about") {
+          currentLinkedInData.about = normalizeAndGiveProperValue(
+            section.name,
+            section.tone,
+            aiRes.data,
+            currentLinkedInData,
+          );
+          currentLinkedInData.changes.about.push(...(aiRes.data.changes || []));
+          await currentLinkedInData.save();
+        }
+      }
+      await job.save();
+
       await pubClient.hset(`job:${job._id}`, {
         status: job.status,
         sections: JSON.stringify(job.sections),
@@ -329,7 +485,7 @@ const resumeOptimizeWorker = new Worker(
         jobId: job._id.toString(),
         isScoreFound: false,
         score: null,
-        fullLinkedInVersion: null,
+        fullLinkedInVersion: JSON.stringify(currentLinkedInData),
       });
       await pubClient.publish(
         "job_updates_linkedIn",
@@ -340,272 +496,172 @@ const resumeOptimizeWorker = new Worker(
           status: job.status,
           sections: job.sections,
           sectionStatus: section.status,
-          fullLinkedInVersion: null,
-          score: null,
           isScoreFound: false,
-        }),
-      );
-    } catch (error) {
-      console.log("Error publishing job update:", error);
-    }
-    console.log("Building prompt for section:", section.name);
-    const masterPrompt = buildPromptsForLinkedIn(section.name);
-    let wholeDataForAi = await getLinkedInDataAndResumeData(
-      resumeId,
-      linkedInId,
-      section.name,
-    );
-
-    console.log({ wholeDataForAi });
-    // console.log("Fetched resume data for optimization");
-    if (wholeDataForAi.isError || !wholeDataForAi.data) {
-      // here need to handle one case
-      console.log("Error fetching resume data:", wholeDataForAi.error);
-      return;
-    }
-
-    let currentLinkedInData = await LinkedInProfile.findById(linkedInId);
-    let oldLinkedInData = JSON.parse(JSON.stringify(currentLinkedInData));
-
-    const aiRes = await aiLinkedInOptimize(
-      resumeId,
-      section.name,
-      masterPrompt,
-      JSON.stringify({ ...wholeDataForAi.data, requestedTone: section.tone }),
-    );
-
-    if (aiRes.isError) {
-      section.status = "failed";
-      section.error = aiRes.error;
-    } else {
-      section.optimizedData = handleOptimizedData(
-        section.name,
-        section.tone,
-        aiRes,
-        currentLinkedInData,
-      );
-      section.changedData = aiRes?.data?.changes || [];
-      section.status = "success";
-    }
-    await job.save();
-
-    console.log("ai res", JSON.stringify(aiRes.data, null, 2));
-
-    currentLinkedInData.changes ??= {};
-    currentLinkedInData.changes.experience ??= [];
-    currentLinkedInData.changes.headline ??= [];
-    currentLinkedInData.changes.about ??= [];
-    if (section.name == "experience") {
-      currentLinkedInData.experience = normalizeAndGiveProperValue(
-        section.name,
-        section.tone,
-        aiRes.data.data,
-        currentLinkedInData,
-      );
-      currentLinkedInData.changes.experience.push(
-        ...(aiRes.data.changes || []),
-      );
-      await currentLinkedInData.save();
-    } else if (section.name == "headline") {
-      currentLinkedInData.headline = normalizeAndGiveProperValue(
-        section.name,
-        section.tone,
-        aiRes.data,
-        currentLinkedInData,
-      );
-      currentLinkedInData.changes.headline.push(...(aiRes.data.changes || []));
-      await currentLinkedInData.save();
-    } else if (section.name == "about") {
-      currentLinkedInData.about = normalizeAndGiveProperValue(
-        section.name,
-        section.tone,
-        aiRes.data,
-        currentLinkedInData,
-      );
-      currentLinkedInData.changes.about.push(...(aiRes.data.changes || []));
-      await currentLinkedInData.save();
-    }
-
-    await pubClient.hset(`job:${job._id}`, {
-      status: job.status,
-      sections: JSON.stringify(job.sections),
-      resumeId: resumeId,
-      linkedInId,
-      jobId: job._id.toString(),
-      isScoreFound: false,
-      score: null,
-      fullLinkedInVersion: JSON.stringify(currentLinkedInData),
-    });
-    await pubClient.publish(
-      "job_updates_linkedIn",
-      JSON.stringify({
-        jobId,
-        userId,
-        section: section.name,
-        status: job.status,
-        sections: job.sections,
-        sectionStatus: section.status,
-        isScoreFound: false,
-        score: null,
-        fullLinkedInVersion: JSON.stringify(currentLinkedInData),
-      }),
-    );
-
-    const haPending = job.sections.some((sec) => sec.status == "pending");
-    if (haPending) {
-      await aiOptimizationQueue.add(
-        "optimize-ai-linkedin",
-        {
-          jobId: job._id.toString(),
-        },
-        {
-          removeOnComplete: true,
-          attempts: 1,
-        },
-      );
-      return;
-    }
-
-    await pubClient.expire(`job:${job._id}`, 1800); //  30 minutes
-    const failed = job.sections.filter((s) => s.status == "failed");
-    const refund = failed.reduce((s, x) => s + x.creditCost, 0);
-
-    if (job.finishedAt) {
-      await pubClient.del(redisKey);
-      return;
-    }
-
-    if (refund > 0 && job.creditsRefunded == 0) {
-      console.log("Processing refund of credits:", refund);
-      await User.findByIdAndUpdate(
-        job.userId,
-        { $inc: { totalCredits: refund } },
-        { new: true },
-      );
-
-      await CreditLedger.create({
-        userId: job.userId,
-        jobId: job._id,
-        type: "REFUND",
-        amount: refund,
-        reason: "AI failed sections",
-      });
-      job.creditsRefunded = refund;
-    }
-
-    job.status =
-      failed.length === job.sections.length
-        ? "failed"
-        : failed.length > 0
-          ? "partial"
-          : "completed";
-
-    if (failed.length == job.sections.length) {
-      console.log("All sections failed", failed);
-      job.result = {
-        linkedInVersionId: null,
-        totalScore: 0,
-        scoreFailed: true,
-      };
-      job.finishedAt = new Date();
-
-      await job.save();
-      await pubClient.del(redisKey);
-      await pubClient.hset(`job:${job._id}`, {
-        status: job?.status,
-        sections: JSON.stringify(job?.sections),
-        resumeId: resumeId,
-        isScoreFound: false,
-        score: null,
-        fullLinkedInVersion: JSON.stringify(currentLinkedInData),
-        linkedInId,
-        jobId: job._id.toString(),
-        userId,
-      });
-      await pubClient.expire(`job:${job._id}`, 900); //  15 minutes
-      await pubClient.publish(
-        "job_updates_linkedIn",
-        JSON.stringify({
-          jobId,
-          userId,
-          section: section?.name || "",
-          status: job?.status,
-          sections: job?.sections || [],
-          sectionStatus: section?.status || "",
-          isScoreFound: true,
-          score: JSON.stringify(currentLinkedInData.score),
+          score: null,
           fullLinkedInVersion: JSON.stringify(currentLinkedInData),
-          creditsRefunded: job.creditsRefunded,
+          creditsRefunded: 0,
         }),
       );
-    } else {
-      let score = await getScoreForOptimizedData(
-        oldLinkedInData,
-        currentLinkedInData,
-      );
-      console.log("Score received from AI", score);
-      if (score.isError) {
-        console.log("Error in scoring resume:", score.error);
-        job.result = {
-          totalScore: 0,
-          scoreFailed: true,
-        };
-      } else {
-        job.result = {
-          totalScore: score.data.score.currentScore,
-          scoreFailed: false,
-        };
-      }
-      currentLinkedInData.score.currentScore =
-        score?.data?.score?.currentScore ||
-        currentLinkedInData.score.currentScore;
-      currentLinkedInData.score.searchability =
-        score?.data?.score?.searchability ||
-        currentLinkedInData.score.searchability;
-      currentLinkedInData.score.clarity =
-        score?.data?.score?.clarity || currentLinkedInData.score.clarity;
-      currentLinkedInData.score.impact =
-        score?.data?.score?.impact || currentLinkedInData.score.impact;
-      await currentLinkedInData.save();
 
-      console.log("out of else");
-      job.result.linkedInVersionId = currentLinkedInData._id.toString();
-      job.result.fullOptimizedData = currentLinkedInData.toObject();
-      job.finishedAt = new Date();
-      await job.save();
-      console.log("Job marked as finished at", job.finishedAt);
+      const haPending = job.sections.some((sec) => sec.status == "pending");
+      if (haPending) {
+        await aiOptimizationQueue.add(
+          "optimize-ai-linkedin",
+          {
+            jobId: job._id.toString(),
+          },
+          {
+            removeOnComplete: true,
+            attempts: 1,
+          },
+        );
+        return;
+      }
+
+      await pubClient.expire(`job:${job._id}`, 1800); //  30 minutes
+      const failed = job.sections.filter((s) => s.status == "failed");
+      const refund = failed.reduce((s, x) => s + x.creditCost, 0);
 
       if (job.finishedAt) {
         await pubClient.del(redisKey);
+        return;
       }
-      await pubClient.hset(`job:${job._id}`, {
-        status: job?.status,
-        sections: JSON.stringify(job?.sections),
-        resumeId: resumeId,
-        isScoreFound: true,
-        linkedInId,
-        jobId: job._id.toString(),
-        score: JSON.stringify(currentLinkedInData.score),
-        fullLinkedInVersion: JSON.stringify(currentLinkedInData),
-      });
-      await pubClient.expire(`job:${job._id}`, 900); //  15 minutes
-      await pubClient.publish(
-        "job_updates_linkedIn",
-        JSON.stringify({
-          jobId,
-          userId,
-          section: section?.name || "",
+
+      if (refund > 0 && job.creditsRefunded == 0) {
+        console.log("Processing refund of credits:", refund);
+        await User.findByIdAndUpdate(
+          job.userId,
+          { $inc: { totalCredits: refund } },
+          { new: true },
+        );
+
+        await CreditLedger.create({
+          userId: job.userId,
+          jobId: job._id,
+          type: "REFUND",
+          amount: refund,
+          reason: "AI failed sections",
+        });
+        job.creditsRefunded = refund;
+      }
+
+      job.status =
+        failed.length === job.sections.length
+          ? "failed"
+          : failed.length > 0
+            ? "partial"
+            : "completed";
+
+      if (failed.length == job.sections.length) {
+        console.log("All sections failed", failed);
+        job.result = {
+          linkedInVersionId: null,
+          totalScore: 0,
+          scoreFailed: true,
+          fullOptimizedData: null,
+        };
+        job.finishedAt = new Date();
+
+        await job.save();
+        await pubClient.del(redisKey);
+        await pubClient.hset(`job:${job._id}`, {
           status: job?.status,
-          sections: job?.sections || [],
-          sectionStatus: section?.status || "",
+          sections: JSON.stringify(job?.sections),
+          resumeId: resumeId,
+          isScoreFound: false,
+          score: null,
+          fullLinkedInVersion: null,
+          linkedInId,
+          jobId: job._id.toString(),
+          userId,
+        });
+        await pubClient.expire(`job:${job._id}`, 900); //  15 minutes
+        await pubClient.publish(
+          "job_updates_linkedIn",
+          JSON.stringify({
+            jobId,
+            userId,
+            section: section?.name || "",
+            status: job?.status,
+            sections: job?.sections || [],
+            sectionStatus: section?.status || "",
+            isScoreFound: true,
+            score: null,
+            fullLinkedInVersion: null,
+            creditsRefunded: job.creditsRefunded,
+          }),
+        );
+      } else {
+        let score = await getScoreForOptimizedData(
+          oldLinkedInData,
+          currentLinkedInData,
+        );
+        console.log("Score received from AI", score);
+        if (score.isError) {
+          console.log("Error in scoring resume:", score.error);
+          job.result = {
+            totalScore: 0,
+            scoreFailed: true,
+          };
+        } else {
+          job.result = {
+            totalScore: score.data.score.currentScore,
+            scoreFailed: false,
+          };
+        }
+        currentLinkedInData.score.currentScore =
+          score?.data?.score?.currentScore ||
+          currentLinkedInData.score.currentScore;
+        currentLinkedInData.score.searchability =
+          score?.data?.score?.searchability ||
+          currentLinkedInData.score.searchability;
+        currentLinkedInData.score.clarity =
+          score?.data?.score?.clarity || currentLinkedInData.score.clarity;
+        currentLinkedInData.score.impact =
+          score?.data?.score?.impact || currentLinkedInData.score.impact;
+        await currentLinkedInData.save();
+
+        console.log("out of else");
+        job.result.linkedInVersionId = currentLinkedInData._id.toString();
+        job.result.fullOptimizedData = currentLinkedInData.toObject();
+        job.finishedAt = new Date();
+        await job.save();
+        console.log("Job marked as finished at", job.finishedAt);
+
+        if (job.finishedAt) {
+          await pubClient.del(redisKey);
+        }
+        await pubClient.hset(`job:${job._id}`, {
+          status: job?.status,
+          sections: JSON.stringify(job?.sections),
+          resumeId: resumeId,
           isScoreFound: true,
+          linkedInId,
+          jobId: job._id.toString(),
           score: JSON.stringify(currentLinkedInData.score),
           fullLinkedInVersion: JSON.stringify(currentLinkedInData),
-        }),
-      );
-      console.log("Published final job update");
+        });
+        await pubClient.expire(`job:${job._id}`, 900); //  15 minutes
+        await pubClient.publish(
+          "job_updates_linkedIn",
+          JSON.stringify({
+            jobId,
+            userId,
+            section: section?.name || "",
+            status: job?.status,
+            sections: job?.sections || [],
+            sectionStatus: section?.status || "",
+            isScoreFound: true,
+            score: JSON.stringify(currentLinkedInData.score),
+            fullLinkedInVersion: JSON.stringify(currentLinkedInData),
+            creditsRefunded: job.creditsRefunded,
+          }),
+        );
+        console.log("Published final job update");
+      }
+    } catch (error) {
+      console.log("Error processing job:", error);
     }
-
     return { success: true };
   },
   {
