@@ -55,8 +55,10 @@ const jobSchema = new mongoose.Schema(
     creditsRefunded: { type: Number, default: 0 },
 
     result: {
+      linkedInVersionId: String,
       totalScore: Number,
       scoreFailed: Boolean,
+      fullOptimizedData: mongoose.Schema.Types.Mixed,
     },
     prompt: String,
     finishedAt: Date,

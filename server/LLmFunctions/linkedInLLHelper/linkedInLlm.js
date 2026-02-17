@@ -7,6 +7,7 @@ import {
   linkedinBaseSystemInstruction,
   linkedinExperienceSystemInstruction,
   linkedinHeadlineSystemInstruction,
+  linkedInScoreSystemInstruction,
   parseLinkedInSystemInstruction,
 } from "./allLinkedInLLmInstruction.js";
 
@@ -142,6 +143,69 @@ export const getLinkedInDataAndResumeData = async (
   }
 };
 
+export const getScoreForOptimizedData = async (oldData, newData) => {
+  let retries = 3;
+  let error;
+
+  let payload = {
+    oldProfile: {
+      context: "Old LinkedIn Data",
+      data: oldData,
+    },
+    newProfile: {
+      context: "New LinkedIn Data",
+      data: newData,
+    },
+  };
+  while (retries > 0) {
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: JSON.stringify(payload),
+        config: {
+          systemInstruction: linkedInScoreSystemInstruction,
+        },
+      });
+
+      if (!response?.text) {
+        await sleep(2000);
+        throw new Error("Empty AI response");
+      }
+
+      const cleaned = response.text
+        .replace(/^\s*```json\s*/i, "")
+        .replace(/\s*```\s*$/i, "");
+
+      console.log(cleaned);
+
+      // const isValid = validateLLMResponse("score", JSON.parse(cleaned));
+      // const { isValid: valid, errors } = isValid;
+
+      // if (!valid) {
+      //   console.error("Validation errors:", errors);
+      //   throw new Error(
+      //     `AI response validation failed: ${JSON.stringify(errors)}`,
+      //   );
+      // }
+      return {
+        error: null,
+        isError: false,
+        data: JSON.parse(cleaned),
+      };
+    } catch (err) {
+      error = err;
+      console.error("AI score error:", error);
+      retries--;
+    }
+  }
+
+  return {
+    error: error,
+    isError: true,
+    data: null,
+  };
+};
+
 export const aiLinkedInOptimize = async (
   resumeId,
   operation,
@@ -180,17 +244,17 @@ export const aiLinkedInOptimize = async (
         throw new Error("Invalid JSON from AI");
       }
 
-        // const validationResult = validateLLMResponse(operation, parsed);
-        // const { isValid, errors } = validationResult;
+      // const validationResult = validateLLMResponse(operation, parsed);
+      // const { isValid, errors } = validationResult;
 
-        // console.log("AI part wise optimize response:", cleaned);
+      // console.log("AI part wise optimize response:", cleaned);
 
-        // if (!isValid) {
-        //   console.error("Validation errors:", errors);
-        //   throw new Error(
-        //     `AI response validation failed: ${JSON.stringify(errors)}`,
-        //   );
-        // }
+      // if (!isValid) {
+      //   console.error("Validation errors:", errors);
+      //   throw new Error(
+      //     `AI response validation failed: ${JSON.stringify(errors)}`,
+      //   );
+      // }
 
       return {
         error: null,

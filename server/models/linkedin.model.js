@@ -93,7 +93,6 @@ const linkedInProfileSchema = new mongoose.Schema(
         company: String,
         from: String,
         to: String,
-
         bullets: {
           currentTone: {
             type: String,

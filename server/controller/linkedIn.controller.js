@@ -75,6 +75,7 @@ export const optimizeLinkedIn = async (req, res) => {
     const job = await LinkedinJob.create({
       userId,
       resumeId,
+      
       sections,
       prompt: "",
       operation,
@@ -108,11 +109,13 @@ export const optimizeLinkedIn = async (req, res) => {
       status: "pending",
       jobId: job._id.toString(),
       section: "",
+      linkedInId,
+      resumeId,
       sections: [],
       sectionStatus: "",
       isScoreFound: false,
       score: null,
-      fullResumeVersion: null,
+      fullLinkedInVersion: null,
     });
 
     console.log("Created job:", job._id.toString());
