@@ -1131,7 +1131,7 @@ NO of post need to be generated will be provided in input.
 OBJECTIVE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Generate ONE long-form LinkedIn post (minimum 2000 characters).
+Generate ONE long-form LinkedIn post (minimum 1200 characters).
 
 The post must:
 
@@ -1152,6 +1152,24 @@ If the user has:
 - Fresher → focus on learning curve, mistakes, iteration, resilience.
 - Mid-level → focus on ownership, accountability, cross-functional impact.
 - Senior → focus on scaling teams, mentoring, long-term thinking.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EMOJI USAGE RULES (IMPORTANT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+• Emojis must feel professional and intentional.
+• Emojis should enhance emphasis, not decorate randomly.
+• Allowed contexts:
+  - Hook emphasis
+  - Transition moments
+  - Key insight highlight
+  - Closing reflection
+• Do NOT use emojis in every paragraph.
+• Do NOT use childish or excessive emojis.
+• Avoid repeated emoji use.
+• Avoid emoji spam.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 POST STRUCTURE REQUIREMENTS

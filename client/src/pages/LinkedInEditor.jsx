@@ -14,6 +14,7 @@ import ButtonLoader from "../components/Loaders/ButtonLoader";
 import StatusBadge from "../components/StatusShower/StatusBadge";
 import { setCredits } from "../redux/slice/authSlice";
 import DiffViewer from "react-diff-viewer";
+import { Maximize2 } from "lucide-react";
 
 const returnProperData = (data) => {
   const { currentTone, options } = data || {};
@@ -72,6 +73,7 @@ const LinkedInEditor = () => {
   const linkedInSlice = useSelector((state) => state.linkedin);
 
   const [currentChangesShowModal, setCurrentChangesShowModal] = useState("");
+  
 
   const { id } = useParams();
   const location = useLocation();
@@ -80,118 +82,7 @@ const LinkedInEditor = () => {
 
   const dispatch = useDispatch();
 
-  const fakePostData = [
-    {
-      postId: "post_1001",
-      userId: "user_55421",
-      platform: "linkedin",
-      content: {
-        text: "Today is a special milestone for our team — we’ve officially crossed 10,000 users. What started as a small idea has grown into a community we’re incredibly proud of. Huge thanks to every early supporter who believed in us. This is just the beginning.",
-        hashtags: ["#StartupJourney", "#Milestone", "#Grateful", "#Growth"],
-        mentions: ["@TeamAlpha"],
-        link: "https://example.com/milestone",
-      },
-      media: [
-        {
-          type: "image",
-          url: "https://example.com/media/team-celebration.jpg",
-          thumbnail: "https://example.com/media/thumb-team.jpg",
-        },
-      ],
-      posting: {
-        status: "posted",
-        scheduledAt: "2026-01-20T09:00:00Z",
-        postedAt: "2026-01-20T09:01:12Z",
-        linkedinPostUrn: "urn:li:activity:1001",
-      },
-      privacy: {
-        visibility: "public",
-      },
-      aiMeta: {
-        generatedByAI: true,
-        tone: "celebratory",
-        topic: "company milestone",
-      },
-      createdAt: "2026-01-19T15:10:00Z",
-      updatedAt: "2026-01-20T09:05:00Z",
-    },
-
-    {
-      postId: "post_1002",
-      userId: "user_77892",
-      platform: "linkedin",
-      content: {
-        text: "We’re expanding our team and looking for passionate frontend developers who love crafting beautiful user experiences. If you enjoy solving real-world problems and building products that impact people, we’d love to hear from you.",
-        hashtags: ["#Hiring", "#FrontendDeveloper", "#Careers", "#TechJobs"],
-        mentions: ["@TechCareers"],
-        link: "https://example.com/jobs/frontend",
-      },
-      media: [],
-      posting: {
-        status: "scheduled",
-        scheduledAt: "2026-02-02T11:00:00Z",
-        postedAt: null,
-        linkedinPostUrn: null,
-      },
-      privacy: {
-        visibility: "public",
-      },
-      analytics: {
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        impressions: 0,
-      },
-      aiMeta: {
-        generatedByAI: true,
-        tone: "professional",
-        topic: "job hiring",
-      },
-      createdAt: "2026-01-29T10:20:00Z",
-      updatedAt: "2026-01-29T10:20:00Z",
-    },
-
-    {
-      postId: "post_1003",
-      userId: "user_33211",
-      platform: "linkedin",
-      content: {
-        text: "Our latest blog explores how AI is reshaping small businesses in 2026 — from automation to smarter decision-making. If you're curious about where technology is heading and how it affects growth, this is worth a read.",
-        hashtags: ["#ArtificialIntelligence", "#BusinessGrowth", "#TechTrends"],
-        mentions: ["@BusinessInsights"],
-        link: "https://example.com/blog/ai-business",
-      },
-      media: [
-        {
-          type: "image",
-          url: "https://example.com/media/blog-cover.jpg",
-          thumbnail: "https://example.com/media/thumb-blog.jpg",
-        },
-      ],
-      posting: {
-        status: "draft",
-        scheduledAt: null,
-        postedAt: null,
-        linkedinPostUrn: null,
-      },
-      privacy: {
-        visibility: "connections",
-      },
-      analytics: {
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        impressions: 0,
-      },
-      aiMeta: {
-        generatedByAI: false,
-        tone: "informational",
-        topic: "AI trends",
-      },
-      createdAt: "2026-01-28T18:00:00Z",
-      updatedAt: "2026-01-28T18:00:00Z",
-    },
-  ];
+  const [postData, setPostData] = useState(currentLinkedIn?.posts || []);
 
   const [headlineTone, setHeadlineTone] = useState(
     currentLinkedIn?.headline?.currentTone || "FORMAL",
@@ -411,6 +302,10 @@ const LinkedInEditor = () => {
 
     if (currentLinkedIn?.isLinkedInConnected !== undefined) {
       setConnected(currentLinkedIn.isLinkedInConnected);
+    }
+
+    if (currentLinkedIn?.posts) {
+      setPostData(currentLinkedIn.posts);
     }
   }, [currentLinkedIn]);
 
@@ -845,56 +740,70 @@ const LinkedInEditor = () => {
             <h1 className="text-lg p-2  font-medium sticky top-0 bg-white">
               Post Suggestions
             </h1>
-            {fakePostData.map((post) => {
-              const isPosted = post.posting.status === "posted";
+            {postData && postData.length > 0 ? (
+              postData.map((post) => {
+                const isPosted = post.posting.status === "posted";
 
-              return (
-                <div
-                  key={post.postId}
-                  className="w-full bg-white rounded-lg shadow p-4 border"
-                >
-                  {/* Text */}
-                  <p className="text-sm text-gray-800">{post.content.text}</p>
-
-                  {/* Hashtags */}
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {post.content.hashtags.map((tag, i) => (
-                      <span key={i} className="text-blue-600 text-xs">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Link */}
-                  {post.content.link && (
-                    <a
-                      href={post.content.link}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs text-green-600 mt-2 block"
-                    >
-                      {post.content.link}
-                    </a>
-                  )}
-
-                  {/* Status / Action */}
-                  <div className="mt-3 flex items-center justify-between">
-                    {isPosted ? (
-                      <span className="text-xs text-green-600 font-medium">
-                        ✅ Posted
-                      </span>
-                    ) : (
-                      <button
-                        className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                        onClick={() => console.log("Post now:", post.postId)}
-                      >
-                        Post Now
+                return (
+                  <div
+                    key={post.postId}
+                    className="w-full bg-white relative rounded-lg shadow p-4 border"
+                  >
+                    <div className="flex items-center mb-3 w-full justify-between">
+                      <h1 className="text-[13px] w-[70%]  font-medium">
+                        {post?.aiMeta?.topic.split("|")[0]}{" "}
+                      </h1>
+                      <button className="">
+                        <Maximize2 className="w-4 h-4 " />
                       </button>
+                    </div>
+                    {/* Text */}
+                    <p className="text-sm text-gray-800">{post.content.text.slice(0, 200)}...........</p>
+
+                    {/* Hashtags */}
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {post.content.hashtags.map((tag, i) => (
+                        <span key={i} className="text-blue-600 text-xs">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Link */}
+                    {post.content.link && (
+                      <a
+                        href={post.content.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-green-600 mt-2 block"
+                      >
+                        {post.content.link}
+                      </a>
                     )}
+
+                    {/* Status / Action */}
+                    <div className="mt-3 flex items-center justify-between">
+                      {isPosted ? (
+                        <span className="text-xs text-green-600 font-medium">
+                          ✅ Posted
+                        </span>
+                      ) : (
+                        <button
+                          className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                          onClick={() => console.log("Post now:", post.postId)}
+                        >
+                          Post Now
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <p className="text-sm text-gray-500 mt-2 px-2">
+                No post suggestions available.
+              </p>
+            )}
           </div>
         </div>
 

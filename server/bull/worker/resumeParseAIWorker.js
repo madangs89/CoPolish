@@ -356,7 +356,7 @@ const resumeParseAIWorker = new Worker(
           let aiMeta = {
             generatedBy: "gemini-2.5-flash",
             tone: p?.tone || "CONFIDENT",
-            topics: p?.topics || [],
+            topic: p?.topic || "",
           };
 
           newPost.push({

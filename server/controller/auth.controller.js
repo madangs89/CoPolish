@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { client } from "../config/google.js";
 import axios from "axios";
 import { pubClient } from "../config/redis.js";
-import { encrypt } from "../utils/encryption.js";
+import { decrypt, encrypt } from "../utils/encryption.js";
 import LinkedInProfile from "../models/linkedin.model.js";
 
 const createToken = (user) => {
@@ -227,29 +227,34 @@ export const isAuth = async (req, res) => {
 };
 
 export const linkedInCodeExchange = async (req, res) => {
-  const { code } = req.body;
-
   try {
+    const { code } = req.body;
+
+    // 1️⃣ Validate code
     if (!code) {
-      return res
-        .status(400)
-        .json({ message: "Code is required", success: false });
+      return res.status(400).json({
+        success: false,
+        message: "Authorization code is required",
+      });
     }
 
-    const userId = req.user._id;
-
+    // 2️⃣ Validate user
+    const userId = req.user?._id;
     if (!userId) {
-      return res
-        .status(401)
-        .json({ message: "Not Authorized", success: false });
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
     }
+
+    // 3️⃣ Exchange code for access token
     const tokenRes = await axios.post(
       "https://www.linkedin.com/oauth/v2/accessToken",
       null,
       {
         params: {
           grant_type: "authorization_code",
-          code: code,
+          code,
           redirect_uri: process.env.LINKEDIN_REDIRECT_URI,
           client_id: process.env.LINKEDIN_CLIENT_ID,
           client_secret: process.env.LINKEDIN_CLIENT_SECRET,
@@ -260,38 +265,79 @@ export const linkedInCodeExchange = async (req, res) => {
       },
     );
 
-    const access_token = tokenRes.data.access_token;
-    const expires_in = tokenRes.data.expires_in;
+    const access_token = tokenRes?.data?.access_token;
+    const expires_in = tokenRes?.data?.expires_in;
 
-    console.log(expires_in);
+    if (!access_token) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to retrieve access token from LinkedIn",
+      });
+    }
 
-    let data = encrypt(access_token);
-    data = JSON.parse(data);
-    data.expires_in = expires_in;
+    // 4️⃣ Encrypt token
+    const encryptedToken = encrypt(access_token);
 
-    console.log("Encrypted LinkedIn Token:", data);
+    if (!encryptedToken) {
+      return res.status(500).json({
+        success: false,
+        message: "Encryption failed",
+      });
+    }
 
-    if (data != null && data != "" && data != undefined) {
-      const linkedInProfileRes = await LinkedInProfile.findOneAndUpdate(
-        { userId },
-        { linkedInToken: data, isLinkedInConnected: true },
-        {
-          new: true,
-          upsert: true,
+    // 5️⃣ Calculate expiry date
+    const expiryDate = expires_in
+      ? new Date(Date.now() + expires_in * 1000)
+      : null;
+
+    // 6️⃣ Save to database
+    const updatedProfile = await LinkedInProfile.findOneAndUpdate(
+      { userId },
+      {
+        $set: {
+          linkedInToken: encryptedToken,
+          linkedInTokenExpiry: expiryDate,
+          isLinkedInConnected: true,
         },
-      );
-    } else {
-      return res
-        .status(500)
-        .json({ message: "Encryption failed", success: false });
+      },
+      {
+        new: true,
+        upsert: true,
+        runValidators: true,
+      },
+    );
+
+    if (!updatedProfile) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update LinkedIn profile",
+      });
+    }
+
+    // 7️⃣ Optional integrity check (decrypt once to verify)
+    try {
+      decrypt(updatedProfile.linkedInToken);
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: "Token saved but decryption validation failed",
+      });
     }
 
     return res.status(200).json({
       success: true,
-      message: "LinkedIn Connected Successfully",
+      message: "LinkedIn connected successfully",
+      tokenExpiry: expiryDate,
     });
   } catch (error) {
-    console.error(error.response?.data || error.message);
-    res.status(500).json({ success: false, message: "Token exchange failed" });
+    console.error(
+      "LinkedIn Token Exchange Error:",
+      error.response?.data || error.message,
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Token exchange failed",
+    });
   }
 };

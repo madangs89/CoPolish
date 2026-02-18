@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { setLinkedInConnectedTrue } from "../../redux/slice/linkedInSlice";
-
+import toast from "react-hot-toast";
 const LinkedInRedirect = () => {
   const location = useLocation();
   const dispatch = useDispatch();
@@ -23,9 +23,17 @@ const LinkedInRedirect = () => {
             withCredentials: true,
           },
         );
+
+        console.log(data);
         if (data.success) {
           dispatch(setLinkedInConnectedTrue());
 
+          const redirectPath = localStorage.getItem("redirect") || "/dashboard";
+          localStorage.removeItem("redirect");
+          toast.success("LinkedIn connected successfully!");
+          navigate(redirectPath);
+        } else {
+          toast.error("Failed to connect LinkedIn. Please try again.");
           const redirectPath = localStorage.getItem("redirect") || "/dashboard";
           localStorage.removeItem("redirect");
           navigate(redirectPath);

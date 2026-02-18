@@ -188,6 +188,7 @@ const linkedInProfileSchema = new mongoose.Schema(
           status: {
             type: String,
             enum: ["DRAFT", "SCHEDULED", "POSTED"],
+            default: "DRAFT",
           },
           scheduledAt: Date,
           postedAt: Date,
