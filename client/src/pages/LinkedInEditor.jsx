@@ -111,7 +111,7 @@ const LinkedInEditor = () => {
   );
 
   const handleOptimize = async (section, tone) => {
-    console.log("Optimize request:", section, tone);
+    console.log("Optimize request:", section, tone , resumeSlice._id , currentLinkedIn?._id);
 
     try {
       const d = await axios.post(

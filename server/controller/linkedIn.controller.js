@@ -22,15 +22,36 @@ export const optimizeLinkedIn = async (req, res) => {
       req.body,
     );
 
-    const { section: operation, tone, resumeId, linkedInId } = req.body;
+    let { section: operation, tone, resumeId, linkedInId } = req.body;
 
-    if (!operation || !tone || !resumeId || !linkedInId) {
+    const userId = req?.user?._id;
+
+    if (!operation || !tone) {
       return res
         .status(400)
         .json({ message: "Missing required fields", success: false });
     }
 
-    const userId = req?.user?._id;
+    if (!linkedInId || !resumeId) {
+      const userDetails = await User.findById(userId).select(
+        "currentResumeId currentLinkedInId",
+      );
+
+      if (!userDetails) {
+        return res
+          .status(404)
+          .json({ message: "User not found", success: false });
+      }
+      linkedInId = userDetails.currentLinkedInId;
+      resumeId = userDetails.currentResumeId;
+    }
+
+    if (!resumeId || !linkedInId) {
+      return res.status(404).json({
+        message: "Resume or LinkedIn profile not found",
+        success: false,
+      });
+    }
 
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized", success: false });

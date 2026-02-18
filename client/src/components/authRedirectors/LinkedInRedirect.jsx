@@ -40,6 +40,8 @@ const LinkedInRedirect = () => {
           localStorage.removeItem("redirect");
           navigate(redirectPath);
         }
+
+        navigate("/dashboard");
       })();
     }
   }, [location]);
