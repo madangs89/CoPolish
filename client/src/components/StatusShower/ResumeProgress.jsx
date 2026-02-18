@@ -18,6 +18,7 @@ export default function ResumeProgress({
   errorStates,
   setErrorStates,
   setIsStatusTrue,
+  operation = "Resume",
 }) {
   const isUploaded = status.includes("uploaded");
   const isParsed = status.includes("parsed");
@@ -154,7 +155,7 @@ export default function ResumeProgress({
         console.log("PARSE ERROR:", error);
         toast.error(
           safeMessage ||
-            "There was an error parsing your resume. Please try again.",
+            `There was an error parsing your ${operation}. Please try again.`,
         );
       }
     };
@@ -193,7 +194,7 @@ export default function ResumeProgress({
 
         toast.error(
           safeMessage ||
-            "There was an error analyzing your resume. Please try again.",
+            `There was an error analyzing your ${operation}. Please try again.`,
         );
       }
     };
@@ -227,14 +228,14 @@ export default function ResumeProgress({
         </button>
 
         <h2 className="text-2xl font-semibold mb-6 text-gray-800">
-          Resume Analysis Progress
+          {operation} Analysis Progress
         </h2>
 
         <ProgressStep
           active={isUploaded}
           loading={!isUploaded && !hasError}
           title="Uploaded"
-          description="Your resume has been received."
+          description={`Your ${operation} has been received.`}
           color="green"
           hasError={hasError}
         />
@@ -243,7 +244,7 @@ export default function ResumeProgress({
           active={isParsed}
           loading={isUploaded && !isParsed && !hasError}
           title="Parsed"
-          description="Resume text has been extracted."
+          description={`${operation} text has been extracted.`}
           color="green"
           hasError={hasError}
         />
@@ -252,7 +253,7 @@ export default function ResumeProgress({
           active={isAnalyzing}
           loading={isUploaded && isParsed && !isAnalyzing && !hasError}
           title="AI Analysis"
-          description="Analyzing your resume with AI..."
+          description={`Analyzing your ${operation} with AI...`}
           color="blue"
           hasError={hasError}
         />
@@ -280,7 +281,7 @@ export default function ResumeProgress({
         )}
 
         <p className="text-gray-500 text-sm mt-6 text-center">
-          Please wait while we analyze your resume...
+          Please wait while we analyze your {operation}...
         </p>
       </div>
     </div>

@@ -73,7 +73,11 @@ const LinkedInEditor = () => {
   const linkedInSlice = useSelector((state) => state.linkedin);
 
   const [currentChangesShowModal, setCurrentChangesShowModal] = useState("");
-  
+
+  const [postShowModal, setPostShowModal] = useState({
+    show: false,
+    post: null,
+  });
 
   const { id } = useParams();
   const location = useLocation();
@@ -753,12 +757,17 @@ const LinkedInEditor = () => {
                       <h1 className="text-[13px] w-[70%]  font-medium">
                         {post?.aiMeta?.topic.split("|")[0]}{" "}
                       </h1>
-                      <button className="">
+                      <button
+                        onClick={() => setPostShowModal({ show: true, post })}
+                        className="p-1 hover:bg-gray-100 rounded-full"
+                      >
                         <Maximize2 className="w-4 h-4 " />
                       </button>
                     </div>
                     {/* Text */}
-                    <p className="text-sm text-gray-800">{post.content.text.slice(0, 200)}...........</p>
+                    <p className="text-sm text-gray-800">
+                      {post.content.text.slice(0, 200)}...........
+                    </p>
 
                     {/* Hashtags */}
                     <div className="flex flex-wrap gap-2 mt-2">
@@ -925,6 +934,70 @@ const LinkedInEditor = () => {
               ) : (
                 <p className="text-gray-500 text-sm">No changes found.</p>
               )}
+            </div>
+          </div>
+        )}
+
+        {postShowModal.show && postShowModal.post && (
+          <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            {/* Modal Container */}
+            <div className="bg-white w-full max-w-3xl max-h-[90vh] rounded-xl shadow-xl flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b">
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900">
+                    {postShowModal.post?.aiMeta?.topic?.split("|")[0] ||
+                      "LinkedIn Post"}
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Tone: {postShowModal.post?.aiMeta?.tone || "CONFIDENT"}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setPostShowModal({ show: false, post: null })}
+                  className="text-gray-400 hover:text-black transition text-lg"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="overflow-y-auto px-6 py-5 text-sm text-gray-800 whitespace-pre-line leading-relaxed">
+                {postShowModal.post?.content?.text}
+              </div>
+
+              {/* Hashtags */}
+              {postShowModal.post?.content?.hashtags?.length > 0 && (
+                <div className="px-6 pb-4 flex flex-wrap gap-2">
+                  {postShowModal.post.content.hashtags.map((tag, i) => (
+                    <span
+                      key={i}
+                      className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-md"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t flex justify-between items-center">
+                <span className="text-xs text-gray-500">
+                  {postShowModal.post?.posting?.status || "DRAFT"}
+                </span>
+
+                {postShowModal.post?.posting?.status !== "POSTED" && (
+                  <button
+                    className="px-4 py-2 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
+                    onClick={() =>
+                      console.log("Publish:", postShowModal.post.postId)
+                    }
+                  >
+                    Publish to LinkedIn
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}
