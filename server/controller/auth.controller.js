@@ -228,10 +228,14 @@ export const isAuth = async (req, res) => {
 
 export const linkedInCodeExchange = async (req, res) => {
   try {
-    const { code } = req.body;
+    const { code, _id } = req.body;
+
+
+    console.log(code , _id);
+    
 
     // 1️⃣ Validate code
-    if (!code) {
+    if (!code || !_id) {
       return res.status(400).json({
         success: false,
         message: "Authorization code is required",
@@ -248,22 +252,30 @@ export const linkedInCodeExchange = async (req, res) => {
     }
 
     // 3️⃣ Exchange code for access token
+    const params = new URLSearchParams();
+    params.append("grant_type", "authorization_code");
+    params.append("code", code);
+    params.append("redirect_uri", process.env.LINKEDIN_REDIRECT_URI);
+    params.append("client_id", process.env.LINKEDIN_CLIENT_ID);
+    params.append("client_secret", process.env.LINKEDIN_CLIENT_SECRET);
+
     const tokenRes = await axios.post(
       "https://www.linkedin.com/oauth/v2/accessToken",
-      null,
+      params,
       {
-        params: {
-          grant_type: "authorization_code",
-          code,
-          redirect_uri: process.env.LINKEDIN_REDIRECT_URI,
-          client_id: process.env.LINKEDIN_CLIENT_ID,
-          client_secret: process.env.LINKEDIN_CLIENT_SECRET,
-        },
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       },
     );
+
+    if (tokenRes.status !== 200) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to exchange code for access token",
+        error: tokenRes?.data || "Unknown error",
+      });
+    }
 
     const access_token = tokenRes?.data?.access_token;
     const expires_in = tokenRes?.data?.expires_in;
@@ -291,12 +303,14 @@ export const linkedInCodeExchange = async (req, res) => {
       : null;
 
     // 6️⃣ Save to database
-    const updatedProfile = await LinkedInProfile.findOneAndUpdate(
-      { userId },
+    const updatedProfile = await LinkedInProfile.findByIdAndUpdate(
+      { _id },
       {
         $set: {
-          linkedInToken: encryptedToken,
-          linkedInTokenExpiry: expiryDate,
+          linkedInToken: {
+            ...encryptedToken,
+            expiry: expiryDate,
+          },
           isLinkedInConnected: true,
         },
       },
@@ -307,6 +321,8 @@ export const linkedInCodeExchange = async (req, res) => {
       },
     );
 
+    console.log(updatedProfile);
+
     if (!updatedProfile) {
       return res.status(500).json({
         success: false,
@@ -316,7 +332,7 @@ export const linkedInCodeExchange = async (req, res) => {
 
     // 7️⃣ Optional integrity check (decrypt once to verify)
     try {
-      decrypt(updatedProfile.linkedInToken);
+      decrypt(JSON.stringify(updatedProfile.linkedInToken));
     } catch (err) {
       return res.status(500).json({
         success: false,

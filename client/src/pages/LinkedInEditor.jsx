@@ -286,6 +286,7 @@ const LinkedInEditor = () => {
 
     localStorage.setItem("redirect", currentLocation);
 
+    localStorage.setItem("currentLinkedInData", currentLinkedIn?._id);
     window.location.href = redirectUrl;
   };
 

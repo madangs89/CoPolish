@@ -17,11 +17,11 @@ export function encrypt(text) {
 
   const authTag = cipher.getAuthTag();
 
-  return JSON.stringify({
+  return {
     iv: iv.toString("hex"),
     content: encrypted,
     tag: authTag.toString("hex"),
-  });
+  };
 }
 
 // 🔓 Decrypt

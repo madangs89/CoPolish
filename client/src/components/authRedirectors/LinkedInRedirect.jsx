@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { setLinkedInConnectedTrue } from "../../redux/slice/linkedInSlice";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 const LinkedInRedirect = () => {
   const location = useLocation();
   const dispatch = useDispatch();
@@ -16,18 +17,19 @@ const LinkedInRedirect = () => {
     console.log("LinkedIn Code:", code);
     if (code) {
       (async () => {
+        const currentLinkedInId = localStorage.getItem("currentLinkedInData");
         const { data } = await axios.post(
           `${import.meta.env.VITE_BACKEND_URL}/api/auth/v1/linkedin/exchange`,
-          { code },
+          { code, _id: currentLinkedInId },
           {
             withCredentials: true,
           },
         );
 
         console.log(data);
+        localStorage.removeItem("currentLinkedInData");
         if (data.success) {
           dispatch(setLinkedInConnectedTrue());
-
           const redirectPath = localStorage.getItem("redirect") || "/dashboard";
           localStorage.removeItem("redirect");
           toast.success("LinkedIn connected successfully!");

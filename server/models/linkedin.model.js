@@ -17,6 +17,7 @@ const linkedInProfileSchema = new mongoose.Schema(
     },
     linkedInToken: {
       type: Object,
+      default: null,
     },
     targetRole: [String],
     industry: [String],
