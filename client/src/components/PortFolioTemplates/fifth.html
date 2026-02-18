@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Creative Is Joy — Premium Portfolio</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    fontFamily: { sans: ["Inter", "sans-serif"] }
+                }
+            }
+        };
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+    <!-- Locomotive Scroll -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.4/dist/locomotive-scroll.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.4/dist/locomotive-scroll.min.js"></script>
+
+    <style>
+        html.has-scroll-smooth {
+            overflow: hidden;
+        }
+
+        body {
+            transition: background-color .4s, color .4s;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .overlay-panel {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            pointer-events: none;
+            display: flex;
+        }
+
+        .overlay-panel div {
+            flex: 1;
+            transform: translateY(-100%);
+        }
+    </style>
+</head>
+
+<body class="bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 font-sans">
+
+    <!-- NAV -->
+    <nav
+        class="fixed top-0 left-0 w-full z-50 backdrop-blur-lg bg-white/70 dark:bg-neutral-950/70 border-b border-neutral-200 dark:border-neutral-800">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-xl font-bold tracking-tight">Creative<span class="text-pink-500">.</span></div>
+            <div class="flex items-center gap-8 text-sm font-medium">
+                <a href="#home" data-link>Home</a>
+                <a href="#projects" data-link>Work</a>
+                <a href="#about" data-link>About</a>
+                <a href="#contact" data-link>Contact</a>
+                <button id="themeToggle" class="px-3 py-1 border rounded-full text-xs">Theme</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Overlay Panels -->
+    <div class="overlay-panel" id="overlay">
+        <div class="bg-neutral-900 dark:bg-white"></div>
+        <div class="bg-neutral-800 dark:bg-neutral-200"></div>
+        <div class="bg-neutral-700 dark:bg-neutral-300"></div>
+    </div>
+
+    <!-- Scroll Container -->
+    <div data-scroll-container>
+
+        <main class="pt-28">
+
+            <!-- HOME -->
+            <section id="home" class="page active max-w-7xl mx-auto px-6 pb-32 space-y-32">
+
+                <div class="space-y-8">
+                    <h1 class="text-6xl md:text-8xl font-black leading-[0.9] tracking-tight">
+                        Creative is<br><span class="italic text-neutral-400 dark:text-neutral-500">joy.</span>
+                    </h1>
+                    <p class="max-w-2xl text-lg text-neutral-600 dark:text-neutral-400">
+                        Independent creative director crafting refined brand systems and immersive web experiences for
+                        ambitious companies worldwide.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-12">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">Brand Systems</h3>
+                        <p class="text-neutral-600 dark:text-neutral-400">Strategic identity frameworks and scalable
+                            visual systems.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">Web Experiences</h3>
+                        <p class="text-neutral-600 dark:text-neutral-400">High-performance websites blending editorial
+                            layout and motion.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">Product Design</h3>
+                        <p class="text-neutral-600 dark:text-neutral-400">UX strategy and elegant interface systems.</p>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-4 gap-12 text-center">
+                    <div>
+                        <div class="text-4xl font-bold counter" data-target="120">0</div>
+                        <div class="text-sm text-neutral-500">Projects</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl font-bold counter" data-target="48">0</div>
+                        <div class="text-sm text-neutral-500">Clients</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl font-bold counter" data-target="6">0</div>
+                        <div class="text-sm text-neutral-500">Years</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl font-bold counter" data-target="18">0</div>
+                        <div class="text-sm text-neutral-500">Awards</div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- PROJECTS -->
+            <section id="projects" class="page max-w-5xl mx-auto px-6 pb-32 space-y-20">
+                <h1 class="text-5xl font-bold">Selected Work</h1>
+                <div class="space-y-16 project-list">
+                    <div>
+                        <h3 class="text-2xl font-semibold">Aurora Finance</h3>
+                        <p class="text-neutral-600 dark:text-neutral-400">Complete fintech product redesign.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold">Nexa AI</h3>
+                        <p class="text-neutral-600 dark:text-neutral-400">AI marketing & visual system build.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold">Elevate Fitness</h3>
+                        <p class="text-neutral-600 dark:text-neutral-400">Mobile-first experience design.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABOUT -->
+            <section id="about" class="page max-w-4xl mx-auto px-6 pb-32 space-y-16">
+                <h1 class="text-5xl font-bold">About</h1>
+                <p class="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                    Based in Bangalore, I’ve spent over six years building brand ecosystems and digital platforms that
+                    feel human and refined. My work blends typography, motion, and strategic clarity.
+                </p>
+            </section>
+
+            <!-- CONTACT -->
+            <section id="contact" class="page max-w-4xl mx-auto px-6 pb-32 space-y-16 text-center">
+                <h1 class="text-5xl font-bold">Let’s Build Something Bold</h1>
+                <p class="text-lg text-neutral-600 dark:text-neutral-400">Now booking 2024 collaborations.</p>
+                <a href="mailto:hello@creativeagency.com"
+                    class="inline-block px-8 py-4 bg-black text-white dark:bg-white dark:text-black rounded-full font-semibold">Start
+                    a Project</a>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        const pages = document.querySelectorAll('.page');
+        const links = document.querySelectorAll('[data-link]');
+        const overlayPanels = document.querySelectorAll('#overlay div');
+
+        // Locomotive Scroll
+        const scroll = new LocomotiveScroll({
+            el: document.querySelector('[data-scroll-container]'),
+            smooth: true,
+            lerp: 0.07
+        });
+
+        // Page animation step-by-step
+        function animatePage(id) {
+            const el = document.getElementById(id);
+            const elements = el.querySelectorAll(" .counter, a");
+            gsap.from(elements, {
+                opacity: 0,
+                y: 60,
+                duration: 1.2,
+                stagger: .15,
+                ease: "power3.out"
+            });
+        }
+
+        // Overlay transition
+        function transitionTo(id) {
+            const tl = gsap.timeline();
+
+            tl.to(overlayPanels, {
+                y: "0%",
+                duration: .6,
+                stagger: .1,
+                ease: "power4.in"
+            })
+                .add(() => {
+                    pages.forEach(p => p.classList.remove('active'));
+                    document.getElementById(id).classList.add('active');
+                    scroll.scrollTo(0, { duration: 0 });
+                })
+                .to(overlayPanels, {
+                    y: "100%",
+                    duration: .8,
+                    stagger: .1,
+                    ease: "power4.out"
+                })
+                .set(overlayPanels, { y: "-100%" })
+                .add(() => {
+                    animatePage(id);
+                });
+        }
+
+        links.forEach(link => {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                const hash = link.getAttribute('href');
+                const id = hash.replace('#', '');
+                history.pushState(null, null, hash);
+                transitionTo(id);
+            });
+        });
+
+        window.addEventListener("load", () => {
+            animatePage("home");
+        });
+
+        // Theme toggle
+        document.getElementById("themeToggle").addEventListener("click", () => {
+            document.documentElement.classList.toggle("dark");
+        });
+
+        // Counter animation
+        document.querySelectorAll(".counter").forEach(counter => {
+            gsap.to(counter, {
+                innerText: counter.dataset.target,
+                duration: 2,
+                snap: { innerText: 1 }
+            });
+        });
+    </script>
+
+</body>
+
+</html>

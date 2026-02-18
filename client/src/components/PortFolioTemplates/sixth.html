@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOIR — Creative Portfolio</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    fontFamily: { sans: ["Inter", "sans-serif"] }
+                }
+            }
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0
+        }
+
+        .view {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none
+        }
+
+        .view.active {
+            opacity: 1;
+            pointer-events: auto
+        }
+
+        .transition-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            pointer-events: none
+        }
+
+        .transition-layer span {
+            background: #000;
+            transform: scaleY(0);
+            transform-origin: top
+        }
+    </style>
+</head>
+
+<body class="bg-white text-black dark:bg-black dark:text-white font-sans overflow-hidden">
+
+    <!-- NAV -->
+    <header
+        class="fixed top-0 left-0 w-full z-50 px-8 py-6 flex justify-between items-center mix-blend-difference text-white">
+        <div class="text-sm tracking-widest">NOIR STUDIO</div>
+        <nav class="flex gap-8 text-sm">
+            <a href="#landing" data-nav>Home</a>
+            <a href="#portfolio" data-nav>Work</a>
+            <a href="#story" data-nav>About</a>
+            <a href="#connect" data-nav>Contact</a>
+            <button id="mode" class="border px-3 py-1 text-xs">Mode</button>
+        </nav>
+    </header>
+
+    <!-- Transition -->
+    <div class="transition-layer" id="transition">
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+    </div>
+
+    <!-- LANDING -->
+    <section id="landing" class="view active flex items-center justify-center h-screen px-8">
+        <div class="text-center space-y-10">
+            <h1 class="text-[12vw] leading-none font-black tracking-tight">
+                Craft<br>Emotion
+            </h1>
+            <p class="max-w-xl mx-auto text-lg text-neutral-500 dark:text-neutral-400">
+                Independent digital creative building immersive web identities, cinematic interactions and refined
+                product experiences for modern brands.
+            </p>
+            <div class="flex justify-center gap-6 text-sm uppercase tracking-wider">
+                <span>Brand Direction</span>
+                <span>Interactive Web</span>
+                <span>Product Design</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- PORTFOLIO -->
+    <section id="portfolio" class="view h-screen overflow-y-auto px-16 py-32 bg-neutral-50 dark:bg-neutral-900">
+        <h2 class="text-5xl font-bold mb-20">Selected Works</h2>
+
+        <div class="space-y-24">
+            <div class="group cursor-pointer">
+                <h3 class="text-4xl font-semibold">KOTG Enterprise Dashboard</h3>
+                <p class="text-neutral-500 dark:text-neutral-400">Enterprise UX System — Deloitte Digital</p>
+            </div>
+
+            <div class="group cursor-pointer">
+                <h3 class="text-4xl font-semibold">Savee.It Gamified Platform</h3>
+                <p class="text-neutral-500 dark:text-neutral-400">Behavior Design — Web Application</p>
+            </div>
+
+            <div class="group cursor-pointer">
+                <h3 class="text-4xl font-semibold">Trackrr Mobile Experience</h3>
+                <p class="text-neutral-500 dark:text-neutral-400">Product UX — iOS & Android</p>
+            </div>
+
+            <div class="group cursor-pointer">
+                <h3 class="text-4xl font-semibold">Seven Zero Identity</h3>
+                <p class="text-neutral-500 dark:text-neutral-400">Minimal Logo & Brand System</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- STORY -->
+    <section id="story" class="view h-screen flex items-center bg-black text-white px-16">
+        <div class="grid md:grid-cols-2 gap-20 items-center w-full">
+            <div>
+                <h2 class="text-6xl font-bold">About</h2>
+            </div>
+            <div class="space-y-6 text-lg text-neutral-300">
+                <p>
+                    I design digital systems that feel intentional, intelligent and human.
+                    My background in User Experience Design and enterprise consulting has shaped a mindset rooted in
+                    clarity and performance.
+                </p>
+                <p>
+                    Currently designing complex supply chain products at Deloitte Digital,
+                    translating business strategy into refined user journeys for global platforms.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONNECT -->
+    <section id="connect" class="view h-screen flex items-center justify-center px-8">
+        <div class="text-center space-y-10">
+            <h2 class="text-6xl font-bold">Let’s Create</h2>
+            <p class="text-neutral-500 dark:text-neutral-400">
+                Available for select collaborations and product partnerships in 2024.
+            </p>
+            <a href="mailto:studio@noir.design" class="px-10 py-4 border rounded-full inline-block">
+                Start Conversation →
+            </a>
+        </div>
+    </section>
+
+    <script>
+        const views = document.querySelectorAll(".view");
+        const navLinks = document.querySelectorAll("[data-nav]");
+        const panels = document.querySelectorAll("#transition span");
+
+        function revealTransition(callback) {
+            const tl = gsap.timeline();
+            tl.to(panels, {
+                scaleY: 1,
+                stagger: .07,
+                duration: .4,
+                ease: "power4.in"
+            })
+                .add(callback)
+                .to(panels, {
+                    scaleY: 0,
+                    stagger: .07,
+                    duration: .5,
+                    ease: "power4.out",
+                    delay: .1
+                });
+        }
+
+        function switchView(id) {
+            views.forEach(v => v.classList.remove("active"));
+            document.getElementById(id).classList.add("active");
+            animateIn(id);
+        }
+
+        function animateIn(id) {
+            const el = document.getElementById(id);
+            gsap.from(el.querySelectorAll("h1,h2,h3,p,a,span"), {
+                y: 100,
+                opacity: 0,
+                stagger: .08,
+                duration: 1.2,
+                ease: "power3.out"
+            });
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener("click", e => {
+                e.preventDefault();
+                const hash = link.getAttribute("href").replace("#", "");
+                history.pushState(null, null, "#" + hash);
+                revealTransition(() => switchView(hash));
+            });
+        });
+
+        window.addEventListener("load", () => animateIn("landing"));
+
+        document.getElementById("mode").addEventListener("click", () => {
+            document.documentElement.classList.toggle("dark");
+        });
+    </script>
+
+</body>
+
+</html>

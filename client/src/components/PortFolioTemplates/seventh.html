@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ALRIGHT — Creative Portfolio</title>
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- GSAP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<!-- Locomotive Scroll -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.4/dist/locomotive-scroll.min.css">
+<script src="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.4/dist/locomotive-scroll.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+body { font-family: 'Inter', sans-serif; }
+.page { display: none; }
+.page.active { display: block; }
+.overlay-transition {
+    position: fixed;
+    inset: 0;
+    background: black;
+    z-index: 9999;
+    transform: translateY(-100%);
+}
+[data-theme="dark"] {
+    background: #0a0a0a;
+    color: #f5f5f5;
+}
+[data-theme="dark"] .card {
+    background: #111111;
+    border-color: #222;
+}
+[data-theme="dark"] .btn {
+    background: #f5f5f5;
+    color: #0a0a0a;
+}
+[data-theme="light"] {
+    background: #f5f5f5;
+    color: #111111;
+}
+[data-theme="light"] .card {
+    background: white;
+}
+[data-theme="light"] .btn {
+    background: #111111;
+    color: white;
+}
+</style>
+</head>
+
+<body data-theme="light">
+
+<div class="overlay-transition"></div>
+
+<nav class="fixed top-0 left-0 w-full z-50 px-10 py-6 flex justify-between items-center backdrop-blur-md">
+    <div class="text-xl font-bold tracking-tight">ALRIGHT</div>
+    <div class="flex items-center gap-8 text-sm font-medium">
+        <a href="#home" class="nav-link">Home</a>
+        <a href="#projects" class="nav-link">Projects</a>
+        <a href="#about" class="nav-link">About</a>
+        <a href="#contact" class="nav-link">Contact</a>
+        <button id="themeToggle" class="btn px-4 py-2 text-xs uppercase tracking-wide">Toggle</button>
+    </div>
+</nav>
+
+<div data-scroll-container>
+
+<!-- HOME PAGE -->
+<section data-page="home" class="page active min-h-screen pt-32 px-10" data-scroll-section>
+    <div data-scroll>
+        <h1 class="text-[12vw] leading-[0.9] font-black tracking-tight">
+            ALRIGHT
+        </h1>
+        <p class="max-w-2xl text-lg mt-6 opacity-70">
+            ALRIGHT is a multidisciplinary creative studio delivering brand identity, digital experiences,
+            motion systems, and high-performance web platforms for ambitious global brands.
+        </p>
+    </div>
+
+    <div class="mt-24 grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div class="card p-8 border border-gray-200">
+            <h3 class="font-semibold text-xl mb-3">Brand Identity</h3>
+            <p class="opacity-70">Strategy-driven identities crafted to scale across digital and physical touchpoints.</p>
+        </div>
+        <div class="card p-8 border border-gray-200">
+            <h3 class="font-semibold text-xl mb-3">Digital Experiences</h3>
+            <p class="opacity-70">Premium web design and immersive interfaces built for performance and storytelling.</p>
+        </div>
+        <div class="card p-8 border border-gray-200">
+            <h3 class="font-semibold text-xl mb-3">Motion Systems</h3>
+            <p class="opacity-70">Cinematic motion design that enhances usability and brand memorability.</p>
+        </div>
+    </div>
+
+    <div class="mt-28">
+        <h2 class="text-3xl font-bold mb-12">Featured Projects</h2>
+        <div class="grid md:grid-cols-2 gap-10">
+            <div class="card p-6 border border-gray-200">
+                <img src="/mnt/data/6438f4e9-a8cd-408c-847a-969d8fc93704.png" class="mb-6 rounded">
+                <h4 class="font-semibold text-xl">Jackson & Moran</h4>
+                <p class="opacity-70 mt-2">Complete digital transformation for a luxury consultancy brand.</p>
+            </div>
+            <div class="card p-6 border border-gray-200">
+                <h4 class="font-semibold text-xl">Sun Bum 3D Campaign</h4>
+                <p class="opacity-70 mt-2">Interactive product experience increasing engagement by 240%.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-28 grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
+        <div>
+            <h3 class="text-5xl font-bold counter" data-target="120">0</h3>
+            <p class="opacity-70 mt-2">Projects Delivered</p>
+        </div>
+        <div>
+            <h3 class="text-5xl font-bold counter" data-target="15">0</h3>
+            <p class="opacity-70 mt-2">Global Awards</p>
+        </div>
+        <div>
+            <h3 class="text-5xl font-bold counter" data-target="40">0</h3>
+            <p class="opacity-70 mt-2">Team Members</p>
+        </div>
+        <div>
+            <h3 class="text-5xl font-bold counter" data-target="98">0</h3>
+            <p class="opacity-70 mt-2">Client Retention %</p>
+        </div>
+    </div>
+
+    <div class="mt-28 max-w-4xl">
+        <h2 class="text-3xl font-bold mb-10">Client Testimonials</h2>
+        <div class="space-y-8">
+            <div class="card p-8 border border-gray-200">
+                <p class="text-lg">“ALRIGHT delivered a refined identity system that repositioned our brand globally.”</p>
+                <span class="opacity-60 text-sm">— Creative Director, Sun Bum</span>
+            </div>
+            <div class="card p-8 border border-gray-200">
+                <p class="text-lg">“Strategic, bold, and technically excellent. A true premium studio.”</p>
+                <span class="opacity-60 text-sm">— Founder, Jackson & Moran</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PROJECTS PAGE -->
+<section data-page="projects" class="page min-h-screen pt-32 px-10" data-scroll-section>
+    <h1 class="text-6xl font-bold mb-16">Selected Work</h1>
+    <div class="space-y-12">
+        <div class="card p-10 border border-gray-200">
+            <h3 class="text-2xl font-semibold">Ray Harlem 3D Identity</h3>
+            <p class="opacity-70 mt-3">3D art direction and immersive brand ecosystem for a global fashion house.</p>
+        </div>
+        <div class="card p-10 border border-gray-200">
+            <h3 class="text-2xl font-semibold">The Black Tux E-Commerce</h3>
+            <p class="opacity-70 mt-3">Performance-first commerce platform redesign increasing conversion rates.</p>
+        </div>
+        <div class="card p-10 border border-gray-200">
+            <h3 class="text-2xl font-semibold">Mother Design Motion System</h3>
+            <p class="opacity-70 mt-3">Animation system and scalable digital components for brand storytelling.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ABOUT PAGE -->
+<section data-page="about" class="page min-h-screen pt-32 px-10 max-w-4xl" data-scroll-section>
+    <h1 class="text-6xl font-bold mb-10">About ALRIGHT</h1>
+    <p class="text-lg opacity-80 leading-relaxed">
+        Founded in 2018, ALRIGHT is a global creative agency focused on strategic branding,
+        immersive web platforms, and motion-first design systems. Our studio partners with
+        ambitious founders and enterprise brands to craft experiences that elevate perception,
+        drive growth, and create lasting impact. We combine editorial design sensibility with
+        engineering precision to deliver work that feels premium, intentional, and future-ready.
+    </p>
+</section>
+
+<!-- CONTACT PAGE -->
+<section data-page="contact" class="page min-h-screen pt-32 px-10 flex flex-col justify-center" data-scroll-section>
+    <h1 class="text-6xl font-bold mb-8">Let's Build Something Exceptional</h1>
+    <p class="max-w-xl opacity-70 mb-10">
+        We collaborate with forward-thinking brands looking to redefine their digital presence.
+    </p>
+    <button class="btn px-10 py-4 uppercase tracking-wide text-sm w-fit">
+        Start a Project
+    </button>
+</section>
+
+</div>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+const scroll = new LocomotiveScroll({
+    el: document.querySelector('[data-scroll-container]'),
+    smooth: true
+});
+
+const pages = document.querySelectorAll('.page');
+const overlay = document.querySelector('.overlay-transition');
+
+function showPage(id) {
+    pages.forEach(p => p.classList.remove('active'));
+    const page = document.querySelector(`[data-page="${id}"]`);
+    page.classList.add('active');
+    gsap.from(page.children, {opacity:0, y:40, duration:0.8, stagger:0.1});
+}
+
+function transitionTo(id) {
+    gsap.to(overlay, {y:0, duration:0.5, onComplete: () => {
+        showPage(id);
+        window.location.hash = id;
+        gsap.to(overlay, {y:"100%", duration:0.5});
+    }});
+}
+
+document.querySelectorAll('.nav-link').forEach(link=>{
+    link.addEventListener('click', e=>{
+        e.preventDefault();
+        const id = link.getAttribute('href').replace('#','');
+        transitionTo(id);
+    });
+});
+
+window.addEventListener('load', ()=>{
+    const hash = window.location.hash.replace('#','') || 'home';
+    showPage(hash);
+});
+
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+    const current = document.body.getAttribute('data-theme');
+    document.body.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+});
+
+document.querySelectorAll('.counter').forEach(counter=>{
+    const update = ()=>{
+        const target = +counter.getAttribute('data-target');
+        const c = +counter.innerText;
+        const inc = target / 100;
+        if(c < target){
+            counter.innerText = Math.ceil(c + inc);
+            setTimeout(update, 20);
+        } else {
+            counter.innerText = target;
+        }
+    };
+    update();
+});
+</script>
+
+</body>
+</html>

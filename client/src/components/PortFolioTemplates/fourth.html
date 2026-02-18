@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Editorial Portfolio</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .page {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body class="bg-white text-black">
+
+    <!-- TRANSITION OVERLAY -->
+    <div id="overlay" class="fixed inset-0 bg-black z-50 translate-y-full"></div>
+
+    <!-- NAV -->
+    <nav class="fixed top-0 left-0 w-full bg-white z-40">
+        <div class="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
+            <h1 class="font-bold text-lg">Madan</h1>
+            <div class="hidden md:flex gap-10 text-sm">
+                <button onclick="navigate('home')">Home</button>
+                <button onclick="navigate('projects')">Projects</button>
+                <button onclick="navigate('about')">About</button>
+                <button onclick="navigate('contact')">Contact</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- PAGE WRAPPER -->
+    <div class="relative w-full h-screen pt-20 overflow-hidden">
+
+        <!-- HOME -->
+        <section data-page="home" class="page bg-white">
+            <div class="text-center">
+                <h2 id="heroTitle" class="text-[12vw] font-black leading-none">
+                    Madan<br>
+                </h2>
+                <p class="mt-6 text-lg text-gray-600">
+                    Digital Designer & Art Director
+                </p>
+            </div>
+        </section>
+
+        <!-- PROJECTS -->
+        <section data-page="projects" class="page bg-white hidden">
+            <div class="text-center">
+                <h3 class="text-5xl font-bold mb-8">Selected Works</h3>
+                <p class="text-gray-600">Brand Identity • Web Design • Campaign • Apps</p>
+            </div>
+        </section>
+
+        <!-- ABOUT -->
+        <section data-page="about" class="page bg-white hidden">
+            <div class="max-w-2xl text-center px-6">
+                <h3 class="text-5xl font-bold mb-6">About</h3>
+                <p class="text-lg text-gray-700 leading-relaxed">
+                    I craft bold digital experiences that merge strategy,
+                    storytelling, and modern design systems.
+                </p>
+            </div>
+        </section>
+
+        <!-- CONTACT -->
+        <section data-page="contact" class="page bg-white hidden">
+            <div class="text-center">
+                <h3 class="text-5xl font-bold mb-6">Let’s Work Together</h3>
+                <a href="mailto:your@email.com"
+                    class="border border-black px-8 py-3 hover:bg-black hover:text-white transition">
+                    Get in Touch
+                </a>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+
+        let current = "home";
+        const overlay = document.getElementById("overlay");
+
+        function navigate(page) {
+
+            if (page === current) return;
+
+            const currentPage = document.querySelector(`[data-page="${current}"]`);
+            const nextPage = document.querySelector(`[data-page="${page}"]`);
+
+            // Animate overlay up
+            gsap.to(overlay, {
+                y: 0,
+                duration: 0.6,
+                ease: "power4.inOut",
+                onComplete: () => {
+
+                    // Hide old page
+                    currentPage.classList.add("hidden");
+
+                    // Show new page
+                    nextPage.classList.remove("hidden");
+
+                    current = page;
+
+                    // Change URL hash (fake routing)
+                    window.location.hash = page;
+
+                    // Animate overlay down
+                    gsap.to(overlay, {
+                        y: "100%",
+                        duration: 0.6,
+                        ease: "power4.inOut"
+                    });
+
+                    animatePageIn(nextPage);
+                }
+            });
+
+        }
+
+        function animatePageIn(page) {
+            gsap.from(page.children[0], {
+                y: 60,
+                opacity: 0,
+                duration: 1,
+                ease: "power3.out"
+            });
+        }
+
+        // Initial animation
+        gsap.from("#heroTitle", {
+            y: 80,
+            opacity: 0,
+            duration: 1.2,
+            ease: "power4.out"
+        });
+
+        // Handle direct URL hash
+        window.addEventListener("load", () => {
+            const hash = window.location.hash.replace("#", "");
+            if (hash) navigate(hash);
+        });
+
+    </script>
+
+</body>
+
+</html>
