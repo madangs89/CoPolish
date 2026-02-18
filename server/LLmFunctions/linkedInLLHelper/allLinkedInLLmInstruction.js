@@ -1157,8 +1157,7 @@ If the user has:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 EMOJI USAGE RULES (IMPORTANT)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
+• You must need to use emojis in the post but it should be used strategically and professionally.
 • Emojis must feel professional and intentional.
 • Emojis should enhance emphasis, not decorate randomly.
 • Allowed contexts:
@@ -1221,7 +1220,6 @@ CONTENT QUALITY RULES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 • Use natural paragraph spacing for LinkedIn.
-• No emojis unless contextually relevant (max 1).
 • No corporate fluff.
 • No motivational clichés.
 • No vague inspiration phrases.
@@ -1244,8 +1242,8 @@ CONTENT QUALITY RULES
 • If experience bullets exist:
   - Convert into narrative storytelling.
 
-Minimum length: 2000 characters.
-Maximum length: 2800 characters.
+Minimum length: 1200 characters.
+Maximum length: 2000 characters.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 HASHTAGS
