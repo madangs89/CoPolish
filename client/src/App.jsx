@@ -1,12 +1,12 @@
 import React, { useState, Suspense, lazy } from "react";
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import axios from "axios";
 import { setAuthFalse, setUser } from "./redux/slice/authSlice";
 import { io } from "socket.io-client";
 import { setSocket } from "./redux/slice/socketSlice";
-import LinkedInEditor from "./pages/LinkedInEditor";
+import LinkedInRedirect from "./components/authRedirectors/LinkedInRedirect";
 
 const Hero = lazy(() => import("./pages/Hero"));
 const Cursor = lazy(() => import("./components/Cursor"));
@@ -18,11 +18,14 @@ const MainNavbar = lazy(() => import("./components/Navbars/MainNavbar"));
 const PublicLayout = lazy(() => import("./layouts/PublicLayout"));
 const ProtectedLayout = lazy(() => import("./layouts/ProtectedLayout"));
 
+const LinkedInEditor = lazy(() => import("./pages/LinkedInEditor"));
+
 const App = () => {
   const auth = useSelector((state) => state.auth.isAuth);
   const authSlice = useSelector((state) => state.auth);
   const socket = useSelector((state) => state.socket.socket);
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
@@ -42,18 +45,20 @@ const App = () => {
           console.log("calling setUser");
           data.isAuth = true;
           dispatch(setUser(data));
-          if (
-            data?.user?.currentResumeId == "" ||
-            data?.user?.currentResumeId == undefined
-          ) {
-            navigate("/onboarding");
-          } else if (
-            data?.user?.currentResumeId.length > 0 &&
-            !data?.user?.isApproved
-          ) {
-            navigate(`/approve/${data?.user?.currentResumeId}`);
-          } else {
-            navigate("/dashboard");
+          if (location.pathname === "/") {
+            if (
+              data?.user?.currentResumeId == "" ||
+              data?.user?.currentResumeId == undefined
+            ) {
+              navigate("/onboarding");
+            } else if (
+              data?.user?.currentResumeId.length > 0 &&
+              !data?.user?.isApproved
+            ) {
+              navigate(`/approve/${data?.user?.currentResumeId}`);
+            } else {
+              navigate("/dashboard");
+            }
           }
         }
       } catch (error) {
@@ -90,7 +95,6 @@ const App = () => {
     };
   }, [auth, socket]);
 
-
   return (
     <div className="w-full relative min-h-screen">
       <Suspense fallback={<div>Loading...</div>}>
@@ -98,7 +102,6 @@ const App = () => {
           {/* Public */}
           <Route element={<PublicLayout />}>
             <Route index element={<Hero />} />
-            <Route path="/auth/linkedin/callback" element={<Hero />} />
           </Route>
 
           {/* Protected */}
@@ -108,6 +111,7 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/editor/resume/:id" element={<ResumeEditor />} />
             <Route path="/editor/linkedin/:id" element={<LinkedInEditor />} />
+            <Route path="/auth/linkedin/callback" element={<LinkedInRedirect />} />
           </Route>
         </Routes>
       </Suspense>

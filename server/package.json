@@ -23,6 +23,7 @@
     "bullmq": "^5.66.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "cyrpto": "^1.0.4",
     "dotenv": "^17.2.3",
     "dotevn": "^0.0.1-security",

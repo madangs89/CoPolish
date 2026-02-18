@@ -9,6 +9,7 @@ import {
   linkedinHeadlineSystemInstruction,
   linkedInScoreSystemInstruction,
   parseLinkedInSystemInstruction,
+  postGenerationSystemInstruction,
 } from "./allLinkedInLLmInstruction.js";
 
 const SUPPORTED_OPERATIONS = new Set([
@@ -264,7 +265,6 @@ export const aiLinkedInOptimize = async (
     } catch (err) {
       lastError = err;
 
-    
       // safely extract status if present
       const status =
         err?.status || err?.response?.status || err?.error?.status || null;
@@ -314,6 +314,73 @@ export const aiLinkedInParser = async (text, userId) => {
       }),
       config: {
         systemInstruction: parseLinkedInSystemInstruction,
+      },
+    });
+    const newText = response.candidates[0].content.parts[0].text
+      .replace(/^\s*```json\s*/, "")
+      .replace(/\s*```\s*$/, "");
+
+    // console.log(response.usageMetadata);
+    // console.log(newText);
+
+    // const normalized = normalizeResume(JSON.parse(newText));
+
+    // const isValid = validateLLMResponse("parsed", normalized);
+
+    // const { isValid: valid, errors } = isValid;
+
+    // if (!valid) {
+    //   console.error("Validation errors:", errors);
+
+    //   return {
+    //     text: null,
+    //     usage: response.usageMetadata,
+    //     error: errors,
+    //     isError: true,
+    //   };
+    // }
+
+    const payload = {
+      text: JSON.parse(newText),
+      usage: response.usageMetadata,
+      error: null,
+      isError: false,
+    };
+
+    return payload;
+  } catch (error) {
+    const payload = {
+      text: null,
+      usage: null,
+      error: error,
+      isError: true,
+    };
+    console.error("Error parsing resume:", error);
+    return payload;
+  }
+};
+
+export const linkedInPostGenerator = async (linkedInData, userId, count) => {
+  try {
+    let resumeData = "";
+    if (userId) {
+      const userDetails = await User.findById(userId);
+      if (userDetails && userDetails.currentResumeId) {
+        let resume = await ResumeTemplate.findById(userDetails.currentResumeId);
+        if (resume) {
+          resumeData = resume;
+        }
+      }
+    }
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: JSON.stringify({
+        linkedInData: linkedInData,
+        resumeData,
+        NumberOfPosts: count,
+      }),
+      config: {
+        systemInstruction: postGenerationSystemInstruction,
       },
     });
     const newText = response.candidates[0].content.parts[0].text

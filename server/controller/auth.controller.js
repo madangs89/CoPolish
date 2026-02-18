@@ -5,6 +5,8 @@ import jwt from "jsonwebtoken";
 import { client } from "../config/google.js";
 import axios from "axios";
 import { pubClient } from "../config/redis.js";
+import { encrypt } from "../utils/encryption.js";
+import LinkedInProfile from "../models/linkedin.model.js";
 
 const createToken = (user) => {
   const data = {
@@ -61,7 +63,7 @@ export const register = async (req, res) => {
         event: "WELCOME_EMAIL",
         email: user.email,
         name: user.userName,
-      })
+      }),
     );
     return res.status(201).json({
       success: true,
@@ -154,7 +156,7 @@ export const googleAuth = async (req, res) => {
         headers: {
           Authorization: `Bearer ${googleRes.tokens.access_token}`,
         },
-      }
+      },
     );
     const { email, name } = userRes.data;
     let isUserExits = true;
@@ -178,7 +180,7 @@ export const googleAuth = async (req, res) => {
           event: "WELCOME_EMAIL",
           email: user.email,
           name: user.userName,
-        })
+        }),
       );
     }
     return res.status(200).json({
@@ -221,5 +223,75 @@ export const isAuth = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Something went wrong", success: false });
+  }
+};
+
+export const linkedInCodeExchange = async (req, res) => {
+  const { code } = req.body;
+
+  try {
+    if (!code) {
+      return res
+        .status(400)
+        .json({ message: "Code is required", success: false });
+    }
+
+    const userId = req.user._id;
+
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ message: "Not Authorized", success: false });
+    }
+    const tokenRes = await axios.post(
+      "https://www.linkedin.com/oauth/v2/accessToken",
+      null,
+      {
+        params: {
+          grant_type: "authorization_code",
+          code: code,
+          redirect_uri: process.env.LINKEDIN_REDIRECT_URI,
+          client_id: process.env.LINKEDIN_CLIENT_ID,
+          client_secret: process.env.LINKEDIN_CLIENT_SECRET,
+        },
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      },
+    );
+
+    const access_token = tokenRes.data.access_token;
+    const expires_in = tokenRes.data.expires_in;
+
+    console.log(expires_in);
+
+    let data = encrypt(access_token);
+    data = JSON.parse(data);
+    data.expires_in = expires_in;
+
+    console.log("Encrypted LinkedIn Token:", data);
+
+    if (data != null && data != "" && data != undefined) {
+      const linkedInProfileRes = await LinkedInProfile.findOneAndUpdate(
+        { userId },
+        { linkedInToken: data, isLinkedInConnected: true },
+        {
+          new: true,
+          upsert: true,
+        },
+      );
+    } else {
+      return res
+        .status(500)
+        .json({ message: "Encryption failed", success: false });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "LinkedIn Connected Successfully",
+    });
+  } catch (error) {
+    console.error(error.response?.data || error.message);
+    res.status(500).json({ success: false, message: "Token exchange failed" });
   }
 };

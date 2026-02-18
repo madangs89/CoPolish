@@ -24,6 +24,11 @@ export const linkedInSlice = createSlice({
     setSectionLoader: (state, actions) => {
       state.sectionLoaders = actions.payload;
     },
+    setLinkedInConnectedTrue: (state, actions) => {
+      if (state.currentLinkedInData) {
+        state.currentLinkedInData.isLinkedInConnected = true;
+      }
+    },
   },
 });
 
@@ -32,6 +37,7 @@ export const {
   setCurrentToneForHeadline,
   setGlobalLoader,
   setSectionLoader,
+  setLinkedInConnectedTrue,
 } = linkedInSlice.actions;
 const linkedInReducer = linkedInSlice.reducer;
 

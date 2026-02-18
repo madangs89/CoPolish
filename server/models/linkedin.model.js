@@ -11,15 +11,19 @@ const linkedInProfileSchema = new mongoose.Schema(
       type: String,
       enum: ["resume", "linkedin"],
     },
-    isLinkedInConnected: Boolean,
-    linkedInToken: String,
+    isLinkedInConnected: {
+      type: Boolean,
+      default: false,
+    },
+    linkedInToken: {
+      type: Object,
+    },
     targetRole: [String],
     industry: [String],
     experienceLevel: {
       type: String,
       enum: ["FRESHER", "MID", "SENIOR"],
     },
-
     personalInfo: {
       fullName: String,
       location: String,
@@ -181,13 +185,20 @@ const linkedInProfileSchema = new mongoose.Schema(
         ],
 
         posting: {
-          status: String,
+          status: {
+            type: String,
+            enum: ["DRAFT", "SCHEDULED", "POSTED"],
+          },
           scheduledAt: Date,
           postedAt: Date,
           linkedInPostUrl: String,
         },
         privacy: {
-          visibility: String,
+          visibility: {
+            type: String,
+            default: "public",
+            required: true,
+          },
           enum: ["public", "private", "connections"],
         },
         aiMeta: {

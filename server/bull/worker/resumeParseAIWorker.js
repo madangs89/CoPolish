@@ -5,7 +5,10 @@ import { v4 as uuidv4 } from "uuid";
 import ResumeTemplate from "../../models/resume.model.js";
 import User from "../../models/user.model.js";
 import { connectDB } from "../../config/connectDB.js";
-import { aiLinkedInParser } from "../../LLmFunctions/linkedInLLHelper/linkedInLlm.js";
+import {
+  aiLinkedInParser,
+  linkedInPostGenerator,
+} from "../../LLmFunctions/linkedInLLHelper/linkedInLlm.js";
 import mongoose from "mongoose";
 import LinkedInProfile from "../../models/linkedin.model.js";
 await connectDB();
@@ -330,6 +333,39 @@ const resumeParseAIWorker = new Worker(
         throw error;
       }
 
+      const posts = await linkedInPostGenerator(text, userId, 1);
+
+      let newPost = [];
+      const {
+        text: postData,
+        usage: postUsage,
+        error: postError,
+        isError: isPostError,
+      } = posts;
+
+      if (isPostError == false) {
+        console.log("Generated LinkedIn Post:", postData);
+
+        postData.forEach((p) => {
+          const postId = new mongoose.Types.ObjectId();
+          let content = {
+            text: p?.text || "",
+            hashtags: p?.hashtags || [],
+            mentions: p?.mentions || [],
+          };
+          let aiMeta = {
+            generatedBy: "gemini-2.5-flash",
+            tone: p?.tone || "CONFIDENT",
+            topics: p?.topics || [],
+          };
+
+          newPost.push({
+            postId,
+            content,
+            aiMeta,
+          });
+        });
+      }
       const payload = {
         userId,
         targetRole: text?.targetRole || [],
@@ -355,6 +391,7 @@ const resumeParseAIWorker = new Worker(
         },
         headline: normalizeAllFields(text?.headline, "headline"),
         about: normalizeAllFields(text?.about, "about"),
+        posts: newPost,
         experience:
           text?.experience && text.experience.length > 0
             ? text.experience.map((exp) =>
