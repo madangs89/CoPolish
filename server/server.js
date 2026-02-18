@@ -27,6 +27,10 @@ import { mailTransporter } from "./config/mail.js";
 import ResumeTemplate from "./models/resume.model.js";
 import userRouter from "./routes/user.routes.js";
 import linkedInRouter from "./routes/linkedIn.routes.js";
+import upload from "./config/multer.js";
+import fs from "fs";
+import { ai } from "./config/google.js";
+
 
 const app = express();
 const httpServer = createServer(app);
@@ -51,6 +55,63 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
   res.send("Hello, World!");
+});
+
+app.post("/api/pro-headshot", upload.single("image"), async (req, res) => {
+  try {
+    const imagePath = req.file.path;
+    const imageBuffer = fs.readFileSync(imagePath);
+    const base64Image = imageBuffer.toString("base64");
+
+    const prompt = [
+      {
+        text: `
+        Convert this image into a professional LinkedIn headshot.
+
+        Requirements:
+        - Preserve exact facial identity.
+        - Improve lighting and sharpness.
+        - Replace background with neutral soft office background.
+        - Keep realistic skin tone.
+        - Crop to square 1:1 ratio.
+        - Ensure it looks authentic and professional.
+        `,
+      },
+      {
+        inlineData: {
+          mimeType: req.file.mimetype,
+          data: base64Image,
+        },
+      },
+    ];
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-image",
+      contents: prompt,
+    });
+
+    const parts = response.candidates[0].content.parts;
+
+    for (const part of parts) {
+      if (part.inlineData) {
+        const buffer = Buffer.from(part.inlineData.data, "base64");
+
+        const outputPath = `output-${Date.now()}.png`;
+        fs.writeFileSync(outputPath, buffer);
+
+        return res.json({
+          success: true,
+          message: "Professional headshot generated",
+          imagePath: outputPath,
+        });
+      }
+    }
+
+    res.status(500).json({ error: "No image returned from Gemini" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong" });
+  }
 });
 
 //Auth
