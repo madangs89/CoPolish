@@ -73,7 +73,7 @@ const Hero = () => {
             opacity: 0,
             duration: 0.6,
           },
-          "-=0.4"
+          "-=0.4",
         )
         .from(
           ".hero-btn",
@@ -83,7 +83,7 @@ const Hero = () => {
             scale: 0.95,
             duration: 0.2,
           },
-          "-=0.3"
+          "-=0.3",
         );
 
       tl.from(".f-grid", {
@@ -113,7 +113,7 @@ const Hero = () => {
           display: "grid",
           gridTemplateColumns: `repeat(${Math.max(
             boxes.cols,
-            1
+            1,
           )}, ${tilesWidth}px)`,
           gridAutoRows: `${tilesHeight}px`,
           gap: `${gap}px`,

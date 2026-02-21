@@ -195,3 +195,15 @@ export const getLinkedInDataFromId = async (req, res) => {
     return res.status(500).json({ message: "Server error", success: false });
   }
 };
+
+export const postToLinkedIn = async (req, res) => {
+  try {
+
+
+
+
+    
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", success: false });
+  }
+};
