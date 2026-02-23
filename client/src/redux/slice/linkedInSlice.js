@@ -21,6 +21,18 @@ export const linkedInSlice = createSlice({
     setGlobalLoader: (state, actions) => {
       state.globalLoader = actions.payload;
     },
+    setUpdatedLinkedInPostData: (state, actions) => {
+      const { postId, newPostData } = actions.payload;
+
+      if (state.currentLinkedInData?.posts) {
+        const postIndex = state.currentLinkedInData.posts.findIndex(
+          (p) => p._id === postId,
+        );
+        if (postIndex !== -1) {
+          state.currentLinkedInData.posts[postIndex] = newPostData;
+        }
+      }
+    },
     setSectionLoader: (state, actions) => {
       state.sectionLoaders = actions.payload;
     },
@@ -38,6 +50,7 @@ export const {
   setGlobalLoader,
   setSectionLoader,
   setLinkedInConnectedTrue,
+  setUpdatedLinkedInPostData,
 } = linkedInSlice.actions;
 const linkedInReducer = linkedInSlice.reducer;
 

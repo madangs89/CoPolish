@@ -6,6 +6,7 @@ import {
   setCurrentToneForHeadline,
   setGlobalLoader,
   setSectionLoader,
+  setUpdatedLinkedInPostData,
 } from "../redux/slice/linkedInSlice";
 import { useLocation, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -69,6 +70,8 @@ const LinkedInEditor = () => {
   );
   const [updateDataLoader, setUpdateDataLoader] = useState(false);
   const [updateScoreLoader, setUpdateScoreLoader] = useState(false);
+  const [currentPostToLinkedInLoader, setCurrentPostToLinkedInLoader] =
+    useState("");
 
   const linkedInSlice = useSelector((state) => state.linkedin);
 
@@ -111,7 +114,13 @@ const LinkedInEditor = () => {
   );
 
   const handleOptimize = async (section, tone) => {
-    console.log("Optimize request:", section, tone , resumeSlice._id , currentLinkedIn?._id);
+    console.log(
+      "Optimize request:",
+      section,
+      tone,
+      resumeSlice._id,
+      currentLinkedIn?._id,
+    );
 
     try {
       const d = await axios.post(
@@ -288,6 +297,37 @@ const LinkedInEditor = () => {
 
     localStorage.setItem("currentLinkedInData", currentLinkedIn?._id);
     window.location.href = redirectUrl;
+  };
+
+  const handlePostToLinkedIn = async (postId) => {
+    if (currentPostToLinkedInLoader == postId) {
+      return;
+    }
+    try {
+      setCurrentPostToLinkedInLoader(postId);
+      const PostResData = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/linkedin/v1/publish-linkedin-post`,
+        {
+          postId,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+      if (PostResData.data.success) {
+        const { linkedInPostUrl, linkedInProfile, currentPost } =
+          PostResData.data;
+        toast.success("Successfully posted to LinkedIn!");
+        dispatch(
+          setUpdatedLinkedInPostData({ postId, newPostData: currentPost }),
+        );
+      }
+    } catch (error) {
+      toast.error("Failed to post to LinkedIn. Please try again.");
+      console.log("Error posting to LinkedIn:", error);
+    } finally {
+      setCurrentPostToLinkedInLoader("");
+    }
   };
 
   useEffect(() => {
@@ -747,7 +787,7 @@ const LinkedInEditor = () => {
             </h1>
             {postData && postData.length > 0 ? (
               postData.map((post) => {
-                const isPosted = post.posting.status === "posted";
+                const isPosted = post.posting.status === "POSTED";
 
                 return (
                   <div
@@ -795,14 +835,18 @@ const LinkedInEditor = () => {
                     <div className="mt-3 flex items-center justify-between">
                       {isPosted ? (
                         <span className="text-xs text-green-600 font-medium">
-                          ✅ Posted
+                          Posted
                         </span>
                       ) : (
                         <button
+                          onClick={() => handlePostToLinkedIn(post._id)}
                           className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                          onClick={() => console.log("Post now:", post.postId)}
                         >
-                          Post Now
+                          {currentPostToLinkedInLoader === post._id ? (
+                            <ButtonLoader />
+                          ) : (
+                            "Post to LinkedIn"
+                          )}
                         </button>
                       )}
                     </div>
@@ -990,12 +1034,14 @@ const LinkedInEditor = () => {
 
                 {postShowModal.post?.posting?.status !== "POSTED" && (
                   <button
+                    onClick={() => handlePostToLinkedIn(postShowModal.post._id)}
                     className="px-4 py-2 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
-                    onClick={() =>
-                      console.log("Publish:", postShowModal.post.postId)
-                    }
                   >
-                    Publish to LinkedIn
+                    {currentPostToLinkedInLoader === postShowModal.post._id ? (
+                      <ButtonLoader color="white" />
+                    ) : (
+                      "Post to LinkedIn"
+                    )}
                   </button>
                 )}
               </div>

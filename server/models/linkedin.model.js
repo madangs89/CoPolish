@@ -162,7 +162,6 @@ const linkedInProfileSchema = new mongoose.Schema(
       {
         postId: {
           type: mongoose.Schema.Types.ObjectId,
-
           required: true,
         },
 

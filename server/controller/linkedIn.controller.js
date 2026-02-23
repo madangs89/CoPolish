@@ -4,6 +4,8 @@ import CreditLedger from "../models/creditLedger.model.js";
 import LinkedInProfile from "../models/linkedin.model.js";
 import LinkedinJob from "../models/linkedinJobs.model.js";
 import User from "../models/user.model.js";
+import { decrypt } from "../utils/encryption.js";
+import axios from "axios";
 
 const CREDIT_COST = {
   headline: 1,
@@ -198,12 +200,168 @@ export const getLinkedInDataFromId = async (req, res) => {
 
 export const postToLinkedIn = async (req, res) => {
   try {
+    const userId = req?.user?._id;
 
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+        success: false,
+      });
+    }
 
+    const { postId } = req.body;
 
+    if (!postId) {
+      return res.status(400).json({
+        message: "Post ID is required",
+        success: false,
+      });
+    }
 
-    
+    const linkedInProfile = await LinkedInProfile.findOne({ userId });
+
+    if (!linkedInProfile) {
+      return res.status(404).json({
+        message: "LinkedIn profile not found",
+        success: false,
+      });
+    }
+
+    const postData = linkedInProfile.posts.find(
+      (p) => p._id.toString() === postId,
+    );
+
+    if (!postData) {
+      return res.status(404).json({
+        message: "Post not found",
+        success: false,
+      });
+    }
+
+    if (postData.posting.status === "POSTED") {
+      return res.status(400).json({
+        message: "Post already published",
+        success: false,
+      });
+    }
+
+    const tokenData = linkedInProfile.linkedInToken;
+
+    if (!tokenData?.expiry || Date.parse(tokenData.expiry) < Date.now()) {
+      linkedInProfile.isLinkedInConnected = false;
+      linkedInProfile.linkedInToken = null;
+      await linkedInProfile.save();
+
+      return res.status(401).json({
+        message: "LinkedIn token expired. Please reconnect.",
+        success: false,
+      });
+    }
+
+    const { iv, content, tag } = tokenData;
+
+    const decryptedToken = decrypt(JSON.stringify({ iv, content, tag }));
+
+    if (!decryptedToken) {
+      return res.status(500).json({
+        message: "Failed to decrypt token",
+        success: false,
+      });
+    }
+
+    const urnResponse = await axios.get(
+      "https://api.linkedin.com/v2/userinfo",
+      {
+        headers: {
+          Authorization: `Bearer ${decryptedToken}`,
+        },
+      },
+    );
+
+    if (!urnResponse.data?.sub) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to retrieve LinkedIn profile ID",
+      });
+    }
+
+    const authorURN = `urn:li:person:${urnResponse.data.sub}`;
+
+    if (!authorURN) {
+      return res.status(400).json({
+        message: "LinkedIn URN missing. Please reconnect account.",
+        success: false,
+      });
+    }
+
+    const hashtags = postData.content?.hashtags?.join(" ") || "";
+
+    const postText = `${postData.content?.text || ""}\n${hashtags}`.trim();
+
+    const linkedInResponse = await axios.post(
+      "https://api.linkedin.com/v2/ugcPosts",
+      {
+        author: authorURN,
+        lifecycleState: "PUBLISHED",
+        specificContent: {
+          "com.linkedin.ugc.ShareContent": {
+            shareCommentary: {
+              text: postText,
+            },
+            shareMediaCategory: "NONE",
+          },
+        },
+        visibility: {
+          "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC",
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${decryptedToken}`,
+          "X-Restli-Protocol-Version": "2.0.0",
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (linkedInResponse.status === 201) {
+      const linkedInPostUrn = linkedInResponse.headers["x-restli-id"];
+
+      postData.posting.status = "POSTED";
+      postData.posting.postedAt = new Date();
+      postData.posting.linkedInPostUrl = linkedInPostUrn
+        ? `https://www.linkedin.com/feed/update/${linkedInPostUrn}`
+        : null;
+
+      await linkedInProfile.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Post published successfully",
+        linkedInPostUrl: postData.posting.linkedInPostUrl,
+        linkedInProfile: linkedInProfile,
+        currentPost: postData,
+      });
+    }
+
+    return res.status(500).json({
+      message: "Failed to publish post",
+      success: false,
+    });
   } catch (error) {
-    return res.status(500).json({ message: "Server error", success: false });
+    console.log(error);
+
+    if (error.response) {
+      return res.status(error.response.status).json({
+        message: "LinkedIn API error",
+        success: false,
+        error: error.response.data,
+      });
+    }
+
+    return res.status(500).json({
+      message: error.message || "Server error",
+      success: false,
+    });
   }
 };

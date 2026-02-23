@@ -230,9 +230,7 @@ export const linkedInCodeExchange = async (req, res) => {
   try {
     const { code, _id } = req.body;
 
-
-    console.log(code , _id);
-    
+    console.log(code, _id);
 
     // 1️⃣ Validate code
     if (!code || !_id) {
