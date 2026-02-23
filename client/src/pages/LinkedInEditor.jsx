@@ -787,7 +787,7 @@ const LinkedInEditor = () => {
                 Post Suggestions
               </h1>
               <button
-                className="text-blue-600 text-sm font-medium"
+                className="text-blue-600 text-sm flex items-center justify-center font-medium"
                 onClick={() => handleOptimize("posts", "ALL")}
               >
                 {linkedInSlice.globalLoader == "running" &&
