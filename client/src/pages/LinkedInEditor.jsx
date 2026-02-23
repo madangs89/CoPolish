@@ -730,7 +730,7 @@ const LinkedInEditor = () => {
         </div>
 
         {/* Fixed Score Section */}
-        <div className="fixed top-20 min-h-screen gap-3 flex flex-col  w-[250px] left-5 z-50">
+        <div className="fixed top-20 min-h-screen gap-3 flex flex-col  w-[260px] left-5 z-50">
           <div className="bg-transparent rounded-xl  p-4 w-full flex bg-white flex-col gap-4">
             {/* Main Score */}
             <div className="flex  items-center  gap-4">
@@ -782,9 +782,31 @@ const LinkedInEditor = () => {
           </div>
 
           <div className="h-[300px] overflow-y-scroll scrollbar-minimal  flex flex-col w-full gap-2">
-            <h1 className="text-lg p-2  font-medium sticky top-0 bg-white">
-              Post Suggestions
-            </h1>
+            <div className="flex w-full px-1 items-center justify-between bg-white">
+              <h1 className="text-lg p-2  font-medium sticky top-0 ">
+                Post Suggestions
+              </h1>
+              <button
+                className="text-blue-600 text-sm font-medium"
+                onClick={() => handleOptimize("posts", "ALL")}
+              >
+                {linkedInSlice.globalLoader == "running" &&
+                linkedInSlice.sectionLoaders &&
+                linkedInSlice.sectionLoaders.length > 0 &&
+                linkedInSlice.sectionLoaders.find(
+                  (section) =>
+                    section.name == "posts" && section.status == "running",
+                ) ? (
+                  <span className="ml-2">
+                    <BlackLoader />
+                  </span>
+                ) : (
+                  <p className="px-2 py-1 bg-zinc-100 border rounded-md">
+                    Get New Posts ✨
+                  </p>
+                )}
+              </button>
+            </div>
             {postData && postData.length > 0 ? (
               postData.map((post) => {
                 const isPosted = post.posting.status === "POSTED";

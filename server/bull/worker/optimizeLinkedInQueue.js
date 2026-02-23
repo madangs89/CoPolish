@@ -20,6 +20,7 @@ import {
   getScoreForOptimizedData,
 } from "../../LLmFunctions/linkedInLLHelper/linkedInLlm.js";
 import LinkedInProfile from "../../models/linkedin.model.js";
+import mongoose from "mongoose";
 
 const SUPPORTED_OPERATIONS = new Set([
   "all",
@@ -53,6 +54,7 @@ const CREDIT_COST = {
   achievements: 1,
   extracurricular: 1,
   hobbies: 1,
+  posts: 1,
 };
 
 const ALL_OPERATION_ORDER = [
@@ -473,6 +475,34 @@ const resumeOptimizeWorker = new Worker(
           );
           currentLinkedInData.changes.about.push(...(aiRes.data.changes || []));
           await currentLinkedInData.save();
+        } else if (section.name == "posts") {
+          // currentLinkedInData.posts = aiRes.data.posts || [];
+          let llmPostData = aiRes.data || [];
+          let newPost = [];
+          llmPostData.forEach((p) => {
+            const postId = new mongoose.Types.ObjectId();
+            let content = {
+              text: p?.text || "",
+              hashtags: p?.hashtags || [],
+              mentions: p?.mentions || [],
+            };
+            let aiMeta = {
+              generatedBy: "gemini-2.5-flash",
+              tone: p?.tone || "CONFIDENT",
+              topic: p?.topic || "",
+            };
+
+            newPost.push({
+              postId,
+              content,
+              aiMeta,
+            });
+          });
+          currentLinkedInData.posts = [
+            ...newPost,
+            ...(currentLinkedInData.posts || []),
+          ];
+          await currentLinkedInData.save();
         }
       }
       await job.save();
@@ -592,20 +622,34 @@ const resumeOptimizeWorker = new Worker(
           }),
         );
       } else {
-        let score = await getScoreForOptimizedData(
-          oldLinkedInData,
-          currentLinkedInData,
-        );
+        let score = {
+          isError: false,
+          data: {
+            score: {
+              currentScore: currentLinkedInData.score.currentScore,
+              searchability: currentLinkedInData.score.searchability,
+              clarity: currentLinkedInData.score.clarity,
+              impact: currentLinkedInData.score.impact,
+            },
+          },
+          error: null,
+        };
+        if (section.name !== "posts") {
+          score = await getScoreForOptimizedData(
+            oldLinkedInData,
+            currentLinkedInData,
+          );
+        }
         console.log("Score received from AI", score);
-        if (score.isError) {
-          console.log("Error in scoring resume:", score.error);
+        if (score?.isError) {
+          console.log("Error in scoring resume:", score?.error);
           job.result = {
             totalScore: 0,
             scoreFailed: true,
           };
         } else {
           job.result = {
-            totalScore: score.data.score.currentScore,
+            totalScore: score?.data?.score?.currentScore,
             scoreFailed: false,
           };
         }

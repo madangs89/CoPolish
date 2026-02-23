@@ -20,6 +20,7 @@ const SUPPORTED_OPERATIONS = new Set([
   "Projects",
   "posts",
   "score",
+  "POSTS",
 ]);
 
 const ALL_OPERATION_ORDER = [
@@ -30,6 +31,8 @@ const ALL_OPERATION_ORDER = [
   "posts",
   "score",
 ];
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const buildPromptsForLinkedIn = (operation) => {
   switch (operation) {
@@ -44,6 +47,7 @@ export const buildPromptsForLinkedIn = (operation) => {
     case "projects":
       break;
     case "posts":
+      return linkedinBaseSystemInstruction + postGenerationSystemInstruction;
       break;
     case "score":
       break;
@@ -133,6 +137,14 @@ export const getLinkedInDataAndResumeData = async (
             targetRoles: linkedInData?.targetRole,
             skills: linkedInData?.skills,
           },
+        };
+        return payLoad;
+        break;
+      case "posts":
+        payLoad.data = {
+          resumeData,
+          linkedInData,
+          alreadyExistedPosts: linkedInData?.posts || [],
         };
         return payLoad;
         break;
