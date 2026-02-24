@@ -1,4 +1,4 @@
-import Question from "../models/questions.model";
+import Question from "../models/questions.model.js";
 
 export const addQuestion = async (req, res) => {
   try {
@@ -30,7 +30,7 @@ export const addQuestion = async (req, res) => {
       !detailedAnswer ||
       !codeSnippet ||
       !keywords ||
-      !isPremium
+      typeof isPremium !== "boolean"
     ) {
       return res
         .status(400)
@@ -39,6 +39,14 @@ export const addQuestion = async (req, res) => {
 
     const lastTopicOrderCount = await Question.countDocuments({ subject });
     topicOrder = lastTopicOrderCount + 1;
+
+    let isAlreadyExist = await Question.findOne({ slug });
+    if (isAlreadyExist) {
+      return res.status(400).json({
+        message: "Question with this slug already exists",
+        success: false,
+      });
+    }
 
     const newQuestion = await Question.create({
       title,
@@ -61,7 +69,11 @@ export const addQuestion = async (req, res) => {
     }
     return res
       .status(201)
-      .json({ message: "Question added successfully", success: true });
+      .json({
+        message: "Question added successfully",
+        success: true,
+        question: newQuestion,
+      });
   } catch (error) {
     console.log(error);
     return res
