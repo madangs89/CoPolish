@@ -1,0 +1,95 @@
+import mongoose from "mongoose";
+
+const questionSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+    },
+    slug: {
+      type: String,
+      unique: true,
+    },
+    subject: {
+      type: String,
+      required: true,
+      enum: ["OOPS", "DBMS", "OS", "CN", "DSA"],
+    },
+    topic: {
+      type: String,
+      required: true,
+    },
+    topicOrder: {
+      type: Number,
+      required: true,
+    },
+
+    difficulty: {
+      type: String,
+      enum: ["Basic", "Easy", "Medium", "Hard"],
+    },
+
+    question: {
+      type: String,
+      required: true,
+    },
+
+    shortAnswer: String,
+
+    detailedAnswer: String,
+
+    codeSnippet: {
+      js: {
+        type: String,
+        default: "",
+        code: "",
+      },
+      java: {
+        type: String,
+        default: "",
+        code: "",
+      },
+      cpp: {
+        type: String,
+        default: "",
+        code: "",
+      },
+      python: {
+        type: String,
+        default: "",
+        code: "",
+      },
+      c: {
+        type: String,
+        default: "",
+        code: "",
+      },
+    },
+
+    keywords: [String],
+
+    isPremium: {
+      type: Boolean,
+      default: false,
+    },
+
+    views: {
+      type: Number,
+      default: 0,
+    },
+    likes: {
+      type: Number,
+      default: 0,
+    },
+    interviewCount: {
+      type: Number,
+      default: 0,
+    },
+    company: [String],
+  },
+  { timestamps: true },
+);
+
+const Question = mongoose.model("Question", questionSchema);
+
+export default Question;

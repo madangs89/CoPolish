@@ -237,7 +237,6 @@ const LinkedInEditor = () => {
             setUpdateDataLoader(true);
             setTimeout(() => {
               dispatch(setCurrentLinkedInData(JSON.parse(fullLinkedInVersion)));
-              toast.success("LinkedIn optimization completed!");
               setUpdateDataLoader(false);
             }, 1200);
           }
@@ -250,7 +249,16 @@ const LinkedInEditor = () => {
             setUpdateScoreLoader(true);
             setTimeout(() => {
               dispatch(setCurrentLinkedInData(JSON.parse(fullLinkedInVersion)));
-              toast.success("LinkedIn optimization completed!");
+              let isFullyCompleted = sections.every(
+                (section) => section.status === "success",
+              );
+              if (isFullyCompleted) {
+                toast.success("LinkedIn optimization completed!");
+              } else {
+                toast.error(
+                  "Some sections failed to optimize. Please check the sections with errors and try optimizing them again.",
+                );
+              }
               setUpdateScoreLoader(false);
             }, 1200);
           }
@@ -363,7 +371,7 @@ const LinkedInEditor = () => {
   } else {
     return (
       <div className="min-h-screen bg-[#F4F2EE] flex justify-center">
-        <div className="w-full max-w-3xl my-20 flex flex-col gap-5">
+        <div className="w-full max-w-3xl px-2 my-20 flex flex-col gap-5">
           {/* ================= PROFILE HEADER ================= */}
           <div className="bg-white rounded-xl overflow-hidden shadow-sm">
             <div className="relative h-36">
@@ -449,8 +457,11 @@ const LinkedInEditor = () => {
                       <BlackLoader />
                     </span>
                   ) : (
-                    <p className="px-3 py-1 bg-zinc-100 border rounded-md">
+                    <p className="px-3 py-1 bg-zinc-50 border rounded-full flex items-center gap-2 text-sm font-medium text-zinc-700 hover:bg-zinc-200 transition">
                       Optimize
+                      <span className="text-[11px] bg-[#CA8A02] text-white px-2 py-0.5 rounded-full">
+                        1 credit
+                      </span>
                     </p>
                   )}
                 </button>
@@ -527,8 +538,11 @@ const LinkedInEditor = () => {
                       <BlackLoader />
                     </span>
                   ) : (
-                    <p className="px-3 py-1 bg-zinc-100 border rounded-md">
+                    <p className="px-3 py-1 bg-zinc-50 border rounded-full flex items-center gap-2 text-sm font-medium text-zinc-700 hover:bg-zinc-200 transition">
                       Optimize
+                      <span className="text-[11px] bg-[#CA8A02] text-white px-2 py-0.5 rounded-full">
+                        1 credit
+                      </span>
                     </p>
                   )}
                 </button>
@@ -593,7 +607,7 @@ const LinkedInEditor = () => {
                   </button>
                 )}
                 <button
-                  className="text-blue-600 text-sm font-medium hover:underline"
+                  className="text-blue-600 text-sm font-medium "
                   onClick={() => handleOptimize("experience", "ALL")}
                 >
                   {linkedInSlice.globalLoader == "running" &&
@@ -608,8 +622,11 @@ const LinkedInEditor = () => {
                       <BlackLoader />
                     </span>
                   ) : (
-                    <p className="px-3 py-1 bg-zinc-100 border rounded-md">
+                    <p className="px-3 py-1 bg-zinc-50 border rounded-full flex items-center gap-2 text-sm font-medium text-zinc-700 hover:bg-zinc-200 transition">
                       Optimize
+                      <span className="text-[11px] bg-[#CA8A02] text-white px-2 py-0.5 rounded-full">
+                        1 credit
+                      </span>
                     </p>
                   )}
                 </button>
@@ -731,7 +748,7 @@ const LinkedInEditor = () => {
 
         {/* Fixed Score Section */}
         <div className="fixed top-20 min-h-screen gap-3 flex flex-col  w-[260px] left-5 z-50">
-          <div className="bg-transparent rounded-xl  p-4 w-full flex bg-white flex-col gap-4">
+          <div className="bg-transparent rounded-xl  p-4 w-full md:flex hidden bg-white flex-col gap-4">
             {/* Main Score */}
             <div className="flex  items-center  gap-4">
               <div className="relative  score  overflow-hidden  w-24 h-24">
@@ -781,7 +798,7 @@ const LinkedInEditor = () => {
             </div>
           </div>
 
-          <div className="h-[300px] overflow-y-scroll scrollbar-minimal  flex flex-col w-full gap-2">
+          <div className="h-[300px] overflow-y-scroll scrollbar-minimal  md:flex hidden flex-col w-full gap-2">
             <div className="flex w-full px-1 items-center justify-between bg-white">
               <h1 className="text-lg p-2  font-medium sticky top-0 ">
                 Post Suggestions
@@ -860,14 +877,23 @@ const LinkedInEditor = () => {
                           Posted
                         </span>
                       ) : (
-                        <button
-                          onClick={() => handlePostToLinkedIn(post._id)}
-                          className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                        >
-                          {currentPostToLinkedInLoader === post._id ? (
+                        <button className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
+                          {!currentLinkedIn?.isLinkedInConnected ? (
+                            <span
+                              onClick={handleLinkedInAuth}
+                              className="text-sm  font-medium"
+                            >
+                              Connect LinkedIn
+                            </span>
+                          ) : currentPostToLinkedInLoader === post._id ? (
                             <ButtonLoader />
                           ) : (
-                            "Post to LinkedIn"
+                            <h1
+                              onClick={() => handlePostToLinkedIn(post._id)}
+                              className="text-sm text-white font-medium"
+                            >
+                              Post to LinkedIn
+                            </h1>
                           )}
                         </button>
                       )}
@@ -883,7 +909,7 @@ const LinkedInEditor = () => {
           </div>
         </div>
 
-        <div className="fixed w-[250px] right-10 top-20 z-50 h-[300px] ">
+        <div className="md:block fixed w-[250px] hidden right-10 top-20 z-50 h-[300px] ">
           <div className="fixed w-[250px] right-10 top-20 z-50 h-fit">
             <div className="w-full bg-white border rounded-xl p-5 flex flex-col gap-3 h-full justify-between">
               <div>
@@ -946,7 +972,7 @@ const LinkedInEditor = () => {
         )}
 
         {currentChangesShowModal && (
-          <div className="fixed right-6 bottom-10 z-[99999999] w-[460px] max-h-[480px] bg-white border border-gray-200 rounded-xl shadow-2xl flex flex-col">
+          <div className="fixed right-0 bottom-0 md:right-6 md:bottom-10 z-[99999999] w-[460px] max-h-[480px] bg-white border border-gray-200 rounded-xl shadow-2xl flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b bg-gray-50 rounded-t-xl">
               <div>
@@ -1006,7 +1032,7 @@ const LinkedInEditor = () => {
         )}
 
         {postShowModal.show && postShowModal.post && (
-          <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-[9999999999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
             {/* Modal Container */}
             <div className="bg-white w-full max-w-3xl max-h-[90vh] rounded-xl shadow-xl flex flex-col">
               {/* Header */}
@@ -1055,14 +1081,25 @@ const LinkedInEditor = () => {
                 </span>
 
                 {postShowModal.post?.posting?.status !== "POSTED" && (
-                  <button
-                    onClick={() => handlePostToLinkedIn(postShowModal.post._id)}
-                    className="px-4 py-2 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
-                  >
-                    {currentPostToLinkedInLoader === postShowModal.post._id ? (
-                      <ButtonLoader color="white" />
+                  <button className="px-4 py-2 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition">
+                    {!currentLinkedIn?.isLinkedInConnected ? (
+                      <span
+                        onClick={handleLinkedInAuth}
+                        className="text-sm  font-medium"
+                      >
+                        Connect LinkedIn
+                      </span>
+                    ) : currentPostToLinkedInLoader ===
+                      postShowModal.post._id ? (
+                      <ButtonLoader />
                     ) : (
-                      "Post to LinkedIn"
+                      <h1
+                        onClick={() =>
+                          handlePostToLinkedIn(postShowModal.post._id)
+                        }
+                      >
+                        Post to LinkedIn
+                      </h1>
                     )}
                   </button>
                 )}
