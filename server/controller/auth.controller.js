@@ -16,6 +16,7 @@ const createToken = (user) => {
     userName: user.userName,
     currentResumeId: user.currentResumeId,
     currentLinkedInId: user.currentLinkedInId,
+    role: user.role || "user",
   };
   return jwt.sign(data, "secret", { expiresIn: "7d" });
 };

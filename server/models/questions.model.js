@@ -23,10 +23,11 @@ const questionSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-
     difficulty: {
       type: String,
       enum: ["Basic", "Easy", "Medium", "Hard"],
+      required: true,
+      default: "Basic",
     },
 
     question: {
@@ -34,9 +35,47 @@ const questionSchema = new mongoose.Schema(
       required: true,
     },
 
-    shortAnswer: String,
+    shortAnswer: {
+      answer: {
+        type: String,
+        required: true,
+      },
+      example: {
+        type: String,
+        default: "",
+      },
+    },
 
-    detailedAnswer: String,
+    detailedAnswer: {
+      definition: {
+        type: String,
+        required: true,
+      },
+      explanation: {
+        type: String,
+        required: true,
+      },
+      image: {
+        type: String,
+        default: "",
+      },
+      video: {
+        type: String,
+        default: "",
+      },
+      interviewTip: {
+        type: String,
+        default: "",
+      },
+      commonMistake: {
+        type: String,
+        default: "",
+      },
+      realWorldExample: {
+        type: String,
+        default: "",
+      },
+    },
 
     codeSnippet: {
       js: {

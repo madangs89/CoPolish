@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import { connectDB } from "./config/connectDB.js";
 import authRouter from "./routes/auth.routes.js";
 import parseRouter from "./routes/parse.routes.js";
+import questionRouter from "./routes/quenstion.routes.js";
 
 import paymentRouter from "./routes/payment.routes.js";
 import { createServer } from "http";
@@ -123,6 +124,7 @@ app.use("/api/parse/v1", parseRouter);
 app.use("/api/resume/v1", resumeRouter);
 app.use("/api/linkedin/v1", linkedInRouter);
 app.use("/api/payment/v1", paymentRouter);
+app.use("/api/question/v1", questionRouter);
 
 // const instruction =
 //   baseResumeOptimizerSystemInstruction + projectsSystemInstruction;
