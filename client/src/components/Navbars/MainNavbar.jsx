@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { gsap } from "gsap";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,6 +11,7 @@ const MainNavbar = () => {
   const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_ID;
   const dispatch = useDispatch();
 
+  const navigate = useNavigate();
   const totalCredits = useSelector(
     (state) => state.auth.user?.totalCredits || 0,
   );
@@ -104,7 +105,12 @@ const MainNavbar = () => {
   return (
     <div className="fixed sc top-0 left-0 w-full z-[99999]">
       <div className="w-full mx-auto px-6 py-3 flex items-center justify-between">
-        <h1 className="text-black  slider text-[22px] font-medium">CoPolish</h1>
+        <h1
+          onClick={() => navigate("/")}
+          className="text-black cursor-pointer  slider text-[22px] font-medium"
+        >
+          CoPolish
+        </h1>
 
         {!location.pathname.includes("onboarding") &&
           !location.pathname.includes("approve") && (

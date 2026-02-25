@@ -7,6 +7,8 @@ import { setAuthFalse, setUser } from "./redux/slice/authSlice";
 import { io } from "socket.io-client";
 import { setSocket } from "./redux/slice/socketSlice";
 import LinkedInRedirect from "./components/authRedirectors/LinkedInRedirect";
+import Question from "./pages/Question";
+import Answer from "./pages/Answer";
 
 const Hero = lazy(() => import("./pages/Hero"));
 const Cursor = lazy(() => import("./components/Cursor"));
@@ -111,7 +113,12 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/editor/resume/:id" element={<ResumeEditor />} />
             <Route path="/editor/linkedin/:id" element={<LinkedInEditor />} />
-            <Route path="/auth/linkedin/callback" element={<LinkedInRedirect />} />
+            <Route
+              path="/auth/linkedin/callback"
+              element={<LinkedInRedirect />}
+            />
+            <Route path="/question/:subject" element={<Question />} />
+            <Route path="/answer/:subject/:id" element={<Answer />} />
           </Route>
         </Routes>
       </Suspense>

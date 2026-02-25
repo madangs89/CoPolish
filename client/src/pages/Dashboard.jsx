@@ -197,7 +197,10 @@ const Dashboard = () => {
           ✓
         </div>
         <p className="text-sm md:text-base">
-          <span className="font-medium">
+          <span
+            onClick={() => navigate("/question/sub")}
+            className="font-medium"
+          >
             Nice progress,{" "}
             {userDetails?.userName && userDetails?.userName.split(" ")[0]} 👋
           </span>{" "}
