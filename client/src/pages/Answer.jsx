@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
+
 export const fakeQuestions = [
   {
     title: "What is Abstraction in OOPS?",
@@ -203,115 +204,174 @@ export const fakeQuestions = [
 ];
 
 const Answer = () => {
-  const question = fakeQuestions[0]; // just showing first fake question
+  const question = fakeQuestions[0];
   const [activeTab, setActiveTab] = useState("js");
+
+  const shortAnswerRef = useRef(null);
+  const definitionRef = useRef(null);
+  const explanationRef = useRef(null);
+  const codeRef = useRef(null);
+  const realWorldExampleRef = useRef(null);
+  const mainRef = useRef(null);
+
+  const allRefData = {
+    "Short Answer": shortAnswerRef,
+    Definition: definitionRef,
+    Explanation: explanationRef,
+    Code: codeRef,
+    "Real World Example": realWorldExampleRef,
+  };
 
   const languages = Object.keys(question.codeSnippet).filter(
     (lang) => question.codeSnippet[lang],
   );
 
   return (
-    <div className="mt-16 px-6 py-8 bg-gray-50 min-h-screen">
-      {/* Title Section */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">
-            {question.topicOrder + ". " + question.question}
-          </h1>
+    <div className="mt-16 flex bg-white min-h-screen">
+      <div className="hidden md:block w-72 scrollbar-minimal bg-white border-r px-6 py-2 sticky top-16 h-[calc(100vh-4rem)] overflow-hidden">
+        <h2 className="text-lg font-semibold mb-3">Table</h2>
 
-          <span
-            className={`px-3 py-1 rounded-full text-sm font-medium
-              ${
-                question.difficulty === "Basic"
-                  ? "bg-green-100 text-green-700"
-                  : question.difficulty === "Easy"
-                    ? "bg-blue-100 text-blue-700"
-                    : question.difficulty === "Medium"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-red-100 text-red-700"
-              }
-            `}
+        {[
+          "Short Answer",
+          "Definition",
+          "Explanation",
+          "Code",
+          "Real World Example",
+        ].map((subject) => (
+          <label
+            onClick={() =>
+              allRefData[subject].current.scrollIntoView({ behavior: "smooth" })
+            }
+            key={subject}
+            className="flex items-center gap-3 mb-2 cursor-pointer group"
           >
-            {question.difficulty}
-          </span>
-        </div>
-
-        <div className="text-sm text-gray-500 mt-2">
-          👁 {question.views} views • ❤️ {question.likes} likes • 🏢 Asked{" "}
-          {question.interviewCount} times
-        </div>
+            <span className="text-sm text-gray-600 group-hover:text-black">
+              {subject}
+            </span>
+          </label>
+        ))}
       </div>
+      <div ref={mainRef} className="flex-1 mx-auto px-6  py-2">
+        {/* Title */}
+        <h1 className="text-3xl font-bold text-gray-900 mb-3">
+          {question.topicOrder}. {question.question}
+        </h1>
 
-      {/* Short Answer */}
-      <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-md mb-6">
-        <h2 className="font-semibold mb-2">Short Answer</h2>
-        <p>{question.shortAnswer.answer}</p>
-        {question.shortAnswer.example && (
-          <p className="mt-2 text-sm text-gray-600">
-            Example: {question.shortAnswer.example}
+        {/* Meta Info */}
+        <div className="text-sm text-gray-500 mb-6 border-b pb-4">
+          <span className="mr-4">
+            Difficulty: <b>{question.difficulty}</b>
+          </span>
+          <span className="mr-4">Views: {question.views}</span>
+          <span className="mr-4">Likes: {question.likes}</span>
+          <span>Asked in: {question.interviewCount} interviews</span>
+        </div>
+
+        {/* Short Answer */}
+        <div ref={shortAnswerRef} className="mb-8 scroll-mt-24">
+          <h2 className="text-xl font-semibold mb-2 border-b pb-2">
+            Interview Short Answer
+          </h2>
+          <p className="text-gray-700 leading-7">
+            {question.shortAnswer.answer}
           </p>
+          {question.shortAnswer.example && (
+            <p className="mt-3 text-gray-600 italic">
+              Example: {question.shortAnswer.example}
+            </p>
+          )}
+        </div>
+
+        {/* Definition */}
+        <div ref={definitionRef} className="mb-8">
+          <h2 className="text-xl font-semibold mb-2 border-b pb-2">
+            Definition
+          </h2>
+          <p className="text-gray-700 leading-7">
+            {question.detailedAnswer.definition}
+          </p>
+        </div>
+
+        {/* Explanation */}
+        <div ref={explanationRef} className="mb-8">
+          <h2 className="text-xl font-semibold mb-2 border-b pb-2">
+            Explanation
+          </h2>
+          <p className="text-gray-700 leading-7">
+            {question.detailedAnswer.explanation}
+          </p>
+        </div>
+
+        {/* Code Section */}
+        <div ref={codeRef} className="">
+          {languages.length > 0 && (
+            <div className="mb-10">
+              {/* Tabs */}
+              <div className="flex border-b mb-4">
+                {languages.map((lang) => (
+                  <button
+                    key={lang}
+                    onClick={() => setActiveTab(lang)}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
+                      activeTab === lang
+                        ? "border-blue-600 text-blue-600"
+                        : "border-transparent text-gray-600 hover:text-black"
+                    }`}
+                  >
+                    {lang.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+
+              <pre class="line-numbers">
+                <code class="language-cpp">
+                  {question.codeSnippet[activeTab]}
+                </code>
+              </pre>
+            </div>
+          )}
+        </div>
+
+        {/* Interview Tip */}
+        {question.detailedAnswer.interviewTip && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-2 border-b pb-2">
+              Interview Tip
+            </h2>
+            <p className="text-gray-700 leading-7">
+              {question.detailedAnswer.interviewTip}
+            </p>
+          </div>
+        )}
+
+        {/* Real World Example */}
+        {question.detailedAnswer.realWorldExample && (
+          <div ref={realWorldExampleRef} className="mb-8">
+            <h2 className="text-xl font-semibold mb-2 border-b pb-2">
+              Real World Example
+            </h2>
+            <p className="text-gray-700 leading-7">
+              {question.detailedAnswer.realWorldExample}
+            </p>
+          </div>
+        )}
+
+        {/* Common Mistake */}
+        {question.detailedAnswer.commonMistake && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-2 border-b pb-2">
+              Common Mistake
+            </h2>
+            <p className="text-gray-700 leading-7">
+              {question.detailedAnswer.commonMistake}
+            </p>
+          </div>
         )}
       </div>
 
-      {/* Detailed Explanation */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
-        <h2 className="text-lg font-semibold mb-3">Definition</h2>
-        <p className="mb-4">{question.detailedAnswer.definition}</p>
-
-        <h2 className="text-lg font-semibold mb-3">Explanation</h2>
-        <p>{question.detailedAnswer.explanation}</p>
+      <div className="hidden md:block w-72 scrollbar-minimal bg-white border-l px-6 py-2 sticky top-16 h-[calc(100vh-4rem)] overflow-hidden">
+        <h2 className="text-lg font-semibold mb-6">Related Questions</h2>
       </div>
-
-      {/* Code Section */}
-      {languages.length > 0 && (
-        <div className="bg-white p-6 rounded-xl shadow-sm border mb-6">
-          <h2 className="text-lg font-semibold mb-4">Code Example</h2>
-
-          {/* Tabs */}
-          <div className="flex gap-3 mb-4">
-            {languages.map((lang) => (
-              <button
-                key={lang}
-                onClick={() => setActiveTab(lang)}
-                className={`px-3 py-1 rounded-md text-sm ${
-                  activeTab === lang ? "bg-blue-600 text-white" : "bg-gray-200"
-                }`}
-              >
-                {lang.toUpperCase()}
-              </button>
-            ))}
-          </div>
-
-          {/* Code Block */}
-          <pre className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-sm">
-            {question.codeSnippet[activeTab]}
-          </pre>
-        </div>
-      )}
-
-      {/* Interview Tip */}
-      {question.detailedAnswer.interviewTip && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-md mb-6">
-          <h3 className="font-semibold mb-2">Interview Tip</h3>
-          <p>{question.detailedAnswer.interviewTip}</p>
-        </div>
-      )}
-
-      {/* Real World Example */}
-      {question.detailedAnswer.realWorldExample && (
-        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md mb-6">
-          <h3 className="font-semibold mb-2">Real World Example</h3>
-          <p>{question.detailedAnswer.realWorldExample}</p>
-        </div>
-      )}
-
-      {/* Common Mistake */}
-      {question.detailedAnswer.commonMistake && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md mb-6">
-          <h3 className="font-semibold mb-2">Common Mistake</h3>
-          <p>{question.detailedAnswer.commonMistake}</p>
-        </div>
-      )}
     </div>
   );
 };
