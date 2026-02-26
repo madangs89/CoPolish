@@ -1,3 +1,4 @@
+import { pubClient } from "../config/redis.js";
 import Question from "../models/questions.model.js";
 
 export const addQuestion = async (req, res) => {
@@ -67,13 +68,54 @@ export const addQuestion = async (req, res) => {
         .status(500)
         .json({ message: "Failed to create question", success: false });
     }
+    return res.status(201).json({
+      message: "Question added successfully",
+      success: true,
+      question: newQuestion,
+    });
+  } catch (error) {
+    console.log(error);
     return res
-      .status(201)
-      .json({
-        message: "Question added successfully",
+      .status(500)
+      .json({ message: "Something went wrong", success: false });
+  }
+};
+
+export const getSubjectQuestionCount = async (req, res) => {
+  try {
+    const subject = req.params.subject;
+
+    const cachedCount = await pubClient.get(
+      `question_count_${subject.toUpperCase()}`,
+    );
+
+    if (cachedCount) {
+      console.log("got from cache");
+
+      return res.status(200).json({
+        message: "Total questions count fetched successfully (from cache)",
         success: true,
-        question: newQuestion,
+        totalQuestions: parseInt(cachedCount),
       });
+    }
+    if (!subject) {
+      return res
+        .status(400)
+        .json({ message: "Subject is required", success: false });
+    }
+    let totalQuestions = await Question.countDocuments({
+      subject: subject.toUpperCase(),
+    });
+    await pubClient.set(
+      `question_count_${subject.toUpperCase()}`,
+      totalQuestions,
+    );
+
+    return res.status(200).json({
+      message: "Total questions count fetched successfully",
+      success: true,
+      totalQuestions,
+    });
   } catch (error) {
     console.log(error);
     return res

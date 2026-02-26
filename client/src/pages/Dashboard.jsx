@@ -59,10 +59,23 @@ const Dashboard = () => {
   const [portfolioStatus] = useState(true);
   const [portfolioUpdated] = useState("4 days ago");
 
-  const [prepProgress] = useState({
-    dsa: 70,
-    oops: 30,
-    dbms: 50,
+  const [prepProgress, setPrepProgress] = useState({
+    dsa: {
+      totalQuestions: 0,
+      solvedQuestions: 0,
+    },
+    oops: {
+      totalQuestions: 0,
+      solvedQuestions: 0,
+    },
+    dbms: {
+      totalQuestions: 0,
+      solvedQuestions: 0,
+    },
+    os: {
+      totalQuestions: 0,
+      solvedQuestions: 0,
+    },
   });
 
   useEffect(() => {
@@ -115,6 +128,47 @@ const Dashboard = () => {
       updateModalState();
     }
   }, [isStatusTrue]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/count/oops`,
+          {
+            withCredentials: true,
+          },
+        );
+        console.log(data);
+
+        if (data.success) {
+          console.log("calling setUser");
+          data.isAuth = true;
+          dispatch(setUser(data));
+          if (
+            data?.user?.currentResumeId == "" ||
+            data?.user?.currentResumeId == undefined
+          ) {
+            navigate("/onboarding");
+          } else if (
+            data?.user?.currentResumeId.length > 0 &&
+            !data?.user?.isApproved
+          ) {
+            navigate(`/approve/${data?.user?.currentResumeId}`);
+          } else {
+            navigate("/dashboard");
+          }
+        }
+      } catch (error) {
+        console.log(error);
+        let data = {
+          user: {},
+          isAuth: false,
+        };
+        dispatch(setAuthFalse(false));
+        dispatch(setUser(data));
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     // Get Resume Data
@@ -372,6 +426,7 @@ const Dashboard = () => {
 
           {/* DBMS */}
           <Progress label="DBMS" value={prepProgress.dbms} />
+          <Progress label="OS" value={prepProgress.os} />
         </div>
 
         {/* ================= CTA ================= */}
@@ -422,19 +477,23 @@ const Dashboard = () => {
 
 const Progress = ({ label, value }) => {
   return (
-    <div className="mb-6">
-      <div className="flex justify-between text-sm mb-2">
-        <span>{label}</span>
-        <span>{value}%</span>
+    <div className="mb-7 last:mb-0">
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-sm font-medium text-gray-700">{label}</span>
+        <span className="text-sm font-semibold text-gray-900">
+          {value.solvedQuestions}/{value.totalQuestions}
+        </span>
       </div>
-      <div className="w-full h-2 bg-gray-200 rounded-full">
+
+      <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
         <div
-          className="h-2 bg-blue-500 rounded-full"
-          style={{ width: `${value}%` }}
+          className="h-full rounded-full transition-all duration-700 ease-out bg-gradient-to-r from-blue-500 to-indigo-500"
+          style={{
+            width: `${value.totalQuestions > 0 ? ((value.solvedQuestions / value.totalQuestions) * 100).toFixed(2) : 0}%`,
+          }}
         />
       </div>
     </div>
   );
 };
-
 export default Dashboard;
