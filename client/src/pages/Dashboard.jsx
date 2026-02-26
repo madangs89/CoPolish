@@ -129,45 +129,46 @@ const Dashboard = () => {
     }
   }, [isStatusTrue]);
 
+  // this for fetching question count for progress bar, can be removed later
   useEffect(() => {
-    (async () => {
-      try {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/count/oops`,
-          {
-            withCredentials: true,
-          },
-        );
-        console.log(data);
+    // (async () => {
+    //   try {
+    //     const { data } = await axios.get(
+    //       `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/count/oops`,
+    //       {
+    //         withCredentials: true,
+    //       },
+    //     );
+    //     console.log(data);
 
-        if (data.success) {
-          console.log("calling setUser");
-          data.isAuth = true;
-          dispatch(setUser(data));
-          if (
-            data?.user?.currentResumeId == "" ||
-            data?.user?.currentResumeId == undefined
-          ) {
-            navigate("/onboarding");
-          } else if (
-            data?.user?.currentResumeId.length > 0 &&
-            !data?.user?.isApproved
-          ) {
-            navigate(`/approve/${data?.user?.currentResumeId}`);
-          } else {
-            navigate("/dashboard");
-          }
-        }
-      } catch (error) {
-        console.log(error);
-        let data = {
-          user: {},
-          isAuth: false,
-        };
-        dispatch(setAuthFalse(false));
-        dispatch(setUser(data));
-      }
-    })();
+    //     if (data.success) {
+    //       console.log("calling setUser");
+    //       data.isAuth = true;
+    //       dispatch(setUser(data));
+    //       if (
+    //         data?.user?.currentResumeId == "" ||
+    //         data?.user?.currentResumeId == undefined
+    //       ) {
+    //         navigate("/onboarding");
+    //       } else if (
+    //         data?.user?.currentResumeId.length > 0 &&
+    //         !data?.user?.isApproved
+    //       ) {
+    //         navigate(`/approve/${data?.user?.currentResumeId}`);
+    //       } else {
+    //         navigate("/dashboard");
+    //       }
+    //     }
+    //   } catch (error) {
+    //     console.log(error);
+    //     let data = {
+    //       user: {},
+    //       isAuth: false,
+    //     };
+    //     dispatch(setAuthFalse(false));
+    //     dispatch(setUser(data));
+    //   }
+    // })();
   }, []);
 
   useEffect(() => {

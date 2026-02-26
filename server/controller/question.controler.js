@@ -123,3 +123,5 @@ export const getSubjectQuestionCount = async (req, res) => {
       .json({ message: "Something went wrong", success: false });
   }
 };
+
+export const getAllSubjectQuestionCount = async (req, res) => {};
