@@ -78,6 +78,8 @@ const Dashboard = () => {
     },
   });
 
+  const [progressLoading, setProgressLoading] = useState(false);
+
   useEffect(() => {
     (async () => {
       try {
@@ -131,44 +133,38 @@ const Dashboard = () => {
 
   // this for fetching question count for progress bar, can be removed later
   useEffect(() => {
-    // (async () => {
-    //   try {
-    //     const { data } = await axios.get(
-    //       `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/count/oops`,
-    //       {
-    //         withCredentials: true,
-    //       },
-    //     );
-    //     console.log(data);
+    (async () => {
+      try {
+        setProgressLoading(true);
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/count/all`,
+          {
+            withCredentials: true,
+          },
+        );
+        console.log(data);
 
-    //     if (data.success) {
-    //       console.log("calling setUser");
-    //       data.isAuth = true;
-    //       dispatch(setUser(data));
-    //       if (
-    //         data?.user?.currentResumeId == "" ||
-    //         data?.user?.currentResumeId == undefined
-    //       ) {
-    //         navigate("/onboarding");
-    //       } else if (
-    //         data?.user?.currentResumeId.length > 0 &&
-    //         !data?.user?.isApproved
-    //       ) {
-    //         navigate(`/approve/${data?.user?.currentResumeId}`);
-    //       } else {
-    //         navigate("/dashboard");
-    //       }
-    //     }
-    //   } catch (error) {
-    //     console.log(error);
-    //     let data = {
-    //       user: {},
-    //       isAuth: false,
-    //     };
-    //     dispatch(setAuthFalse(false));
-    //     dispatch(setUser(data));
-    //   }
-    // })();
+        if (data.success) {
+          setPrepProgress((prev) => {
+            let oldProgres = { ...prev };
+            for (const subject in data.counts) {
+              if (oldProgres[subject.toLowerCase()]) {
+                oldProgres[subject.toLowerCase()].totalQuestions =
+                  data.counts[subject];
+              }
+            }
+            return oldProgres;
+          });
+        }
+      } catch (error) {
+        console.log(error);
+        toast.error(
+          "Failed to fetch question counts for progress. Please try again.",
+        );
+      } finally {
+        setProgressLoading(false);
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -416,19 +412,24 @@ const Dashboard = () => {
       {/* ================= INTERVIEW PREP ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
         {/* ================= PROGRESS ================= */}
-        <div className="lg:col-span-2 bg-white rounded-3xl p-6 shadow-sm">
-          <p className="text-lg font-medium mb-6">Interview Preparation</p>
 
-          {/* DSA */}
-          <Progress label="DSA" value={prepProgress.dsa} />
+        {progressLoading ? (
+          <SkeletonLoader />
+        ) : (
+          <div className="lg:col-span-2 bg-white rounded-3xl p-6 shadow-sm">
+            <p className="text-lg font-medium mb-6">Interview Preparation</p>
 
-          {/* OOPS */}
-          <Progress label="OOPS" value={prepProgress.oops} />
+            {/* DSA */}
+            <Progress label="DSA" value={prepProgress.dsa} />
 
-          {/* DBMS */}
-          <Progress label="DBMS" value={prepProgress.dbms} />
-          <Progress label="OS" value={prepProgress.os} />
-        </div>
+            {/* OOPS */}
+            <Progress label="OOPS" value={prepProgress.oops} />
+
+            {/* DBMS */}
+            <Progress label="DBMS" value={prepProgress.dbms} />
+            <Progress label="OS" value={prepProgress.os} />
+          </div>
+        )}
 
         {/* ================= CTA ================= */}
         <div className="bg-[#fff7e6] rounded-3xl p-6 shadow-sm flex flex-col justify-between">
@@ -477,9 +478,13 @@ const Dashboard = () => {
 };
 
 const Progress = ({ label, value }) => {
+  const navigate = useNavigate();
   return (
-    <div className="mb-7 last:mb-0">
-      <div className="flex justify-between items-center mb-2">
+    <div
+      onClick={() => navigate(`/question/${label.toLowerCase()}`)}
+      className="mb-7 cursor-pointer last:mb-0"
+    >
+      <div className="flex justify-between  items-center mb-2">
         <span className="text-sm font-medium text-gray-700">{label}</span>
         <span className="text-sm font-semibold text-gray-900">
           {value.solvedQuestions}/{value.totalQuestions}

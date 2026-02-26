@@ -124,4 +124,36 @@ export const getSubjectQuestionCount = async (req, res) => {
   }
 };
 
-export const getAllSubjectQuestionCount = async (req, res) => {};
+export const getAllSubjectQuestionCount = async (req, res) => {
+  try {
+    const subjects = ["DSA", "OOPS", "DBMS", "CN", "OS"];
+    const counts = {};
+
+    for (const subject of subjects) {
+      const cachedCount = await pubClient.get(
+        `question_count_${subject.toUpperCase()}`,
+      );
+      if (cachedCount) {
+        counts[subject] = parseInt(cachedCount);
+      } else {
+        const count = await Question.countDocuments({
+          subject: subject.toUpperCase(),
+        });
+        counts[subject] = count;
+        await pubClient.set(`question_count_${subject.toUpperCase()}`, count);
+      }
+    }
+
+    console.log(counts);
+
+    return res.status(200).json({
+      message: "Total questions count for all subjects fetched successfully",
+      success: true,
+      counts,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Something went wrong", success: false });
+  }
+};
