@@ -157,3 +157,24 @@ export const getAllSubjectQuestionCount = async (req, res) => {
       .json({ message: "Something went wrong", success: false });
   }
 };
+
+export const getQuestionsForAllTypeOfFilters = async (req, res) => {
+  try {
+    const { subject, difficulty, status, page = 1 } = req.body;
+
+    const limit = 10;
+
+    const skip = (page - 1) * limit;
+
+    if (subject.length == 0 || difficulty.length == 0 || status.length == 0) {
+      return res.status(400).json({
+        message: "Subject, difficulty and status are required",
+        success: false,
+      });
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Something went wrong", success: false });
+  }
+};
