@@ -117,7 +117,7 @@ const App = () => {
               path="/auth/linkedin/callback"
               element={<LinkedInRedirect />}
             />
-            <Route path="/question/:subject" element={<Question />} />
+            <Route path="/question/" element={<Question />} />
             <Route path="/answer/:subject/:id" element={<Answer />} />
           </Route>
         </Routes>

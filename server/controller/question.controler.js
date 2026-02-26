@@ -161,7 +161,7 @@ export const getAllSubjectQuestionCount = async (req, res) => {
 export const getQuestionsForAllTypeOfFilters = async (req, res) => {
   try {
     const {
-      subject = ["OOPS", "DBMS"],
+      subject = ["OOPS", "DBMS", "OS", "CN", "DSA"],
       difficulty = ["Basic", "Easy", "Medium", "Hard"],
       page = 1,
     } = req.body;
@@ -181,7 +181,10 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
       difficulty: { $in: difficulty },
     };
 
-    const questions = await Question.find(filter).skip(skip).limit(limit);
+    const questions = await Question.find(filter)
+      .sort({ topicOrder: 1 })
+      .skip(skip)
+      .limit(limit);
 
     console.log(questions);
 
@@ -189,6 +192,32 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
       message: "Questions fetched successfully",
       success: true,
       questions,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Something went wrong", success: false });
+  }
+};
+
+export const getCurrentQuestionById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res
+        .status(400)
+        .json({ message: "Question ID is required", success: false });
+    }
+    const question = await Question.findById(id);
+    if (!question) {
+      return res
+        .status(404)
+        .json({ message: "Question not found", success: false });
+    }
+    return res.status(200).json({
+      message: "Question fetched successfully",
+      success: true,
+      question,
     });
   } catch (error) {
     return res

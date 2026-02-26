@@ -1,19 +1,14 @@
 import { Check } from "lucide-react";
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
-const subjectsList = [
-  "Data Structure",
-  "Object Oriented",
-  "Operating System",
-  "Networking",
-  "Database Management System",
-];
+const subjectsList = ["DSA", "OOPS", "OS", "CN", "DBMS"];
 const statusList = ["Solved", "Unsolved", "Attempted"];
 
 const difficultyList = ["Basic", "Easy", "Medium", "Hard"];
 
- const fakeQuestions = [
+const fakeQuestions = [
   {
     title: "What is Abstraction in OOPS?",
     slug: "what-is-abstraction-in-oops",
@@ -223,12 +218,30 @@ const Question = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState([]);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    console.log(searchParams.getAll("subject"));
+  }, [searchParams]);
+
   const handleSubjectChange = (subject) => {
+    const newParams = new URLSearchParams(searchParams);
+
     setSelectedSubjects((prev) =>
       prev.includes(subject)
         ? prev.filter((s) => s !== subject)
         : [...prev, subject],
     );
+
+    if (newParams.getAll("subject").includes(subject)) {
+      const values = newParams.getAll("subject").filter((s) => s !== subject);
+      newParams.delete("subject");
+      values.forEach((s) => newParams.append("subject", s));
+    } else {
+      newParams.append("subject", subject);
+    }
+
+    setSearchParams(newParams);
   };
 
   const handleDifficultyChange = (level) => {
@@ -243,6 +256,23 @@ const Question = () => {
         ? prev.filter((s) => s !== status)
         : [...prev, status],
     );
+  };
+
+  const returnProperSubjectName = (subject) => {
+    switch (subject) {
+      case "DSA":
+        return "Data Structures and Algorithms";
+      case "OOPS":
+        return "Object Oriented Programming";
+      case "DBMS":
+        return "Database Management System";
+      case "CN":
+        return "Computer Networks";
+      case "OS":
+        return "Operating System";
+      default:
+        return subject;
+    }
   };
 
   return (
@@ -261,12 +291,15 @@ const Question = () => {
             >
               <input
                 type="checkbox"
-                checked={selectedSubjects.includes(subject)}
+                checked={
+                  // selectedSubjects.includes(subject) ||
+                  searchParams.getAll("subject").includes(subject.toUpperCase())
+                }
                 onChange={() => handleSubjectChange(subject)}
                 className="accent-blue-600 w-4 h-4"
               />
               <span className="text-sm text-gray-600 group-hover:text-black">
-                {subject}
+                {returnProperSubjectName(subject)}
               </span>
             </label>
           ))}

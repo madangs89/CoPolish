@@ -481,7 +481,7 @@ const Progress = ({ label, value }) => {
   const navigate = useNavigate();
   return (
     <div
-      onClick={() => navigate(`/question/${label.toLowerCase()}`)}
+      onClick={() => navigate(`/question/?subject=${label}`)}
       className="mb-7 cursor-pointer last:mb-0"
     >
       <div className="flex justify-between  items-center mb-2">
