@@ -160,18 +160,36 @@ export const getAllSubjectQuestionCount = async (req, res) => {
 
 export const getQuestionsForAllTypeOfFilters = async (req, res) => {
   try {
-    const { subject, difficulty, status, page = 1 } = req.body;
+    const {
+      subject = ["OOPS", "DBMS"],
+      difficulty = ["Basic", "Easy", "Medium", "Hard"],
+      page = 1,
+    } = req.body;
 
     const limit = 10;
 
     const skip = (page - 1) * limit;
 
-    if (subject.length == 0 || difficulty.length == 0 || status.length == 0) {
+    if (subject.length == 0 || difficulty.length == 0) {
       return res.status(400).json({
-        message: "Subject, difficulty and status are required",
+        message: "Subject and difficulty are required",
         success: false,
       });
     }
+    const filter = {
+      subject: { $in: subject },
+      difficulty: { $in: difficulty },
+    };
+
+    const questions = await Question.find(filter).skip(skip).limit(limit);
+
+    console.log(questions);
+
+    return res.status(200).json({
+      message: "Questions fetched successfully",
+      success: true,
+      questions,
+    });
   } catch (error) {
     return res
       .status(500)
