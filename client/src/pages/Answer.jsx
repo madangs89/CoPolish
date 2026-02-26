@@ -1,4 +1,6 @@
+import { Check } from "lucide-react";
 import React, { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const fakeQuestions = [
   {
@@ -206,6 +208,9 @@ export const fakeQuestions = [
 const Answer = () => {
   const question = fakeQuestions[0];
   const [activeTab, setActiveTab] = useState("js");
+  const navigate = useNavigate();
+
+  const [hoveredSection, setHoveredSection] = useState(null);
 
   const shortAnswerRef = useRef(null);
   const definitionRef = useRef(null);
@@ -229,85 +234,131 @@ const Answer = () => {
   return (
     <div className="mt-16 flex bg-white min-h-screen">
       <div className="hidden md:block w-72 scrollbar-minimal bg-white border-r px-6 py-2 sticky top-16 h-[calc(100vh-4rem)] overflow-hidden">
-        <h2 className="text-lg font-semibold mb-3">Table</h2>
+        <div className="">
+          <h2 className="text-lg font-semibold mb-3">Table</h2>
 
-        {[
-          "Short Answer",
-          "Definition",
-          "Explanation",
-          "Code",
-          "Real World Example",
-        ].map((subject) => (
-          <label
-            onClick={() =>
-              allRefData[subject].current.scrollIntoView({ behavior: "smooth" })
-            }
-            key={subject}
-            className="flex items-center gap-3 mb-2 cursor-pointer group"
-          >
-            <span className="text-sm text-gray-600 group-hover:text-black">
-              {subject}
-            </span>
-          </label>
-        ))}
+          {[
+            "Short Answer",
+            "Definition",
+            "Explanation",
+            "Code",
+            "Real World Example",
+          ].map((subject) => (
+            <label
+              onClick={() =>
+                allRefData[subject].current.scrollIntoView({
+                  behavior: "smooth",
+                })
+              }
+              key={subject}
+              className="flex items-center gap-3 mb-2 cursor-pointer group"
+            >
+              <span className="text-sm text-gray-600 group-hover:text-black">
+                {subject}
+              </span>
+            </label>
+          ))}
+        </div>
+
+        {/* tip */}
+        <div className="flex w-full flex-col my-4">
+          <h2 className="text-lg font-semibold mb-2">💡Interview Tip</h2>
+          <p className="text-gray-700 text-sm">
+            Always be prepared to explain your thought process clearly and
+            concisely during interviews.
+          </p>
+        </div>
+        {/* mistake */}
+        <div className="flex w-full flex-col my-4">
+          <h2 className="text-lg font-semibold mb-2">Common Mistake</h2>
+          <p className="text-gray-700 text-sm">
+            Always be prepared to explain your thought process clearly and
+            concisely during interviews.
+          </p>
+        </div>
       </div>
-      <div ref={mainRef} className="flex-1 mx-auto px-6  py-2">
+      <main ref={mainRef} className="flex-1 max-w-4xl mx-auto px-8 py-5">
         {/* Title */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-3">
+        <h1 className="text-4xl font-bold text-gray-900 leading-tight mb-6">
           {question.topicOrder}. {question.question}
         </h1>
 
         {/* Meta Info */}
-        <div className="text-sm text-gray-500 mb-6 border-b pb-4">
-          <span className="mr-4">
-            Difficulty: <b>{question.difficulty}</b>
-          </span>
-          <span className="mr-4">Views: {question.views}</span>
-          <span className="mr-4">Likes: {question.likes}</span>
-          <span>Asked in: {question.interviewCount} interviews</span>
+        <div className="text-sm text-gray-500 mb-6 border-b gap-5 pb-4">
+          {" "}
+          <div className="">
+            {" "}
+            <span className="mr-4">
+              {" "}
+              Difficulty: <b>{question.difficulty}</b>{" "}
+            </span>{" "}
+            <span className="mr-4">Views: {question.views}</span>{" "}
+            <span className="mr-4">Likes: {question.likes}</span>{" "}
+            <span>Asked in: {question.interviewCount} interviews</span>{" "}
+          </div>{" "}
+          <button className="bg-green-700 mt-3 text-white px-4 py-2 rounded-md hover:bg-green-800 transition">
+            {" "}
+            Mark as Solved{" "}
+          </button>{" "}
         </div>
 
         {/* Short Answer */}
-        <div ref={shortAnswerRef} className="mb-8 scroll-mt-24">
-          <h2 className="text-xl font-semibold mb-2 border-b pb-2">
+        <div
+          ref={shortAnswerRef}
+          className="mb-10 bg-white border border-gray-200 rounded-xl p-6 shadow-sm scroll-mt-28"
+        >
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Interview Short Answer
           </h2>
+
           <p className="text-gray-700 leading-7">
             {question.shortAnswer.answer}
           </p>
+
           {question.shortAnswer.example && (
-            <p className="mt-3 text-gray-600 italic">
+            <p className="mt-4 text-gray-500 italic border-l-4 border-blue-500 pl-4">
               Example: {question.shortAnswer.example}
             </p>
           )}
         </div>
 
         {/* Definition */}
-        <div ref={definitionRef} className="mb-8">
-          <h2 className="text-xl font-semibold mb-2 border-b pb-2">
+        <div
+          ref={definitionRef}
+          className="mb-10 bg-white border border-gray-200 rounded-xl p-6 shadow-sm"
+        >
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Definition
           </h2>
+
           <p className="text-gray-700 leading-7">
             {question.detailedAnswer.definition}
           </p>
         </div>
 
         {/* Explanation */}
-        <div ref={explanationRef} className="mb-8">
-          <h2 className="text-xl font-semibold mb-2 border-b pb-2">
+        <div
+          ref={explanationRef}
+          className="mb-10 bg-white border border-gray-200 rounded-xl p-6 shadow-sm"
+        >
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Explanation
           </h2>
+
           <p className="text-gray-700 leading-7">
             {question.detailedAnswer.explanation}
           </p>
         </div>
 
         {/* Code Section */}
-        <div ref={codeRef} className="">
+        <div
+          ref={codeRef}
+          className="mb-10 bg-white border border-gray-200 rounded-xl p-6 shadow-sm"
+        >
           {languages.length > 0 && (
-            <div className="mb-10">
+            <div>
               {/* Tabs */}
-              <div className="flex border-b mb-4">
+              <div className="flex border-b mb-6">
                 {languages.map((lang) => (
                   <button
                     key={lang}
@@ -315,7 +366,7 @@ const Answer = () => {
                     className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
                       activeTab === lang
                         ? "border-blue-600 text-blue-600"
-                        : "border-transparent text-gray-600 hover:text-black"
+                        : "border-transparent text-gray-500 hover:text-gray-900"
                     }`}
                   >
                     {lang.toUpperCase()}
@@ -323,54 +374,87 @@ const Answer = () => {
                 ))}
               </div>
 
-              <pre class="line-numbers">
-                <code class="language-cpp">
-                  {question.codeSnippet[activeTab]}
-                </code>
-              </pre>
+              <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto text-sm text-gray-100">
+                <pre className="whitespace-pre-wrap">
+                  <code>{question.codeSnippet[activeTab]}</code>
+                </pre>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Interview Tip */}
-        {question.detailedAnswer.interviewTip && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-2 border-b pb-2">
-              Interview Tip
-            </h2>
-            <p className="text-gray-700 leading-7">
-              {question.detailedAnswer.interviewTip}
-            </p>
-          </div>
-        )}
-
         {/* Real World Example */}
         {question.detailedAnswer.realWorldExample && (
-          <div ref={realWorldExampleRef} className="mb-8">
-            <h2 className="text-xl font-semibold mb-2 border-b pb-2">
+          <div
+            ref={realWorldExampleRef}
+            className="mb-10 bg-white border border-gray-200 rounded-xl p-6 shadow-sm"
+          >
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
               Real World Example
             </h2>
+
             <p className="text-gray-700 leading-7">
               {question.detailedAnswer.realWorldExample}
             </p>
           </div>
         )}
-
-        {/* Common Mistake */}
-        {question.detailedAnswer.commonMistake && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-2 border-b pb-2">
-              Common Mistake
-            </h2>
-            <p className="text-gray-700 leading-7">
-              {question.detailedAnswer.commonMistake}
-            </p>
-          </div>
-        )}
-      </div>
+      </main>
 
       <div className="hidden md:block w-72 scrollbar-minimal bg-white border-l px-6 py-2 sticky top-16 h-[calc(100vh-4rem)] overflow-hidden">
-        <h2 className="text-lg font-semibold mb-6">Related Questions</h2>
+        {/* Related Questions */}
+        <div className="flex flex-col">
+          <h2 className="text-lg font-semibold mb-2">Related Questions</h2>
+          <div className="w-full flex flex-col">
+            {fakeQuestions.map((q, index) => {
+              return (
+                <div
+                  onMouseEnter={() => setHoveredSection(q.slug)}
+                  onMouseLeave={() => setHoveredSection(null)}
+                  onClick={() => navigate(`/answer/${q.subject}/${q.slug}`)}
+                  key={index}
+                  className="flex group relative rounded-md border-gray-400 justify-between cursor-pointer border-b w-full py-2 text-lg items-center"
+                >
+                  <div className="flex  gap-2 items-center justify-center">
+                    <h3 className="text-sm">
+                      {q.topicOrder + ". " + q.question}
+                    </h3>
+                  </div>
+                  <div className="flex right-0 absolute w-full  items-center justify-between bg-white px-4 py-2 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none">
+                    <span className="text-sm text-gray-500">
+                      {q.difficulty}
+                    </span>
+                    <div className="w-6 h-4 flex items-center justify-center">
+                      {q.solved ? (
+                        <div className="flex items-center justify-normal gap-2">
+                          <Check className="text-green-800 ml-2 w-5 h-5" />{" "}
+                          <p className="text-sm">Solved</p>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">Unsolved</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        {/* Key words */}
+        <div className="flex w-full flex-col my-2">
+          <h2 className="text-lg font-semibold mb-2">Question KeyWord</h2>
+          <div className="w-full flex flex-wrap gap-2">
+            {["abstraction", "oops", "dbms", "oops"].map((q, index) => {
+              return (
+                <div
+                  key={index}
+                  className="py-2 px-2 bg-gray-300 rounded-md text-sm text-black"
+                >
+                  {q}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

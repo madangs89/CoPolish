@@ -13,7 +13,7 @@ const statusList = ["Solved", "Unsolved", "Attempted"];
 
 const difficultyList = ["Basic", "Easy", "Medium", "Hard"];
 
-export const fakeQuestions = [
+ const fakeQuestions = [
   {
     title: "What is Abstraction in OOPS?",
     slug: "what-is-abstraction-in-oops",
