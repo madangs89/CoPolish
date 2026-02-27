@@ -370,8 +370,8 @@ const LinkedInEditor = () => {
     );
   } else {
     return (
-      <div className="min-h-screen bg-[#F4F2EE] flex justify-center">
-        <div className="w-full max-w-3xl px-2 my-20 flex flex-col gap-5">
+      <div className="h-screen bg-[#F4F2EE] overflow-y-auto flex justify-center">
+        <div className="w-full max-w-3xl  px-2 my-20 flex flex-col gap-5">
           {/* ================= PROFILE HEADER ================= */}
           <div className="bg-white rounded-xl overflow-hidden shadow-sm">
             <div className="relative h-36">

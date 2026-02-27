@@ -175,7 +175,7 @@ const ApprovePage = () => {
   }, [resumeData, dispatch]);
 
   return (
-    <div ref={sectionRef} className="h-screen header  bg-[#f8f9fb] mt-8 py-12">
+    <div ref={sectionRef} className="h-screen header overflow-y-scroll  bg-[#f8f9fb] mt-8 py-12">
       <div className="max-w-5xl mx-auto px-6">
         {/* HEADER */}
         <div className="mb-10 flex justify-between items-start">

@@ -230,6 +230,10 @@ export const markApprovedAndUpdate = async (req, res) => {
 
     const idleTime = Math.min(5 * 60 * 1000, (60 * 30 * 1000) / 2);
 
+    let now = Date.now();
+    let firstEditAt = await pubClient.hget(key, "firstEditAt");
+    if (!firstEditAt) firstEditAt = now;
+
     const flushAt = Math.min(
       now + idleTime,
       now + 25 * 60 * 1000,
