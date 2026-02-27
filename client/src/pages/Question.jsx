@@ -3,6 +3,10 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
+import axios from "axios";
+import { toast } from "react-hot-toast";
+import ButtonLoader from "../components/Loaders/ButtonLoader";
+import BlackLoader from "../components/Loaders/BlackLoader";
 const subjectsList = ["DSA", "OOPS", "OS", "CN", "DBMS"];
 const statusList = ["Solved", "Unsolved", "Attempted"];
 
@@ -218,7 +222,13 @@ const Question = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState([]);
 
+  const [allQuestions, setAllQuestions] = useState([]);
+
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [mainLoading, setMainLoading] = useState(false);
 
   useEffect(() => {
     console.log(searchParams.getAll("subject"));
@@ -245,9 +255,20 @@ const Question = () => {
   };
 
   const handleDifficultyChange = (level) => {
+    const newParams = new URLSearchParams(searchParams);
     setSelectedDifficulty((prev) =>
       prev.includes(level) ? prev.filter((d) => d !== level) : [...prev, level],
     );
+
+    if (newParams.getAll("difficulty").includes(level)) {
+      const values = newParams.getAll("difficulty").filter((d) => d !== level);
+      newParams.delete("difficulty");
+      values.forEach((d) => newParams.append("difficulty", d));
+    } else {
+      newParams.append("difficulty", level);
+    }
+
+    setSearchParams(newParams);
   };
 
   const handleStatusChange = (status) => {
@@ -274,6 +295,37 @@ const Question = () => {
         return subject;
     }
   };
+
+  useEffect(() => {
+    // Fetching all questions from backend (for now using fake data)
+
+    let allSubjects = searchParams.getAll("subject");
+    let allDifficulties = searchParams.getAll("difficulty");
+
+    if (allSubjects.length == 0 || allDifficulties.length == 0) {
+      allSubjects = ["OOPS", "DBMS", "OS", "CN", "DSA"];
+      allDifficulties = ["Basic", "Easy", "Medium", "Hard"];
+    }
+
+    (async () => {
+      try {
+        setMainLoading(true);
+        const QuestionRes = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/get/${allSubjects}/${allDifficulties}/1`,
+          {
+            withCredentials: true,
+          },
+        );
+        if (QuestionRes.data.success) {
+          setAllQuestions(QuestionRes.data.questions);
+        }
+      } catch (error) {
+        toast.error("Failed to fetch questions");
+      } finally {
+        setMainLoading(false);
+      }
+    })();
+  }, [searchParams]);
 
   return (
     <div className="w-full mt-16 flex min-h-screen px-6 bg-white">
@@ -368,27 +420,40 @@ const Question = () => {
 
         {/* Placeholder for Question Cards */}
         <div className="gap-2 flex flex-col ">
-          {fakeQuestions.map((q, index) => {
-            return (
-              <div
-                onClick={() => navigate(`/answer/${q.subject}/${q.slug}`)}
-                key={index}
-                className="flex  rounded-md border-gray-400 justify-between cursor-pointer border-b w-full py-4 text-lg px-1 items-center"
-              >
-                <div className="flex  gap-2 items-center justify-center">
-                  <div className="w-6 h-4 flex items-center justify-center">
-                    {q.solved && (
-                      <Check className="text-green-800 ml-2 w-5 h-5" />
-                    )}
+          {mainLoading ? (
+            <div className="flex items-center justify-center mt-20">
+              <BlackLoader />
+            </div>
+          ) : allQuestions.length == 0 ? (
+            <div className="flex flex-col items-center justify-center gap-4 mt-20">
+              {/* <img src="/empty.svg" alt="No questions" className="w-48 h-48" /> */}
+              <h2 className="text-xl text-gray-600">No questions found</h2>
+            </div>
+          ) : (
+            allQuestions.map((q, index) => {
+              return (
+                <div
+                  onClick={() => navigate(`/answer/${q.subject}/${q.slug}`)}
+                  key={index}
+                  className="flex  rounded-md border-gray-400 justify-between cursor-pointer border-b w-full py-4 text-lg px-1 items-center"
+                >
+                  <div className="flex  gap-2 items-center justify-center">
+                    <div className="w-6 h-4 flex items-center justify-center">
+                      {q.solved && (
+                        <Check className="text-green-800 ml-2 w-5 h-5" />
+                      )}
+                    </div>
+                    <h3>{q.topicOrder + ". " + q.question}</h3>
                   </div>
-                  <h3>{q.topicOrder + ". " + q.question}</h3>
+                  <div className="flex items-center justify-center">
+                    <span className="text-sm text-gray-500">
+                      {q.difficulty}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-center">
-                  <span className="text-sm text-gray-500">{q.difficulty}</span>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </div>
     </div>

@@ -160,12 +160,22 @@ export const getAllSubjectQuestionCount = async (req, res) => {
 
 export const getQuestionsForAllTypeOfFilters = async (req, res) => {
   try {
-    const {
-      subject = ["OOPS", "DBMS", "OS", "CN", "DSA"],
-      difficulty = ["Basic", "Easy", "Medium", "Hard"],
-      page = 1,
-    } = req.body;
+    let { subject, difficulty, page = 1 } = req.params;
 
+    subject = subject.split(",");
+    difficulty = difficulty.split(",");
+
+    console.log(subject, difficulty, page);
+
+    if (subject.length == 0) {
+      subject = ["DSA", "OOPS", "DBMS", "CN", "OS"];
+    }
+
+    if (difficulty.length == 0) {
+      difficulty = ["Basic", "Easy", "Medium", "Hard"];
+    }
+
+    console.log(subject, difficulty, page);
     const limit = 10;
 
     const skip = (page - 1) * limit;
@@ -186,7 +196,7 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
-    console.log(questions);
+    console.log({questions});
 
     return res.status(200).json({
       message: "Questions fetched successfully",

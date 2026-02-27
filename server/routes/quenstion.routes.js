@@ -11,7 +11,11 @@ import { authMiddelware } from "../middleware/auth.middelware.js";
 
 const questionRouter = express.Router();
 
-questionRouter.get("/get", authMiddelware, getQuestionsForAllTypeOfFilters);
+questionRouter.get(
+  "/get/:subject/:difficulty/:page",
+  authMiddelware,
+  getQuestionsForAllTypeOfFilters,
+);
 questionRouter.get("/count/all", authMiddelware, getAllSubjectQuestionCount);
 questionRouter.get("/get/question/:id", authMiddelware, getCurrentQuestionById);
 questionRouter.get(
