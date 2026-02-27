@@ -4,6 +4,7 @@ import {
   getAllSubjectQuestionCount,
   getCurrentQuestionById,
   getQuestionsForAllTypeOfFilters,
+  getRelatedQuestions,
   getSubjectQuestionCount,
 } from "../controller/question.controler.js";
 import { adminMiddleware } from "../middleware/admin.middelware.js";
@@ -18,6 +19,11 @@ questionRouter.get(
 );
 questionRouter.get("/count/all", authMiddelware, getAllSubjectQuestionCount);
 questionRouter.get("/get/question/:id", authMiddelware, getCurrentQuestionById);
+questionRouter.get(
+  "/get/related/questions",
+  authMiddelware,
+  getRelatedQuestions,
+);
 questionRouter.get(
   "/count/subjects/:subject",
   authMiddelware,

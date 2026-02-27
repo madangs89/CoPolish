@@ -1,6 +1,9 @@
 import { Check } from "lucide-react";
-import React, { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-hot-toast";
+import BlackLoader from "../components/Loaders/BlackLoader";
 
 export const fakeQuestions = [
   {
@@ -206,11 +209,15 @@ export const fakeQuestions = [
 ];
 
 const Answer = () => {
-  const question = fakeQuestions[0];
+  const [question, setQuestion] = useState(null);
   const [activeTab, setActiveTab] = useState("js");
   const navigate = useNavigate();
 
   const [hoveredSection, setHoveredSection] = useState(null);
+
+  const [relatedQuestions, setRelatedQuestions] = useState([]);
+
+  const [relatedLoading, setRelatedLoading] = useState(false);
 
   const shortAnswerRef = useRef(null);
   const definitionRef = useRef(null);
@@ -218,6 +225,8 @@ const Answer = () => {
   const codeRef = useRef(null);
   const realWorldExampleRef = useRef(null);
   const mainRef = useRef(null);
+
+  const params = useParams();
 
   const allRefData = {
     "Short Answer": shortAnswerRef,
@@ -227,9 +236,67 @@ const Answer = () => {
     "Real World Example": realWorldExampleRef,
   };
 
-  const languages = Object.keys(question.codeSnippet).filter(
+  const languages = Object.keys(question?.codeSnippet || {}).filter(
     (lang) => question.codeSnippet[lang],
   );
+
+  const [mainLoading, setMainLoading] = useState(true);
+  useEffect(() => {
+    // Fetching all questions from backend (for now using fake data)
+
+    const { subject, slug, id } = params;
+    (async () => {
+      try {
+        setMainLoading(true);
+        const QuestionRes = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/get/question/${id}`,
+          {
+            withCredentials: true,
+          },
+        );
+        if (QuestionRes.data.success) {
+          setQuestion(QuestionRes.data.question);
+        }
+      } catch (error) {
+        toast.error("Failed to fetch questions");
+      } finally {
+        setMainLoading(false);
+      }
+    })();
+  }, [params]);
+
+  useEffect(() => {
+    if (question?._id) {
+      (async () => {
+        try {
+          setRelatedLoading(true);
+
+          const relatedQuestions = await axios.get(
+            `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/get/related/questions?keywords=${question?.keywords}&_id=${question?._id}&subject=${question?.subject}`,
+            {
+              withCredentials: true,
+            },
+          );
+
+          if (relatedQuestions.data.success) {
+            setRelatedQuestions(relatedQuestions.data.relatedQuestions);
+          }
+        } catch (error) {
+          toast.error("Failed to fetch Related questions");
+        } finally {
+          setRelatedLoading(false);
+        }
+      })();
+    }
+  }, [question]);
+
+  if (mainLoading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <BlackLoader />
+      </div>
+    );
+  }
 
   return (
     <div className="mt-16 flex bg-white min-h-screen">
@@ -263,17 +330,15 @@ const Answer = () => {
         {/* tip */}
         <div className="flex w-full flex-col my-4">
           <h2 className="text-lg font-semibold mb-2">💡Interview Tip</h2>
-          <p className="text-gray-700 text-sm">
-            Always be prepared to explain your thought process clearly and
-            concisely during interviews.
+          <p className="text-gray-700 text-sm whitespace-pre-line">
+            {question?.detailedAnswer?.interviewTip}
           </p>
         </div>
         {/* mistake */}
         <div className="flex w-full flex-col my-4">
           <h2 className="text-lg font-semibold mb-2">Common Mistake</h2>
-          <p className="text-gray-700 text-sm">
-            Always be prepared to explain your thought process clearly and
-            concisely during interviews.
+          <p className="text-gray-700 text-sm whitespace-pre-line">
+            {question?.detailedAnswer?.commonMistake}
           </p>
         </div>
       </div>
@@ -311,7 +376,7 @@ const Answer = () => {
             Interview Short Answer
           </h2>
 
-          <p className="text-gray-700 leading-7">
+          <p className="text-gray-700 leading-7 whitespace-pre-line">
             {question.shortAnswer.answer}
           </p>
 
@@ -331,7 +396,7 @@ const Answer = () => {
             Definition
           </h2>
 
-          <p className="text-gray-700 leading-7">
+          <p className="text-gray-700 leading-7 whitespace-pre-line">
             {question.detailedAnswer.definition}
           </p>
         </div>
@@ -345,7 +410,7 @@ const Answer = () => {
             Explanation
           </h2>
 
-          <p className="text-gray-700 leading-7">
+          <p className="text-gray-700 leading-7 whitespace-pre-line">
             {question.detailedAnswer.explanation}
           </p>
         </div>
@@ -405,28 +470,43 @@ const Answer = () => {
         <div className="flex flex-col">
           <h2 className="text-lg font-semibold mb-2">Related Questions</h2>
           <div className="w-full flex flex-col">
-            {fakeQuestions.map((q, index) => {
-              return (
+            {relatedLoading ? (
+              <div className="w-full flex items-center justify-center py-10">
+                <BlackLoader />
+              </div>
+            ) : relatedQuestions.length > 0 ? (
+              relatedQuestions.map((q) => (
                 <div
+                  key={q._id}
                   onMouseEnter={() => setHoveredSection(q.slug)}
                   onMouseLeave={() => setHoveredSection(null)}
-                  onClick={() => navigate(`/answer/${q.subject}/${q.slug}`)}
-                  key={index}
-                  className="flex group relative rounded-md border-gray-400 justify-between cursor-pointer border-b w-full py-2 text-lg items-center"
+                  onClick={() =>
+                    navigate(`/answer/${q.subject}/${q.slug}/${q._id}`)
+                  }
+                  className="flex group relative rounded-md border-gray-400 
+                   justify-between cursor-pointer border-b w-full 
+                   py-2 text-lg items-center"
                 >
-                  <div className="flex  gap-2 items-center justify-center">
+                  <div className="flex gap-2 items-center">
                     <h3 className="text-sm">
                       {q.topicOrder + ". " + q.question}
                     </h3>
                   </div>
-                  <div className="flex right-0 absolute w-full  items-center justify-between bg-white px-4 py-2 rounded-md opacity-0 group-hover:opacity-100 transition pointer-events-none">
+
+                  <div
+                    className="flex absolute right-0 h-full w-full items-center 
+                     justify-between bg-white px-4 py-2 
+                     rounded-md opacity-0 group-hover:opacity-100 
+                     transition pointer-events-none"
+                  >
                     <span className="text-sm text-gray-500">
                       {q.difficulty}
                     </span>
+
                     <div className="w-6 h-4 flex items-center justify-center">
                       {q.solved ? (
-                        <div className="flex items-center justify-normal gap-2">
-                          <Check className="text-green-800 ml-2 w-5 h-5" />{" "}
+                        <div className="flex items-center gap-2">
+                          <Check className="text-green-800 w-5 h-5" />
                           <p className="text-sm">Solved</p>
                         </div>
                       ) : (
@@ -435,8 +515,12 @@ const Answer = () => {
                     </div>
                   </div>
                 </div>
-              );
-            })}
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm text-center py-10">
+                No related questions found.
+              </p>
+            )}
           </div>
         </div>
         {/* Key words */}

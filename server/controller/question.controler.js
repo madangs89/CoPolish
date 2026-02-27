@@ -163,6 +163,8 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
     let { subject, difficulty, page = 1 } = req.params;
 
     subject = subject.split(",");
+    console.log({subject});
+    
     difficulty = difficulty.split(",");
 
     console.log(subject, difficulty, page);
@@ -196,7 +198,7 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
-    console.log({questions});
+
 
     return res.status(200).json({
       message: "Questions fetched successfully",
@@ -233,5 +235,59 @@ export const getCurrentQuestionById = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Something went wrong", success: false });
+  }
+};
+
+export const getRelatedQuestions = async (req, res) => {
+  try {
+    let { keywords, _id, subject } = req.query;
+
+    if (!keywords) {
+      return res.status(400).json({
+        message: "Keywords are required to fetch related questions",
+        success: false,
+      });
+    }
+
+    keywords = keywords.split(",");
+
+    let relatedQuestions = [];
+
+    if (keywords.length > 0) {
+      relatedQuestions = await Question.find({
+        keywords: { $in: keywords },
+        _id: { $ne: _id },
+        subject: subject,
+      }).limit(5);
+    }
+
+    const remainingCount = 5 - relatedQuestions.length;
+
+    let moreQuestions = [];
+
+    if (remainingCount > 0) {
+      const alreadyFetchedIds = relatedQuestions.map((q) => q._id);
+
+      moreQuestions = await Question.find({
+        subject: subject,
+        _id: { $nin: [...alreadyFetchedIds, _id] },
+      }).limit(remainingCount);
+    }
+
+    relatedQuestions = [...relatedQuestions, ...moreQuestions];
+
+    return res.status(200).json({
+      message: "Related questions fetched successfully",
+      success: true,
+      relatedQuestions,
+      length: relatedQuestions.length,
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      message: "Something went wrong",
+      success: false,
+    });
   }
 };

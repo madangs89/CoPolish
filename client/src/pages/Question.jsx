@@ -302,11 +302,16 @@ const Question = () => {
     let allSubjects = searchParams.getAll("subject");
     let allDifficulties = searchParams.getAll("difficulty");
 
-    if (allSubjects.length == 0 || allDifficulties.length == 0) {
+    console.log(allSubjects);
+
+    if (allSubjects.length == 0) {
       allSubjects = ["OOPS", "DBMS", "OS", "CN", "DSA"];
       allDifficulties = ["Basic", "Easy", "Medium", "Hard"];
     }
 
+    if (allDifficulties.length == 0) {
+      allDifficulties = ["Basic", "Easy", "Medium", "Hard"];
+    }
     (async () => {
       try {
         setMainLoading(true);
@@ -433,7 +438,9 @@ const Question = () => {
             allQuestions.map((q, index) => {
               return (
                 <div
-                  onClick={() => navigate(`/answer/${q.subject}/${q.slug}`)}
+                  onClick={() =>
+                    navigate(`/answer/${q.subject}/${q.slug}/${q._id}`)
+                  }
                   key={index}
                   className="flex  rounded-md border-gray-400 justify-between cursor-pointer border-b w-full py-4 text-lg px-1 items-center"
                 >
