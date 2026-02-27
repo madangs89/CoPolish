@@ -463,7 +463,7 @@ const Question = () => {
       {/* Main Content */}
       <div
         ref={mainRef}
-        className="flex-1 overflow-scroll scrollbar-minimal max-auto pr-3 h-screen bg-white pt-2 pb-32 pl-3"
+        className="flex-1 overflow-scroll scrollbar-minimal max-auto md:pr-3 h-screen bg-white pt-2 pb-32 md:pl-3"
       >
         {/* Top Bar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
