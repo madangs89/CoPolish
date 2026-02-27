@@ -1,5 +1,5 @@
 import { Check } from "lucide-react";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
@@ -222,13 +222,19 @@ const Question = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState([]);
 
+  const mainRef = useRef(null);
+
   const [allQuestions, setAllQuestions] = useState([]);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [currentPage, setCurrentPage] = useState(1);
 
+  const [pages, setPages] = useState(1);
+  const pageRef = useRef(1);
   const [mainLoading, setMainLoading] = useState(false);
+
+  const [pageLoading, setPageLoading] = useState(false);
 
   useEffect(() => {
     console.log(searchParams.getAll("subject"));
@@ -296,11 +302,43 @@ const Question = () => {
     }
   };
 
-  useEffect(() => {
-    // Fetching all questions from backend (for now using fake data)
+  const getPageWiseData = async () => {
+    try {
+      setPageLoading(true);
+      let allSubjects = searchParams.getAll("subject");
+      let allDifficulties = searchParams.getAll("difficulty");
 
+      if (allDifficulties.length == 0) {
+        allDifficulties = ["Basic", "Easy", "Medium", "Hard"];
+      }
+
+      let next = pageRef.current + 1;
+
+      const QuestionRes = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/get/${allSubjects}/${allDifficulties}/${next}`,
+        {
+          withCredentials: true,
+        },
+      );
+
+      if (QuestionRes.data.success) {
+        pageRef.current = next;
+        setPages((prev) => prev + 1);
+        setAllQuestions((prev) => [...prev, ...QuestionRes.data.questions]);
+      }
+    } catch (error) {
+      toast.error("Failed to fetch questions");
+    } finally {
+      setPageLoading(true);
+    }
+  };
+
+  useEffect(() => {
     let allSubjects = searchParams.getAll("subject");
     let allDifficulties = searchParams.getAll("difficulty");
+
+    setPages(1);
+    pageRef.current = 1;
 
     console.log(allSubjects);
 
@@ -332,8 +370,25 @@ const Question = () => {
     })();
   }, [searchParams]);
 
+  useEffect(() => {
+    const mainEl = mainRef.current;
+    if (!mainEl) return;
+    const handleScroll = () => {
+      if (
+        mainEl.scrollTop + mainEl.clientHeight >= mainEl.scrollHeight - 5 &&
+        !mainLoading
+      ) {
+        getPageWiseData();
+      }
+    };
+    mainEl.addEventListener("scroll", handleScroll);
+    return () => {
+      mainEl.removeEventListener("scroll", handleScroll);
+    };
+  }, [mainRef, mainLoading]);
+
   return (
-    <div className="w-full mt-16 flex min-h-screen px-6 bg-white">
+    <div className="w-full mt-16  flex min-h-screen pl-6 bg-white">
       {/* Sidebar */}
       <div className="hidden md:block w-72 scrollbar-minimal bg-white border-r p-6 sticky top-16 h-[calc(100vh-4rem)] overflow-hidden">
         <h2 className="text-xl font-bold mb-6">Filters</h2>
@@ -406,7 +461,10 @@ const Question = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 bg-white py-2 pl-3">
+      <div
+        ref={mainRef}
+        className="flex-1 overflow-scroll scrollbar-minimal max-auto pr-3 h-screen bg-white pt-2 pb-32 pl-3"
+      >
         {/* Top Bar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <input
@@ -460,6 +518,12 @@ const Question = () => {
                 </div>
               );
             })
+          )}
+
+          {pageLoading && (
+            <div className="flex w-full items-center justify-center mt-4">
+              <BlackLoader />
+            </div>
           )}
         </div>
       </div>

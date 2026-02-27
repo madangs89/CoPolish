@@ -241,9 +241,8 @@ const Answer = () => {
   );
 
   const [mainLoading, setMainLoading] = useState(true);
-  useEffect(() => {
-    // Fetching all questions from backend (for now using fake data)
 
+  useEffect(() => {
     const { subject, slug, id } = params;
     (async () => {
       try {
@@ -342,7 +341,10 @@ const Answer = () => {
           </p>
         </div>
       </div>
-      <main ref={mainRef} className="flex-1 max-w-4xl mx-auto px-8 py-5">
+      <main
+        ref={mainRef}
+        className="flex-1 md:max-w-4xl h-screen overflow-scroll [&::-webkit-scrollbar]:hidden max-w-full mx-auto px-8 py-3"
+      >
         {/* Title */}
         <h1 className="text-4xl font-bold text-gray-900 leading-tight mb-6">
           {question.topicOrder}. {question.question}

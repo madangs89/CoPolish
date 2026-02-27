@@ -98,7 +98,7 @@ const App = () => {
   }, [auth, socket]);
 
   return (
-    <div className="w-full relative min-h-screen">
+    <div className="w-full relative overflow-hidden min-h-screen">
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
           {/* Public */}

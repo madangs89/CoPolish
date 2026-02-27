@@ -162,6 +162,8 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
   try {
     let { subject, difficulty, page = 1 } = req.params;
 
+    console.log({page})
+
     subject = subject.split(",");
     console.log({subject});
     

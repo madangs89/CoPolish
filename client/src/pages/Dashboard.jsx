@@ -241,7 +241,7 @@ const Dashboard = () => {
   }, [userDetails?.currentLinkedInId]);
 
   return (
-    <div className="min-h-screen mt-10 bg-[#f7f7f7] relative px-6 overflow-hidden md:px-14 py-10">
+    <div className="h-screen mt-10 bg-[#f7f7f7] relative px-6 overflow-y-scroll md:px-14 py-10">
       {/* ================= TOP MESSAGE ================= */}
       <div className="bg-[#eaf2ff] rounded-2xl px-6 py-4 flex items-center gap-3 mb-10">
         <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center">

@@ -7,7 +7,7 @@ const ProtectedLayout = () => {
   const auth = useSelector((state) => state.auth.isAuth);
 
   const containerRef = useRef(null);
- 
+
   if (!auth) {
     return <Navigate to="/" replace />;
   }
@@ -15,9 +15,9 @@ const ProtectedLayout = () => {
   return (
     <div
       ref={containerRef}
-      className="h-screen w-full  relative overflow-y-auto"
+      className="h-screen w-full  relative overflow-hidden"
     >
-      <MainNavbar  />
+      <MainNavbar />
       <div className="">
         <Outlet />
       </div>
