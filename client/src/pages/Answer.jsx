@@ -529,16 +529,22 @@ const Answer = () => {
         <div className="flex w-full flex-col my-2">
           <h2 className="text-lg font-semibold mb-2">Question KeyWord</h2>
           <div className="w-full flex flex-wrap gap-2">
-            {["abstraction", "oops", "dbms", "oops"].map((q, index) => {
-              return (
-                <div
-                  key={index}
-                  className="py-2 px-2 bg-gray-300 rounded-md text-sm text-black"
-                >
-                  {q}
-                </div>
-              );
-            })}
+            {question.keywords.length > 0 ? (
+              question.keywords.map((q, index) => {
+                return (
+                  <div
+                    key={index}
+                    className="py-2 px-2 bg-gray-300 rounded-md text-sm text-black"
+                  >
+                    {q}
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-gray-500 text-sm text-center py-10">
+                No keywords found for this question.
+              </p>
+            )}
           </div>
         </div>
       </div>
