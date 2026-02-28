@@ -370,137 +370,143 @@ const LinkedInEditor = () => {
     );
   } else {
     return (
-      <div className="min-h-screen bg-[#F4F2EE] flex justify-center">
-        <div className="w-full max-w-3xl  px-2 my-20 flex flex-col gap-5">
-          {/* ================= PROFILE HEADER ================= */}
-          <div className="bg-white rounded-xl overflow-hidden shadow-sm">
-            <div className="relative h-36">
-              {/* Cover Image */}
-              <img
-                src="https://img.freepik.com/free-vector/half-tone-blue-abstract-background-with-text-space_1017-41428.jpg"
-                className="w-full h-full object-cover"
-                alt="cover"
-              />
-
-              {/* Status Badge */}
-
-              {/* Profile Image */}
-              <img
-                src={
-                  currentLinkedIn?.personalInfo?.profileUrl ||
-                  "https://www.gravatar.com/avatar/?d=mp&s=150"
-                }
-                className="absolute left-6 -bottom-12 w-32 h-32 rounded-full border-4 border-white object-cover shadow-md"
-                alt="profile"
-              />
-            </div>
-
-            <div className="pt-16 px-6 pb-4">
-              <div className="flex items-center justify-between w-full">
-                <h1 className="text-xl font-semibold">
-                  {currentLinkedIn?.personalInfo?.fullName?.toUpperCase()}
-                </h1>
-                <StatusBadge
-                  status={linkedInSlice.globalLoader}
-                  sections={linkedInSlice.sectionLoaders}
+      <div className="h-screen min-h-screen  bg-[#F4F2EE] flex justify-center">
+        <div className="flex-1 flex justify-center overflow-hidden pt-20 pb-6">
+          <div className="w-full relative max-w-3xl h-full overflow-y-auto px-2  flex flex-col gap-5">
+            {/* ================= PROFILE HEADER ================= */}
+            <div className="bg-white w-full rounded-xl shadow-sm relative">
+              {/* Cover Section */}
+              <div className="relative h-36">
+                <img
+                  src="https://img.freepik.com/free-vector/half-tone-blue-abstract-background-with-text-space_1017-41428.jpg"
+                  className="w-full h-full object-cover rounded-t-xl"
+                  alt="cover"
                 />
               </div>
 
-              <p
-                className={`text-sm mt-1 transition-opacity duration-300 ${
-                  linkedInSlice.globalLoader === "running"
-                    ? "text-gray-500 opacity-70"
-                    : "text-gray-800"
-                }`}
-              >
-                {returnProperData(currentLinkedIn?.headline)}
-              </p>
+              {/* Profile Image (NO negative positioning) */}
+              <div className="absolute left-6 top-24">
+                <img
+                  src={
+                    currentLinkedIn?.personalInfo?.profileUrl ||
+                    "https://www.gravatar.com/avatar/?d=mp&s=150"
+                  }
+                  className="w-32 h-32 rounded-full border-4 border-white object-cover shadow-md"
+                  alt="profile"
+                />
+              </div>
 
-              <p className="text-xs text-gray-500 mt-1">
-                {currentLinkedIn?.personalInfo?.location}
-              </p>
-            </div>
-          </div>
+              {/* Content Section */}
+              <div className="pt-20 px-6 pb-4">
+                <div className="flex items-center justify-between w-full">
+                  <h1 className="text-xl font-semibold">
+                    {currentLinkedIn?.personalInfo?.fullName?.toUpperCase()}
+                  </h1>
 
-          {/* ================= HEADLINE OPTIMIZER ================= */}
-          <div
-            className={`
-          bg-white   rounded-xl px-6 min-h-[200px] py-4
-          ${linkedInSlice.globalLoader == "running" && linkedInSlice.sectionLoaders && linkedInSlice.sectionLoaders.length > 0 && linkedInSlice.sectionLoaders.find((section) => section.name == "headline" && section.status == "running") ? "linkedInLoader cursor-not-allowed" : ""}
-          `}
-          >
-            <div className="flex justify-between items-center">
-              <h2 className="font-semibold text-lg">Headline</h2>
-              <div className="flex items-center justify-center gap-3">
-                {currentLinkedIn?.changes?.headline?.length > 0 && (
-                  <button
-                    className="text-blue-600 text-sm font-medium"
-                    onClick={() => setCurrentChangesShowModal("headline")}
-                  >
-                    <p className="px-3 py-1 bg-zinc-100 border rounded-md">
-                      Changes
-                    </p>
-                  </button>
-                )}
-                <button
-                  className="text-blue-600 text-sm font-medium"
-                  onClick={() => handleOptimize("headline", "ALL")}
+                  <StatusBadge
+                    status={linkedInSlice.globalLoader}
+                    sections={linkedInSlice.sectionLoaders}
+                  />
+                </div>
+
+                <p
+                  className={`text-sm mt-1 transition-opacity duration-300 ${
+                    linkedInSlice.globalLoader === "running"
+                      ? "text-gray-500 opacity-70"
+                      : "text-gray-800"
+                  }`}
                 >
-                  {linkedInSlice.globalLoader == "running" &&
-                  linkedInSlice.sectionLoaders &&
-                  linkedInSlice.sectionLoaders.length > 0 &&
-                  linkedInSlice.sectionLoaders.find(
-                    (section) =>
-                      section.name == "headline" && section.status == "running",
-                  ) ? (
-                    <span className="ml-2">
-                      <BlackLoader />
-                    </span>
-                  ) : (
-                    <p className="px-3 py-1 bg-zinc-50 border rounded-full flex items-center gap-2 text-sm font-medium text-zinc-700 hover:bg-zinc-200 transition">
-                      Optimize
-                      <span className="text-[11px] bg-[#CA8A02] text-white px-2 py-0.5 rounded-full">
-                        1 credit
-                      </span>
-                    </p>
-                  )}
-                </button>
+                  {returnProperData(currentLinkedIn?.headline)}
+                </p>
+
+                <p className="text-xs text-gray-500 mt-1">
+                  {currentLinkedIn?.personalInfo?.location}
+                </p>
               </div>
             </div>
 
-            <div className="flex gap-2 mt-3">
-              {currentLinkedIn?.headline.options &&
-                currentLinkedIn?.headline.options.length > 0 &&
-                [...currentLinkedIn?.headline.options]
-                  .sort((a, b) => {
-                    if (a.tone === currentLinkedIn?.headline.currentTone)
-                      return -1;
-                    if (b.tone === currentLinkedIn?.headline.currentTone)
-                      return 1;
-                    return 0;
-                  })
-                  .map((opt) => (
+            {/* ================= HEADLINE OPTIMIZER ================= */}
+            <div
+              className={`
+          bg-white   rounded-xl px-6 min-h-[200px] py-4
+          ${linkedInSlice.globalLoader == "running" && linkedInSlice.sectionLoaders && linkedInSlice.sectionLoaders.length > 0 && linkedInSlice.sectionLoaders.find((section) => section.name == "headline" && section.status == "running") ? "linkedInLoader cursor-not-allowed" : ""}
+          `}
+            >
+              <div className="flex justify-between items-center">
+                <h2 className="font-semibold text-lg">Headline</h2>
+                <div className="flex items-center justify-center gap-3">
+                  {currentLinkedIn?.changes?.headline?.length > 0 && (
                     <button
-                      key={opt._id}
-                      onClick={() => handleUpdateHeadlineStates(opt.tone)}
-                      className={`px-3 py-1 text-xs rounded-md border
+                      className="text-blue-600 text-sm font-medium"
+                      onClick={() => setCurrentChangesShowModal("headline")}
+                    >
+                      <p className="px-3 py-1 bg-zinc-100 border rounded-md">
+                        Changes
+                      </p>
+                    </button>
+                  )}
+                  <button
+                    className="text-blue-600 text-sm font-medium"
+                    onClick={() => handleOptimize("headline", "ALL")}
+                  >
+                    {linkedInSlice.globalLoader == "running" &&
+                    linkedInSlice.sectionLoaders &&
+                    linkedInSlice.sectionLoaders.length > 0 &&
+                    linkedInSlice.sectionLoaders.find(
+                      (section) =>
+                        section.name == "headline" &&
+                        section.status == "running",
+                    ) ? (
+                      <span className="ml-2">
+                        <BlackLoader />
+                      </span>
+                    ) : (
+                      <p className="px-3 py-1 bg-zinc-50 border rounded-full flex items-center gap-2 text-sm font-medium text-zinc-700 hover:bg-zinc-200 transition">
+                        Optimize
+                        <span className="text-[11px] bg-[#CA8A02] text-white px-2 py-0.5 rounded-full">
+                          1 credit
+                        </span>
+                      </p>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-2 mt-3">
+                {currentLinkedIn?.headline.options &&
+                  currentLinkedIn?.headline.options.length > 0 &&
+                  [...currentLinkedIn?.headline.options]
+                    .sort((a, b) => {
+                      if (a.tone === currentLinkedIn?.headline.currentTone)
+                        return -1;
+                      if (b.tone === currentLinkedIn?.headline.currentTone)
+                        return 1;
+                      return 0;
+                    })
+                    .map((opt) => (
+                      <button
+                        key={opt._id}
+                        onClick={() => handleUpdateHeadlineStates(opt.tone)}
+                        className={`px-3 py-1 text-xs rounded-md border
                   ${
                     headlineTone === opt.tone
                       ? "bg-blue-600 text-white"
                       : "bg-white text-gray-700"
                   }`}
-                    >
-                      {opt.tone}
-                    </button>
-                  ))}
+                      >
+                        {opt.tone}
+                      </button>
+                    ))}
+              </div>
+
+              <p className="text-sm mt-3 text-gray-900">
+                {headlineCurrentText}
+              </p>
             </div>
 
-            <p className="text-sm mt-3 text-gray-900">{headlineCurrentText}</p>
-          </div>
-
-          {/* ================= ABOUT OPTIMIZER ================= */}
-          <div
-            className={`
+            {/* ================= ABOUT OPTIMIZER ================= */}
+            <div
+              className={`
           
           bg-white rounded-xl px-6 py-4
 
@@ -508,240 +514,246 @@ const LinkedInEditor = () => {
             
           
           `}
-          >
-            <div className="flex justify-between items-center">
-              <h2 className="font-semibold text-lg">About</h2>
+            >
+              <div className="flex justify-between items-center">
+                <h2 className="font-semibold text-lg">About</h2>
 
-              <div className="flex items-center justify-center gap-3">
-                {currentLinkedIn?.changes?.about?.length > 0 && (
+                <div className="flex items-center justify-center gap-3">
+                  {currentLinkedIn?.changes?.about?.length > 0 && (
+                    <button
+                      className="text-blue-600 text-sm font-medium"
+                      onClick={() => setCurrentChangesShowModal("about")}
+                    >
+                      <p className="px-3 py-1 bg-zinc-100 border rounded-md">
+                        Changes
+                      </p>
+                    </button>
+                  )}
                   <button
                     className="text-blue-600 text-sm font-medium"
-                    onClick={() => setCurrentChangesShowModal("about")}
+                    onClick={() => handleOptimize("about", "ALL")}
                   >
-                    <p className="px-3 py-1 bg-zinc-100 border rounded-md">
-                      Changes
-                    </p>
-                  </button>
-                )}
-                <button
-                  className="text-blue-600 text-sm font-medium"
-                  onClick={() => handleOptimize("about", "ALL")}
-                >
-                  {linkedInSlice.globalLoader == "running" &&
-                  linkedInSlice.sectionLoaders &&
-                  linkedInSlice.sectionLoaders.length > 0 &&
-                  linkedInSlice.sectionLoaders.find(
-                    (section) =>
-                      section.name == "about" && section.status == "running",
-                  ) ? (
-                    <span className="ml-2">
-                      <BlackLoader />
-                    </span>
-                  ) : (
-                    <p className="px-3 py-1 bg-zinc-50 border rounded-full flex items-center gap-2 text-sm font-medium text-zinc-700 hover:bg-zinc-200 transition">
-                      Optimize
-                      <span className="text-[11px] bg-[#CA8A02] text-white px-2 py-0.5 rounded-full">
-                        1 credit
+                    {linkedInSlice.globalLoader == "running" &&
+                    linkedInSlice.sectionLoaders &&
+                    linkedInSlice.sectionLoaders.length > 0 &&
+                    linkedInSlice.sectionLoaders.find(
+                      (section) =>
+                        section.name == "about" && section.status == "running",
+                    ) ? (
+                      <span className="ml-2">
+                        <BlackLoader />
                       </span>
-                    </p>
-                  )}
-                </button>
+                    ) : (
+                      <p className="px-3 py-1 bg-zinc-50 border rounded-full flex items-center gap-2 text-sm font-medium text-zinc-700 hover:bg-zinc-200 transition">
+                        Optimize
+                        <span className="text-[11px] bg-[#CA8A02] text-white px-2 py-0.5 rounded-full">
+                          1 credit
+                        </span>
+                      </p>
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div className="flex gap-2 mt-3">
-              {currentLinkedIn?.about?.options &&
-                currentLinkedIn?.about?.options.length > 0 &&
-                [...currentLinkedIn?.about?.options]
-                  .sort((a, b) => {
-                    if (a.tone === currentLinkedIn?.about.currentTone)
-                      return -1;
-                    if (b.tone === currentLinkedIn?.about.currentTone) return 1;
-                    return 0;
-                  })
-                  .map((opt) => (
-                    <button
-                      key={opt._id}
-                      onClick={() => handleUpdateAboutStates(opt.tone)}
-                      className={`px-3 py-1 text-xs rounded-md border
+              <div className="flex gap-2 mt-3">
+                {currentLinkedIn?.about?.options &&
+                  currentLinkedIn?.about?.options.length > 0 &&
+                  [...currentLinkedIn?.about?.options]
+                    .sort((a, b) => {
+                      if (a.tone === currentLinkedIn?.about.currentTone)
+                        return -1;
+                      if (b.tone === currentLinkedIn?.about.currentTone)
+                        return 1;
+                      return 0;
+                    })
+                    .map((opt) => (
+                      <button
+                        key={opt._id}
+                        onClick={() => handleUpdateAboutStates(opt.tone)}
+                        className={`px-3 py-1 text-xs rounded-md border
                   ${
                     opt.tone === aboutTone
                       ? "bg-blue-600 text-white"
                       : "bg-white text-gray-700"
                   }`}
-                    >
-                      {opt.tone}
-                    </button>
-                  ))}
+                      >
+                        {opt.tone}
+                      </button>
+                    ))}
+              </div>
+
+              <p className="text-sm mt-3 whitespace-pre-line text-gray-900">
+                {aboutCurrentText}
+              </p>
             </div>
 
-            <p className="text-sm mt-3 whitespace-pre-line text-gray-900">
-              {aboutCurrentText}
-            </p>
-          </div>
-
-          {/* ================= EXPERIENCE ================= */}
-          <div
-            className={`
+            {/* ================= EXPERIENCE ================= */}
+            <div
+              className={`
           
           bg-white rounded-xl px-6 py-6 shadow-sm
                     ${linkedInSlice.globalLoader == "running" && linkedInSlice.sectionLoaders && linkedInSlice.sectionLoaders.length > 0 && linkedInSlice.sectionLoaders.find((section) => section.name == "experience" && section.status == "running") ? "linkedInLoader cursor-not-allowed" : ""}
             
           
           `}
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold text-lg text-gray-900">
-                Experience
-              </h2>
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="font-semibold text-lg text-gray-900">
+                  Experience
+                </h2>
 
-              <div className="flex items-center justify-center gap-3">
-                {currentLinkedIn?.changes?.experience?.length > 0 && (
-                  <button
-                    className="text-blue-600 text-sm font-medium"
-                    onClick={() => setCurrentChangesShowModal("experience")}
-                  >
-                    <p className="px-3 py-1 bg-zinc-100 border rounded-md">
-                      Changes
-                    </p>
-                  </button>
-                )}
-                <button
-                  className="text-blue-600 text-sm font-medium "
-                  onClick={() => handleOptimize("experience", "ALL")}
-                >
-                  {linkedInSlice.globalLoader == "running" &&
-                  linkedInSlice.sectionLoaders &&
-                  linkedInSlice.sectionLoaders.length > 0 &&
-                  linkedInSlice.sectionLoaders.find(
-                    (section) =>
-                      section.name == "experience" &&
-                      section.status == "running",
-                  ) ? (
-                    <span className="ml-2">
-                      <BlackLoader />
-                    </span>
-                  ) : (
-                    <p className="px-3 py-1 bg-zinc-50 border rounded-full flex items-center gap-2 text-sm font-medium text-zinc-700 hover:bg-zinc-200 transition">
-                      Optimize
-                      <span className="text-[11px] bg-[#CA8A02] text-white px-2 py-0.5 rounded-full">
-                        1 credit
-                      </span>
-                    </p>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {experienceData && experienceData.length > 0 ? (
-              <div className="flex flex-col gap-6">
-                {experienceData.map((exp, index) => {
-                  const currentTone = exp?.bullets?.currentTone;
-                  const suggestions = exp?.bullets?.suggestions || [];
-
-                  const matchedSuggestion = suggestions.find(
-                    (s) => s.tone === currentTone,
-                  );
-
-                  const bulletsToRender =
-                    matchedSuggestion?.bullets?.length > 0
-                      ? matchedSuggestion.bullets
-                      : exp?.bullets?.current?.length > 0
-                        ? exp.bullets.current
-                        : [
-                            "No data available. Optimize this section to get suggestions.",
-                          ];
-
-                  return (
-                    <div
-                      key={index}
-                      className="border rounded-lg p-5 bg-gray-50 hover:shadow-md transition"
+                <div className="flex items-center justify-center gap-3">
+                  {currentLinkedIn?.changes?.experience?.length > 0 && (
+                    <button
+                      className="text-blue-600 text-sm font-medium"
+                      onClick={() => setCurrentChangesShowModal("experience")}
                     >
-                      {/* HEADER */}
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold text-gray-900 text-base">
-                            {exp?.role}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            {exp?.company}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {exp?.from} — {exp?.to || "Present"}
-                          </p>
+                      <p className="px-3 py-1 bg-zinc-100 border rounded-md">
+                        Changes
+                      </p>
+                    </button>
+                  )}
+                  <button
+                    className="text-blue-600 text-sm font-medium "
+                    onClick={() => handleOptimize("experience", "ALL")}
+                  >
+                    {linkedInSlice.globalLoader == "running" &&
+                    linkedInSlice.sectionLoaders &&
+                    linkedInSlice.sectionLoaders.length > 0 &&
+                    linkedInSlice.sectionLoaders.find(
+                      (section) =>
+                        section.name == "experience" &&
+                        section.status == "running",
+                    ) ? (
+                      <span className="ml-2">
+                        <BlackLoader />
+                      </span>
+                    ) : (
+                      <p className="px-3 py-1 bg-zinc-50 border rounded-full flex items-center gap-2 text-sm font-medium text-zinc-700 hover:bg-zinc-200 transition">
+                        Optimize
+                        <span className="text-[11px] bg-[#CA8A02] text-white px-2 py-0.5 rounded-full">
+                          1 credit
+                        </span>
+                      </p>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {experienceData && experienceData.length > 0 ? (
+                <div className="flex flex-col gap-6">
+                  {experienceData.map((exp, index) => {
+                    const currentTone = exp?.bullets?.currentTone;
+                    const suggestions = exp?.bullets?.suggestions || [];
+
+                    const matchedSuggestion = suggestions.find(
+                      (s) => s.tone === currentTone,
+                    );
+
+                    const bulletsToRender =
+                      matchedSuggestion?.bullets?.length > 0
+                        ? matchedSuggestion.bullets
+                        : exp?.bullets?.current?.length > 0
+                          ? exp.bullets.current
+                          : [
+                              "No data available. Optimize this section to get suggestions.",
+                            ];
+
+                    return (
+                      <div
+                        key={index}
+                        className="border rounded-lg p-5 bg-gray-50 hover:shadow-md transition"
+                      >
+                        {/* HEADER */}
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold text-gray-900 text-base">
+                              {exp?.role}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              {exp?.company}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {exp?.from} — {exp?.to || "Present"}
+                            </p>
+                          </div>
+
+                          {/* Suggestion Type Badge */}
+                          {matchedSuggestion?.improvementType && (
+                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                              {matchedSuggestion.improvementType}
+                            </span>
+                          )}
                         </div>
 
-                        {/* Suggestion Type Badge */}
-                        {matchedSuggestion?.improvementType && (
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                            {matchedSuggestion.improvementType}
-                          </span>
-                        )}
+                        {/* Tone Switch */}
+                        <div className="flex gap-2 mt-4">
+                          {["FORMAL", "CONFIDENT", "BOLD"].map((tone) => (
+                            <button
+                              key={tone}
+                              onClick={() =>
+                                updateExperienceCurrentTone(tone, index)
+                              }
+                              className={`px-3 py-1 text-xs rounded-full border transition ${
+                                tone === currentTone
+                                  ? "bg-blue-600 text-white border-blue-600"
+                                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                              }`}
+                            >
+                              {tone}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* BULLETS */}
+                        <ul className="list-disc ml-5 mt-4 space-y-2">
+                          {bulletsToRender.map((bullet, bId) => (
+                            <li
+                              key={bId}
+                              className="text-sm text-gray-800 leading-relaxed"
+                            >
+                              {bullet}
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-
-                      {/* Tone Switch */}
-                      <div className="flex gap-2 mt-4">
-                        {["FORMAL", "CONFIDENT", "BOLD"].map((tone) => (
-                          <button
-                            key={tone}
-                            onClick={() =>
-                              updateExperienceCurrentTone(tone, index)
-                            }
-                            className={`px-3 py-1 text-xs rounded-full border transition ${
-                              tone === currentTone
-                                ? "bg-blue-600 text-white border-blue-600"
-                                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                            }`}
-                          >
-                            {tone}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* BULLETS */}
-                      <ul className="list-disc ml-5 mt-4 space-y-2">
-                        {bulletsToRender.map((bullet, bId) => (
-                          <li
-                            key={bId}
-                            className="text-sm text-gray-800 leading-relaxed"
-                          >
-                            {bullet}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">No experience added yet.</p>
-            )}
-          </div>
-
-          {/* ================= SKILLS ================= */}
-          <div className="bg-white rounded-xl px-6 py-4">
-            <div className="flex justify-between items-center">
-              <h2 className="font-semibold text-lg">Skills</h2>
-              {/* <button className="text-blue-600 text-sm font-medium">
-              ✨ Optimize
-            </button> */}
-            </div>
-
-            <div className="flex flex-wrap gap-2 mt-3">
-              {currentLinkedIn?.skills && currentLinkedIn?.skills.length > 0 ? (
-                currentLinkedIn?.skills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="px-3 py-1 bg-gray-100 rounded-full text-xs"
-                  >
-                    {skill}
-                  </span>
-                ))
+                    );
+                  })}
+                </div>
               ) : (
-                <p className="text-sm mt-3 text-gray-900">
-                  No skills added yet. Optimize this section to get suggestions.
+                <p className="text-sm text-gray-500">
+                  No experience added yet.
                 </p>
               )}
+            </div>
+
+            {/* ================= SKILLS ================= */}
+            <div className="bg-white rounded-xl px-6 py-4">
+              <div className="flex justify-between items-center">
+                <h2 className="font-semibold text-lg">Skills</h2>
+                {/* <button className="text-blue-600 text-sm font-medium">
+              ✨ Optimize
+            </button> */}
+              </div>
+
+              <div className="flex flex-wrap gap-2 mt-3">
+                {currentLinkedIn?.skills &&
+                currentLinkedIn?.skills.length > 0 ? (
+                  currentLinkedIn?.skills.map((skill) => (
+                    <span
+                      key={skill}
+                      className="px-3 py-1 bg-gray-100 rounded-full text-xs"
+                    >
+                      {skill}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm mt-3 text-gray-900">
+                    No skills added yet. Optimize this section to get
+                    suggestions.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
