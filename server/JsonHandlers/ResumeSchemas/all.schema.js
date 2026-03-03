@@ -18,8 +18,8 @@ export const personalSchema = {
           pattern: "^[0-9+\\-()\\s]{7,20}$",
         },
         summary: { type: ["string", "null"] },
-        github: { type: ["string", "null"], format: "uri" },
-        linkedin: { type: ["string", "null"], format: "uri" },
+        github: { type: ["string", "null"] },
+        linkedin: { type: ["string", "null"] },
         address: { type: ["string", "null"] },
       },
     },
@@ -149,7 +149,7 @@ export const projectsSchema = {
               properties: {
                 title: { type: ["string", "null"] },
                 url: {
-                  anyOf: [{ type: "string", format: "uri" }, { type: "null" }],
+                  anyOf: [{ type: "string" }, { type: "null" }],
                 },
               },
             },
@@ -218,7 +218,7 @@ export const certificationsSchema = {
           issuer: { type: ["string", "null"] },
           year: { type: ["string", "null", "number"] },
           credentialUrl: {
-            anyOf: [{ type: "string", format: "uri" }, { type: "null" }],
+            anyOf: [{ type: "string" }, { type: "null" }],
           },
           link: {
             type: "array",
@@ -229,7 +229,7 @@ export const certificationsSchema = {
               properties: {
                 title: { type: ["string", "null"] },
                 url: {
-                  anyOf: [{ type: "string", format: "uri" }, { type: "null" }],
+                  anyOf: [{ type: "string" }, { type: "null" }],
                 },
               },
             },
@@ -430,8 +430,8 @@ export const parseResumeSchema = {
           pattern: "^[0-9+\\-()\\s]{7,20}$",
         },
         summary: { type: ["string", "null"] },
-        github: { type: ["string", "null"], format: "uri" },
-        linkedin: { type: ["string", "null"], format: "uri" },
+        github: { type: ["string", "null"] },
+        linkedin: { type: ["string", "null"] },
         address: { type: ["string", "null"] },
       },
     },
@@ -509,7 +509,7 @@ export const parseResumeSchema = {
               properties: {
                 title: { type: ["string", "null"] },
                 url: {
-                  anyOf: [{ type: "string", format: "uri" }, { type: "null" }],
+                  anyOf: [{ type: "string" }, { type: "null" }],
                 },
               },
             },
@@ -532,7 +532,7 @@ export const parseResumeSchema = {
           year: { type: ["string", "null", "number"] },
 
           credentialUrl: {
-            anyOf: [{ type: "string", format: "uri" }, { type: "null" }],
+            anyOf: [{ type: "string" }, { type: "null" }],
           },
           link: {
             type: "array",
@@ -542,7 +542,7 @@ export const parseResumeSchema = {
               properties: {
                 title: { type: ["string", "null"] },
                 url: {
-                  anyOf: [{ type: "string", format: "uri" }, { type: "null" }],
+                  anyOf: [{ type: "string" }, { type: "null" }],
                 },
               },
             },
