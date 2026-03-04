@@ -119,6 +119,8 @@ export const experienceSchema = {
   },
 };
 
+
+
 export const projectsSchema = {
   type: "object",
   additionalProperties: false,
