@@ -72,11 +72,15 @@ const userQuestionProgressSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// prevent duplicates
 userQuestionProgressSchema.index(
   { userId: 1, questionId: 1 },
   { unique: true },
 );
+
+userQuestionProgressSchema.index({
+  userId: 1,
+  subject: 1,
+});
 
 export default mongoose.model(
   "UserQuestionProgress",
