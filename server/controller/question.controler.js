@@ -171,8 +171,11 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
     let { subject, difficulty, page = 1 } = req.params;
 
     console.log({ page });
-
-    subject = subject.split(",");
+    if (subject == "all") {
+      subject = ["DSA", "OOPS", "DBMS", "CN", "OS"];
+    } else {
+      subject = subject.split(",");
+    }
     console.log({ subject });
 
     difficulty = difficulty.split(",");

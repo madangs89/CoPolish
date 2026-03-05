@@ -315,7 +315,7 @@ const Question = () => {
       let next = pageRef.current + 1;
 
       const QuestionRes = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/get/${allSubjects}/${allDifficulties}/${next}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/get/${allSubjects.length ? allSubjects : "all"}/${allDifficulties}/${next}`,
         {
           withCredentials: true,
         },
