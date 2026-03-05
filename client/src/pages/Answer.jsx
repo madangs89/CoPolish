@@ -83,6 +83,7 @@ const Answer = () => {
           `${import.meta.env.VITE_BACKEND_URL}/api/progress/v1/mark-liked`,
           {
             questionId: question._id,
+            isLiked: false,
           },
           {
             withCredentials: true,
@@ -101,7 +102,22 @@ const Answer = () => {
           if (prev < 0) prev = 0;
           return prev;
         });
-      } catch (error) {}
+
+        const markUnLikeRes = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/api/progress/v1/mark-liked`,
+          {
+            questionId: question._id,
+            isLiked: true,
+          },
+          {
+            withCredentials: true,
+          },
+        );
+      } catch (error) {
+        setIsLiked(true);
+        setLikedCount((prev) => prev + 1);
+        toast.error("Failed to unLike the question");
+      }
     }
   };
 
@@ -261,12 +277,14 @@ const Answer = () => {
                 </span>{" "}
                 <button
                   onClick={handleLike}
-                  className={`flex items-center gap-2 px-3 py-1 rounded-md transition
-  `}
+                  className="flex items-center gap-2 px-3 py-1 rounded-md transition group"
                 >
                   <Heart
                     size={20}
-                    className={`${isLiked ? "fill-red-600 stroke-red-600 hover:fill-none " : "fill-none "} ${!isLiked && "hover:fill-red-600 stroke-red-600"} `}
+                    className={`transition 
+      ${
+        isLiked ? "fill-red-600 stroke-red-600 " : "fill-none stroke-red-600 "
+      }`}
                   />
                   <span className="font-medium">{likedCount}</span>
                 </button>

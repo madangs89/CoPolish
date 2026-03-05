@@ -130,7 +130,7 @@ export const markLikeForQuestion = async (req, res) => {
         success: false,
       });
     }
-    const { questionId } = req.body;
+    const { questionId, isLiked } = req.body;
 
     if (!questionId) {
       return res.status(400).json({
@@ -138,37 +138,94 @@ export const markLikeForQuestion = async (req, res) => {
         success: false,
       });
     }
-    const progress = await UserQuestionProgressModel.findOneAndUpdate(
-      { userId, questionId },
-      {
-        liked: true,
-        likedAt: new Date(),
-      },
-      {
-        upsert: true,
-        new: true,
-      },
-    );
 
-    if (!progress) {
-      return res
-        .status(500)
-        .json({ message: "Something went wrong", success: false });
+    if (typeof isLiked !== "boolean") {
+      return res.status(400).json({
+        message: "isLiked must be a boolean",
+        success: false,
+      });
     }
-    const updateQuestionLikeCount = await Question.findByIdAndUpdate(
-      questionId,
-      { $inc: { likes: 1 } },
-      { new: true },
-    );
 
-    const redisCacheKey = `question_${questionId}`;
-    await pubClient.set(redisCacheKey, JSON.stringify(updateQuestionLikeCount));
+    if (isLiked == false) {
+      const progress = await UserQuestionProgressModel.findOneAndUpdate(
+        { userId, questionId },
+        {
+          liked: true,
+          likedAt: new Date(),
+        },
+        {
+          upsert: true,
+          new: true,
+        },
+      );
 
-    return res.status(200).json({
-      message: "Question marked as liked",
-      success: true,
-      liked: progress,
-    });
+      if (!progress) {
+        return res
+          .status(500)
+          .json({ message: "Something went wrong", success: false });
+      }
+      const updateQuestionLikeCount = await Question.findByIdAndUpdate(
+        questionId,
+        { $inc: { likes: 1 } },
+        { new: true },
+      );
+
+      const redisCacheKey = `question_${questionId}`;
+      await pubClient.set(
+        redisCacheKey,
+        JSON.stringify(updateQuestionLikeCount),
+      );
+
+      return res.status(200).json({
+        message: "Question marked as liked",
+        success: true,
+        liked: progress,
+      });
+    } else {
+      let isUserLiked = await UserQuestionProgressModel.findOne({
+        userId,
+        questionId,
+      });
+
+      if (!isUserLiked || !isUserLiked.liked) {
+        return res.status(400).json({
+          message: "Question is not liked by the user",
+          success: false,
+        });
+      }
+      const progress = await UserQuestionProgressModel.findOneAndUpdate(
+        { userId, questionId },
+        {
+          liked: false,
+          likedAt: null,
+        },
+        {
+          upsert: true,
+          new: true,
+        },
+      );
+
+      if (!progress) {
+        return res
+          .status(500)
+          .json({ message: "Something went wrong", success: false });
+      }
+      const updateQuestionLikeCount = await Question.findByIdAndUpdate(
+        questionId,
+        { $inc: { likes: -1 } },
+        { new: true },
+      );
+      const redisCacheKey = `question_${questionId}`;
+      await pubClient.set(
+        redisCacheKey,
+        JSON.stringify(updateQuestionLikeCount),
+      );
+      return res.status(200).json({
+        message: "Question marked as unliked",
+        success: true,
+        unliked: progress,
+      });
+    }
   } catch (error) {
     return res
       .status(500)
