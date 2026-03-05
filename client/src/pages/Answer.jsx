@@ -214,9 +214,13 @@ const Answer = () => {
   const navigate = useNavigate();
 
   const [hoveredSection, setHoveredSection] = useState(null);
-
   const [relatedQuestions, setRelatedQuestions] = useState([]);
 
+  // State to check if question is solved by user or not
+  const [isQuestionSolved, setIsQuestionSolved] = useState(false);
+
+  // Loaders
+  const [mainLoading, setMainLoading] = useState(true);
   const [relatedLoading, setRelatedLoading] = useState(false);
 
   const shortAnswerRef = useRef(null);
@@ -240,7 +244,30 @@ const Answer = () => {
     (lang) => question.codeSnippet[lang],
   );
 
-  const [mainLoading, setMainLoading] = useState(true);
+  const markAsSolvedHandler = async () => {
+    if (!question?._id || isQuestionSolved) return;
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/progress/v1/mark-completed`,
+        {
+          questionId: question._id,
+          difficulty: question.difficulty,
+          subject: question.subject,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+
+      if (response.data.success) {
+        setIsQuestionSolved(true);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to mark question as solved");
+    }
+  };
 
   useEffect(() => {
     const { subject, slug, id } = params;
@@ -284,6 +311,31 @@ const Answer = () => {
           toast.error("Failed to fetch Related questions");
         } finally {
           setRelatedLoading(false);
+        }
+      })();
+    }
+  }, [question]);
+
+  useEffect(() => {
+    if (question?._id) {
+      (async () => {
+        try {
+          const userProgress = await axios.get(
+            `${import.meta.env.VITE_BACKEND_URL}/api/progress/v1/question/progress/${question?._id}`,
+            {
+              withCredentials: true,
+            },
+          );
+          console.log({ userProgress });
+
+          if (userProgress.data.success) {
+            setIsQuestionSolved(
+              userProgress?.data?.progress?.completed || false,
+            );
+          }
+        } catch (error) {
+          console.log(error);
+          toast.error("Unable to fetch Progress");
         }
       })();
     }
@@ -363,10 +415,18 @@ const Answer = () => {
             <span className="mr-4">Likes: {question.likes}</span>{" "}
             <span>Asked in: {question.interviewCount} interviews</span>{" "}
           </div>{" "}
-          <button className="bg-green-700 mt-3 text-white px-4 py-2 rounded-md hover:bg-green-800 transition">
-            {" "}
-            Mark as Solved{" "}
-          </button>{" "}
+          <button
+            onClick={markAsSolvedHandler}
+            className={`mt-3 px-4 py-2 rounded-md text-white transition 
+    ${
+      isQuestionSolved
+        ? "bg-blue-500"
+        : "bg-green-700 hover:bg-green-800 cursor-pointer"
+    }`}
+            disabled={isQuestionSolved}
+          >
+            {isQuestionSolved ? "Solved" : "Mark as Solved"}
+          </button>
         </div>
 
         {/* Short Answer */}

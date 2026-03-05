@@ -156,6 +156,29 @@ const Dashboard = () => {
             return oldProgres;
           });
         }
+
+        const userSolvedProgressResponse = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/progress/v1/count/all`,
+          {
+            withCredentials: true,
+          },
+        );
+
+        console.log(userSolvedProgressResponse.data);
+
+        if (userSolvedProgressResponse.data.success) {
+          let c = userSolvedProgressResponse.data.counts;
+
+          setPrepProgress((prev) => {
+            let oldProgres = { ...prev };
+            for (const subject in c) {
+              if (oldProgres[subject.toLowerCase()]) {
+                oldProgres[subject.toLowerCase()].solvedQuestions = c[subject];
+              }
+            }
+            return oldProgres;
+          });
+        }
       } catch (error) {
         console.log(error);
         toast.error(

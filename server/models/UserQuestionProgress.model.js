@@ -26,7 +26,6 @@ const userQuestionProgressSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-
     completedAt: {
       type: Date,
       default: null,
@@ -80,6 +79,13 @@ userQuestionProgressSchema.index(
 userQuestionProgressSchema.index({
   userId: 1,
   subject: 1,
+  completed: 1,
+});
+userQuestionProgressSchema.index({
+  userId: 1,
+  subject: 1,
+  completed: 1,
+  difficulty: 1,
 });
 
 export default mongoose.model(

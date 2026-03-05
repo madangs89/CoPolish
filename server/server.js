@@ -31,7 +31,7 @@ import linkedInRouter from "./routes/linkedIn.routes.js";
 import upload from "./config/multer.js";
 import fs from "fs";
 import { ai } from "./config/google.js";
-
+import progressRouter from "./routes/UserQuestionProgress.routes.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -125,6 +125,7 @@ app.use("/api/resume/v1", resumeRouter);
 app.use("/api/linkedin/v1", linkedInRouter);
 app.use("/api/payment/v1", paymentRouter);
 app.use("/api/question/v1", questionRouter);
+app.use("/api/progress/v1", progressRouter);
 
 // const instruction =
 //   baseResumeOptimizerSystemInstruction + projectsSystemInstruction;
