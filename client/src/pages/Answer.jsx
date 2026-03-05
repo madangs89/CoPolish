@@ -222,6 +222,8 @@ const Answer = () => {
   // Loaders
   const [mainLoading, setMainLoading] = useState(true);
   const [relatedLoading, setRelatedLoading] = useState(false);
+  const [headerLoading, setHeaderLoading] = useState(false);
+  const [markAsSolvedLoading, setMarkAsSolvedLoading] = useState(false);
 
   const shortAnswerRef = useRef(null);
   const definitionRef = useRef(null);
@@ -245,9 +247,10 @@ const Answer = () => {
   );
 
   const markAsSolvedHandler = async () => {
-    if (!question?._id || isQuestionSolved) return;
+    if (!question?._id || isQuestionSolved || markAsSolvedLoading) return;
 
     try {
+      setMarkAsSolvedLoading(true);
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/progress/v1/mark-completed`,
         {
@@ -266,6 +269,8 @@ const Answer = () => {
     } catch (error) {
       console.log(error);
       toast.error("Failed to mark question as solved");
+    } finally {
+      setMarkAsSolvedLoading(false);
     }
   };
 
@@ -316,10 +321,12 @@ const Answer = () => {
     }
   }, [question]);
 
+  // fetch user progress for the question
   useEffect(() => {
     if (question?._id) {
       (async () => {
         try {
+          setHeaderLoading(true);
           const userProgress = await axios.get(
             `${import.meta.env.VITE_BACKEND_URL}/api/progress/v1/question/progress/${question?._id}`,
             {
@@ -336,6 +343,8 @@ const Answer = () => {
         } catch (error) {
           console.log(error);
           toast.error("Unable to fetch Progress");
+        } finally {
+          setHeaderLoading(false);
         }
       })();
     }
@@ -405,28 +414,42 @@ const Answer = () => {
         {/* Meta Info */}
         <div className="text-sm text-gray-500 mb-6 border-b gap-5 pb-4">
           {" "}
-          <div className="">
-            {" "}
-            <span className="mr-4">
-              {" "}
-              Difficulty: <b>{question.difficulty}</b>{" "}
-            </span>{" "}
-            <span className="mr-4">Views: {question.views}</span>{" "}
-            <span className="mr-4">Likes: {question.likes}</span>{" "}
-            <span>Asked in: {question.interviewCount} interviews</span>{" "}
-          </div>{" "}
-          <button
-            onClick={markAsSolvedHandler}
-            className={`mt-3 px-4 py-2 rounded-md text-white transition 
+          {headerLoading ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <BlackLoader />
+            </div>
+          ) : (
+            <>
+              <div className="">
+                {" "}
+                <span className="mr-4">
+                  {" "}
+                  Difficulty: <b>{question.difficulty}</b>{" "}
+                </span>{" "}
+                {/* <span className="mr-4">Views: {question.views}</span>{" "} */}
+                <span className="mr-4">Likes: {question.likes}</span>{" "}
+                <span>Asked in: {question.interviewCount} interviews</span>{" "}
+              </div>{" "}
+              <button
+                onClick={markAsSolvedHandler}
+                className={`mt-3 px-4 py-2 rounded-md text-white transition 
     ${
       isQuestionSolved
         ? "bg-blue-500"
         : "bg-green-700 hover:bg-green-800 cursor-pointer"
     }`}
-            disabled={isQuestionSolved}
-          >
-            {isQuestionSolved ? "Solved" : "Mark as Solved"}
-          </button>
+                disabled={isQuestionSolved}
+              >
+                {markAsSolvedLoading ? (
+                  <BlackLoader />
+                ) : isQuestionSolved ? (
+                  "Solved"
+                ) : (
+                  "Mark as Solved"
+                )}
+              </button>
+            </>
+          )}
         </div>
 
         {/* Short Answer */}
