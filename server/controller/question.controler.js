@@ -228,18 +228,31 @@ export const getCurrentQuestionById = async (req, res) => {
         .status(400)
         .json({ message: "Question ID is required", success: false });
     }
+
+    const redisCacheKey = `question_${id}`;
+    const cachedQuestion = await pubClient.get(redisCacheKey);
+
+    if (cachedQuestion) {
+      return res.status(200).json({
+        message: "Question fetched successfully (from cache)",
+        success: true,
+        question: JSON.parse(cachedQuestion),
+      });
+    }
     const question = await Question.findById(id);
     if (!question) {
       return res
         .status(404)
         .json({ message: "Question not found", success: false });
     }
+    await pubClient.set(redisCacheKey, JSON.stringify(question));
     return res.status(200).json({
       message: "Question fetched successfully",
       success: true,
       question,
     });
   } catch (error) {
+    console.log(error);
     return res
       .status(500)
       .json({ message: "Something went wrong", success: false });

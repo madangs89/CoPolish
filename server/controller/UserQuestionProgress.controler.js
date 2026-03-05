@@ -1,3 +1,5 @@
+import { pubClient } from "../config/redis.js";
+import Question from "../models/questions.model.js";
 import UserQuestionProgressModel from "../models/UserQuestionProgress.model.js";
 
 export const getUserSolvedQuestionCountForAllSubjects = async (req, res) => {
@@ -110,6 +112,62 @@ export const markQuestionAsCompleted = async (req, res) => {
       message: "Question marked as completed",
       success: true,
       progress,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Something went wrong", success: false });
+  }
+};
+
+export const markLikeForQuestion = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized Access",
+        success: false,
+      });
+    }
+    const { questionId } = req.body;
+
+    if (!questionId) {
+      return res.status(400).json({
+        message: "questionId is required",
+        success: false,
+      });
+    }
+    const progress = await UserQuestionProgressModel.findOneAndUpdate(
+      { userId, questionId },
+      {
+        liked: true,
+        likedAt: new Date(),
+      },
+      {
+        upsert: true,
+        new: true,
+      },
+    );
+
+    if (!progress) {
+      return res
+        .status(500)
+        .json({ message: "Something went wrong", success: false });
+    }
+    const updateQuestionLikeCount = await Question.findByIdAndUpdate(
+      questionId,
+      { $inc: { likes: 1 } },
+      { new: true },
+    );
+
+    const redisCacheKey = `question_${questionId}`;
+    await pubClient.set(redisCacheKey, JSON.stringify(updateQuestionLikeCount));
+
+    return res.status(200).json({
+      message: "Question marked as liked",
+      success: true,
+      liked: progress,
     });
   } catch (error) {
     return res

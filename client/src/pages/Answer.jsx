@@ -1,212 +1,9 @@
-import { Check } from "lucide-react";
+import { Check, Heart } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import BlackLoader from "../components/Loaders/BlackLoader";
-
-export const fakeQuestions = [
-  {
-    title: "What is Abstraction in OOPS?",
-    slug: "what-is-abstraction-in-oops",
-    subject: "OOPS",
-    topic: "OOPS Basics",
-    topicOrder: 1,
-    difficulty: "Basic",
-    question: "Explain abstraction in object-oriented programming.",
-    shortAnswer: {
-      answer:
-        "Abstraction is hiding internal implementation and showing only essential features.",
-      example: "ATM machine hides internal banking logic.",
-    },
-    detailedAnswer: {
-      definition:
-        "Abstraction is a principle of OOP that focuses on exposing only necessary features of an object.",
-      explanation:
-        "It reduces complexity by hiding unnecessary implementation details from the user.",
-      image: "",
-      video: "",
-      interviewTip:
-        "Always explain abstraction with real-life examples like ATM or car.",
-      commonMistake: "Students confuse abstraction with encapsulation.",
-      realWorldExample: "Using a mobile app without knowing backend logic.",
-    },
-    codeSnippet: {
-      js: "class Car { start() { console.log('Car started'); } }",
-      java: "abstract class Car { abstract void start(); }",
-      cpp: "class Car { virtual void start() = 0; };",
-      python: "from abc import ABC, abstractmethod",
-      c: "",
-    },
-    keywords: ["abstraction", "oops", "principle"],
-    isPremium: false,
-    views: 1200,
-    likes: 150,
-    interviewCount: 23,
-    company: ["Amazon", "TCS"],
-    solved: true,
-  },
-
-  {
-    title: "What is Encapsulation?",
-    slug: "what-is-encapsulation",
-    subject: "OOPS",
-    topic: "OOPS Basics",
-    topicOrder: 2,
-    difficulty: "Easy",
-    question: "Define encapsulation and explain its importance.",
-    shortAnswer: {
-      answer: "Encapsulation is wrapping data and methods into a single unit.",
-      example: "Using private variables with getters and setters.",
-    },
-    detailedAnswer: {
-      definition:
-        "Encapsulation is binding data and behavior together inside a class.",
-      explanation:
-        "It protects data from unauthorized access and improves maintainability.",
-      image: "",
-      video: "",
-      interviewTip: "Mention data hiding when explaining encapsulation.",
-      commonMistake: "Thinking encapsulation and abstraction are the same.",
-      realWorldExample: "Bank account class hiding balance variable.",
-    },
-    codeSnippet: {
-      js: "class Person { #name; constructor(name){ this.#name = name; } }",
-      java: "private String name;",
-      cpp: "private: int age;",
-      python: "_name = 'John'",
-      c: "",
-    },
-    keywords: ["encapsulation", "oops"],
-    isPremium: false,
-    views: 950,
-    likes: 120,
-    interviewCount: 18,
-    company: ["Infosys", "Wipro"],
-    solved: false,
-  },
-
-  {
-    title: "What is Normalization in DBMS?",
-    slug: "what-is-normalization",
-    subject: "DBMS",
-    topic: "Normalization",
-    topicOrder: 1,
-    difficulty: "Medium",
-    question: "Explain normalization and its types.",
-    shortAnswer: {
-      answer:
-        "Normalization is the process of organizing data to reduce redundancy.",
-      example: "Separating student and course tables.",
-    },
-    detailedAnswer: {
-      definition:
-        "Normalization is a database design technique to minimize redundancy.",
-      explanation:
-        "It divides large tables into smaller ones and links them using relationships.",
-      image: "",
-      video: "",
-      interviewTip: "Mention 1NF, 2NF, 3NF in interviews.",
-      commonMistake: "Forgetting to explain functional dependency.",
-      realWorldExample: "E-commerce order and customer separation.",
-    },
-    codeSnippet: {
-      js: "",
-      java: "",
-      cpp: "",
-      python: "",
-      c: "",
-    },
-    keywords: ["dbms", "normalization"],
-    isPremium: true,
-    views: 800,
-    likes: 90,
-    interviewCount: 15,
-    company: ["Amazon"],
-    solved: true,
-  },
-
-  {
-    title: "What is Deadlock in Operating System?",
-    slug: "what-is-deadlock",
-    subject: "OS",
-    topic: "Process Management",
-    topicOrder: 3,
-    difficulty: "Hard",
-    question: "Explain deadlock and its necessary conditions.",
-    shortAnswer: {
-      answer:
-        "Deadlock is a situation where processes wait indefinitely for resources.",
-      example:
-        "Two processes holding one resource each and waiting for the other.",
-    },
-    detailedAnswer: {
-      definition:
-        "Deadlock occurs when a set of processes are blocked because each holds a resource and waits for another.",
-      explanation:
-        "It happens when mutual exclusion, hold and wait, no preemption, and circular wait occur.",
-      image: "",
-      video: "",
-      interviewTip: "Always mention the 4 Coffman conditions.",
-      commonMistake: "Forgetting circular wait condition.",
-      realWorldExample: "Two cars blocking each other at a narrow bridge.",
-    },
-    codeSnippet: {
-      js: "",
-      java: "",
-      cpp: "",
-      python: "",
-      c: "",
-    },
-    keywords: ["deadlock", "os"],
-    isPremium: true,
-    views: 600,
-    likes: 70,
-    interviewCount: 20,
-    company: ["Microsoft", "Google"],
-    solved: false,
-  },
-
-  {
-    title: "What is Time Complexity?",
-    slug: "what-is-time-complexity",
-    subject: "DSA",
-    topic: "Complexity Analysis",
-    topicOrder: 1,
-    difficulty: "Basic",
-    question: "Explain time complexity with examples.",
-    shortAnswer: {
-      answer:
-        "Time complexity measures how algorithm runtime grows with input size.",
-      example: "Linear search is O(n).",
-    },
-    detailedAnswer: {
-      definition:
-        "Time complexity is the computational complexity describing runtime growth.",
-      explanation:
-        "It helps compare algorithm efficiency using Big-O notation.",
-      image: "",
-      video: "",
-      interviewTip: "Explain best, average, worst case.",
-      commonMistake: "Confusing time complexity with actual execution time.",
-      realWorldExample: "Searching contact in phone list.",
-    },
-    codeSnippet: {
-      js: "for(let i=0;i<n;i++){ console.log(i); }",
-      java: "for(int i=0;i<n;i++){}",
-      cpp: "for(int i=0;i<n;i++){}",
-      python: "for i in range(n): pass",
-      c: "for(int i=0;i<n;i++){}",
-    },
-    keywords: ["dsa", "big-o"],
-    isPremium: false,
-    views: 1500,
-    likes: 200,
-    interviewCount: 30,
-    company: ["TCS", "Accenture"],
-    solved: false,
-  },
-];
 
 const Answer = () => {
   const [question, setQuestion] = useState(null);
@@ -215,9 +12,11 @@ const Answer = () => {
 
   const [hoveredSection, setHoveredSection] = useState(null);
   const [relatedQuestions, setRelatedQuestions] = useState([]);
+  const [likedCount, setLikedCount] = useState(question?.likes || 0);
 
   // State to check if question is solved by user or not
   const [isQuestionSolved, setIsQuestionSolved] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
 
   // Loaders
   const [mainLoading, setMainLoading] = useState(true);
@@ -274,6 +73,38 @@ const Answer = () => {
     }
   };
 
+  const handleLike = async () => {
+    if (!isLiked) {
+      try {
+        setIsLiked(true);
+        setLikedCount((prev) => prev + 1);
+
+        const markLikeRes = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/api/progress/v1/mark-liked`,
+          {
+            questionId: question._id,
+          },
+          {
+            withCredentials: true,
+          },
+        );
+      } catch (error) {
+        setIsLiked(false);
+        setLikedCount((prev) => prev - 1);
+        toast.error("Failed to like the question");
+      }
+    } else {
+      try {
+        setIsLiked(false);
+        setLikedCount((prev) => {
+          prev = prev - 1;
+          if (prev < 0) prev = 0;
+          return prev;
+        });
+      } catch (error) {}
+    }
+  };
+
   useEffect(() => {
     const { subject, slug, id } = params;
     (async () => {
@@ -287,6 +118,7 @@ const Answer = () => {
         );
         if (QuestionRes.data.success) {
           setQuestion(QuestionRes.data.question);
+          setLikedCount(QuestionRes.data.question.likes);
         }
       } catch (error) {
         toast.error("Failed to fetch questions");
@@ -339,6 +171,7 @@ const Answer = () => {
             setIsQuestionSolved(
               userProgress?.data?.progress?.completed || false,
             );
+            setIsLiked(userProgress?.data?.progress?.liked || false);
           }
         } catch (error) {
           console.log(error);
@@ -420,14 +253,23 @@ const Answer = () => {
             </div>
           ) : (
             <>
-              <div className="">
+              <div className="flex items-center gap-2 mb-2">
                 {" "}
-                <span className="mr-4">
+                <span className="">
                   {" "}
                   Difficulty: <b>{question.difficulty}</b>{" "}
                 </span>{" "}
-                {/* <span className="mr-4">Views: {question.views}</span>{" "} */}
-                <span className="mr-4">Likes: {question.likes}</span>{" "}
+                <button
+                  onClick={handleLike}
+                  className={`flex items-center gap-2 px-3 py-1 rounded-md transition
+  `}
+                >
+                  <Heart
+                    size={20}
+                    className={`${isLiked ? "fill-red-600 stroke-red-600 hover:fill-none " : "fill-none "} ${!isLiked && "hover:fill-red-600 stroke-red-600"} `}
+                  />
+                  <span className="font-medium">{likedCount}</span>
+                </button>
                 <span>Asked in: {question.interviewCount} interviews</span>{" "}
               </div>{" "}
               <button
