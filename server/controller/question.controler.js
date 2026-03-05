@@ -63,11 +63,18 @@ export const addQuestion = async (req, res) => {
       keywords,
       isPremium,
     });
+
     if (!newQuestion) {
       return res
         .status(500)
         .json({ message: "Failed to create question", success: false });
     }
+
+    const count = await Question.countDocuments({
+      subject: subject.toUpperCase(),
+    });
+    await pubClient.set(`question_count_${subject.toUpperCase()}`, count);
+
     return res.status(201).json({
       message: "Question added successfully",
       success: true,
@@ -133,6 +140,7 @@ export const getAllSubjectQuestionCount = async (req, res) => {
       const cachedCount = await pubClient.get(
         `question_count_${subject.toUpperCase()}`,
       );
+
       if (cachedCount) {
         counts[subject] = parseInt(cachedCount);
       } else {
@@ -162,11 +170,11 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
   try {
     let { subject, difficulty, page = 1 } = req.params;
 
-    console.log({page})
+    console.log({ page });
 
     subject = subject.split(",");
-    console.log({subject});
-    
+    console.log({ subject });
+
     difficulty = difficulty.split(",");
 
     console.log(subject, difficulty, page);
@@ -199,8 +207,6 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
       .sort({ topicOrder: 1 })
       .skip(skip)
       .limit(limit);
-
-
 
     return res.status(200).json({
       message: "Questions fetched successfully",
