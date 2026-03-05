@@ -236,6 +236,8 @@ export const getCurrentQuestionById = async (req, res) => {
     const cachedQuestion = await pubClient.get(redisCacheKey);
 
     if (cachedQuestion) {
+      console.log("question fetched from redis");
+
       return res.status(200).json({
         message: "Question fetched successfully (from cache)",
         success: true,
