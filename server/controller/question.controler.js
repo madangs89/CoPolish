@@ -232,6 +232,9 @@ export const getCurrentQuestionById = async (req, res) => {
         .json({ message: "Question ID is required", success: false });
     }
 
+
+    
+
     const redisCacheKey = `question_${id}`;
     const cachedQuestion = await pubClient.get(redisCacheKey);
 
