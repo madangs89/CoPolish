@@ -1,3 +1,4 @@
+// import "./babelRegister.js";
 import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
@@ -32,6 +33,7 @@ import upload from "./config/multer.js";
 import fs from "fs";
 import { ai } from "./config/google.js";
 import progressRouter from "./routes/UserQuestionProgress.routes.js";
+import { generatePdf } from "./config/downloadhelper.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -51,8 +53,8 @@ app.use(
   }),
 );
 app.use(cookieParser());
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10mb" }));
 
 app.get("/", (req, res) => {
   res.send("Hello, World!");
@@ -127,6 +129,23 @@ app.use("/api/payment/v1", paymentRouter);
 app.use("/api/question/v1", questionRouter);
 app.use("/api/progress/v1", progressRouter);
 
+app.post("/download", async (req, res) => {
+  try {
+    const { html, paddingPx } = req.body;
+
+    const pdf = await generatePdf({ html, paddingPx });
+
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": "attachment; filename=resume.pdf",
+    });
+
+    res.send(pdf);
+  } catch (err) {
+    console.error("PDF error:", err);
+    res.status(500).json({ error: "PDF generation failed" });
+  }
+});
 // const instruction =
 //   baseResumeOptimizerSystemInstruction + projectsSystemInstruction;
 // const contents = JSON.stringify({

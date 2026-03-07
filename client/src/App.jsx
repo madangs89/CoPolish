@@ -9,6 +9,7 @@ import { setSocket } from "./redux/slice/socketSlice";
 import LinkedInRedirect from "./components/authRedirectors/LinkedInRedirect";
 import Question from "./pages/Question";
 import Answer from "./pages/Answer";
+import RenderResumeForPreview from "./components/Renderer/RenderResumeForPreview";
 
 const Hero = lazy(() => import("./pages/Hero"));
 const Cursor = lazy(() => import("./components/Cursor"));
@@ -119,6 +120,10 @@ const App = () => {
             />
             <Route path="/question/" element={<Question />} />
             <Route path="/answer/:subject/:slug/:id" element={<Answer />} />
+            <Route
+              path="/render/resume/:id"
+              element={<RenderResumeForPreview />}
+            />
           </Route>
         </Routes>
       </Suspense>

@@ -226,3 +226,7 @@ body {
 .animate-slideInLeft {
   animation: slideInLeft 0.25s ease-out;
 }
+
+.page {
+  page-break-after: always;
+}
