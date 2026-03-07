@@ -8,7 +8,7 @@ import { toast } from "react-hot-toast";
 import ButtonLoader from "../components/Loaders/ButtonLoader";
 import BlackLoader from "../components/Loaders/BlackLoader";
 const subjectsList = ["DSA", "OOPS", "OS", "CN", "DBMS"];
-const statusList = ["Solved", "Unsolved", "Attempted"];
+const statusList = ["solved", "unsolved", "attempted"];
 
 const difficultyList = ["Basic", "Easy", "Medium", "Hard"];
 
@@ -32,6 +32,9 @@ const Question = () => {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [allUserSolvedQuestions, setAllUserSolvedQuestions] = useState([]);
   const pageRef = useRef(1);
+  const cursorRef = useRef(0);
+  const hasMoreRef = useRef(true);
+  const fetchingRef = useRef(false);
   const [mainLoading, setMainLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
 
@@ -76,11 +79,19 @@ const Question = () => {
   };
 
   const handleStatusChange = (status) => {
-    setSelectedStatus((prev) =>
-      prev.includes(status)
-        ? prev.filter((s) => s !== status)
-        : [...prev, status],
-    );
+    const newParams = new URLSearchParams(searchParams);
+
+    if (selectedStatus == status) {
+      setSelectedStatus("");
+      newParams.delete("status");
+      newParams.append("status", "all");
+    } else {
+      setSelectedStatus(status);
+      newParams.delete("status");
+      newParams.append("status", status);
+    }
+
+    setSearchParams(newParams);
   };
 
   const returnProperSubjectName = (subject) => {
@@ -103,11 +114,15 @@ const Question = () => {
   const getPageWiseData = async () => {
     console.log(pages, pageRef.current, totalPages);
 
+    if (pageLoading) return;
+    if (fetchingRef.current) return;
+
     console.log(allUserSolvedQuestions);
 
-    if (pageRef.current >= totalPages || pages >= totalPages) return;
+    if (!hasMoreRef.current) return;
     try {
       setPageLoading(true);
+      fetchingRef.current = true;
       let allSubjects = searchParams.getAll("subject");
       let allDifficulties = searchParams.getAll("difficulty");
 
@@ -118,7 +133,7 @@ const Question = () => {
       let next = pageRef.current + 1;
 
       const QuestionRes = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/get/${allSubjects.length ? allSubjects : "all"}/${allDifficulties}/${next}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/get/${allSubjects.length ? allSubjects : "all"}/${allDifficulties}/${next}/${cursorRef.current}/${selectedStatus.length ? selectedStatus : "all"}`,
         {
           withCredentials: true,
         },
@@ -137,21 +152,31 @@ const Question = () => {
           let set = new Set([...solvedQuestions, ...prev]);
           return Array.from(set);
         });
+
+        pageRef.current = QuestionRes.data.currentPage;
+        setCurrentPage(QuestionRes.data.currentPage);
+        setPages(pageRef.current);
+        cursorRef.current = QuestionRes.data.newCursor;
+        hasMoreRef.current = QuestionRes.data.hasMoreRef;
+        console.log("after res cursor", cursorRef.current);
       }
     } catch (error) {
       toast.error("Failed to fetch questions");
     } finally {
       setPageLoading(false);
+      fetchingRef.current = false;
     }
   };
 
   useEffect(() => {
     let allSubjects = searchParams.getAll("subject");
     let allDifficulties = searchParams.getAll("difficulty");
+    let allStatus = searchParams.getAll("status");
 
     setPages(1);
     setTotalPages(1);
     pageRef.current = 1;
+    cursorRef.current = 0;
 
     console.log(allSubjects);
 
@@ -164,13 +189,17 @@ const Question = () => {
       allDifficulties = ["Basic", "Easy", "Medium", "Hard"];
     }
 
+    if (allStatus.length == 0) {
+      allStatus = "all";
+    }
+
     (async () => {
       try {
         setAllQuestions([]);
         setAllUserSolvedQuestions([]);
         setMainLoading(true);
         const QuestionRes = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/get/${allSubjects}/${allDifficulties}/1`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/get/${allSubjects}/${allDifficulties}/1/${cursorRef.current}/${allStatus}`,
           {
             withCredentials: true,
           },
@@ -186,6 +215,12 @@ const Question = () => {
             let set = new Set([...solvedQuestions, ...prev]);
             return Array.from(set);
           });
+          pageRef.current = QuestionRes.data.currentPage;
+          setCurrentPage(QuestionRes.data.currentPage);
+          setPages(pageRef.current);
+          cursorRef.current = QuestionRes.data.newCursor;
+          hasMoreRef.current = QuestionRes.data.hasMoreRef;
+          console.log("after res cursor", cursorRef.current);
         }
       } catch (error) {
         toast.error("Failed to fetch questions");
@@ -200,8 +235,10 @@ const Question = () => {
     if (!mainEl) return;
     const handleScroll = () => {
       if (
-        mainEl.scrollTop + mainEl.clientHeight >= mainEl.scrollHeight - 5 &&
-        !mainLoading
+        mainEl.scrollTop + mainEl.clientHeight >= mainEl.scrollHeight - 100 &&
+        !mainLoading &&
+        !pageLoading &&
+        !fetchingRef.current
       ) {
         getPageWiseData();
       }
@@ -270,7 +307,7 @@ const Question = () => {
             >
               <input
                 type="checkbox"
-                checked={selectedStatus.includes(status)}
+                checked={selectedStatus == status}
                 onChange={() => handleStatusChange(status)}
                 className="accent-blue-600 w-4 h-4"
               />
@@ -336,7 +373,7 @@ const Question = () => {
                   onClick={() =>
                     navigate(`/answer/${q.subject}/${q.slug}/${q._id}`)
                   }
-                  key={index}
+                  key={q._id}
                   className="flex justify-between items-center border-b py-4 cursor-pointer hover:bg-gray-50 transition px-2 rounded-md"
                 >
                   <div className="flex items-center gap-3 flex-1">

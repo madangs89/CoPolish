@@ -13,7 +13,7 @@ import { authMiddelware } from "../middleware/auth.middelware.js";
 const questionRouter = express.Router();
 
 questionRouter.get(
-  "/get/:subject/:difficulty/:page",
+  "/get/:subject/:difficulty/:page/:cursor/:status",
   authMiddelware,
   getQuestionsForAllTypeOfFilters,
 );

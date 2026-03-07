@@ -169,7 +169,13 @@ export const getAllSubjectQuestionCount = async (req, res) => {
 
 export const getQuestionsForAllTypeOfFilters = async (req, res) => {
   try {
-    let { subject, difficulty, page = 1 } = req.params;
+    let { subject, difficulty, page = 1, status, cursor } = req.params;
+
+    console.log({ cursor });
+
+    console.log({ status });
+    page = parseInt(page);
+    cursor = parseInt(cursor);
 
     console.log({ page });
     if (subject == "all") {
@@ -192,9 +198,9 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
     }
 
     console.log(subject, difficulty, page);
-    const limit = 10;
+    let limit = 10;
 
-    const skip = (page - 1) * limit;
+    let skip = (page - 1) * limit;
 
     if (subject.length == 0 || difficulty.length == 0) {
       return res.status(400).json({
@@ -205,34 +211,103 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
     const filter = {
       subject: { $in: subject },
       difficulty: { $in: difficulty },
+      topicOrder: { $gt: parseInt(cursor) },
     };
 
-    const questions = await Question.find(filter)
-      .sort({ topicOrder: 1 })
-      .skip(skip)
-      .limit(limit);
+    let questions = [];
+    let totalQuestions;
+    let allQuestionsIds = [];
+    let allUserSolvedQuestions = [];
+    totalQuestions = await Question.countDocuments({
+      subject: { $in: subject },
+      difficulty: { $in: difficulty },
+    });
 
-    let totalQuestions = await Question.countDocuments(filter);
+    let hasMore = true;
+    let hasMoreRef = true;
+    while (questions.length < limit && hasMore) {
+      let currentQuestions = await Question.find(filter)
+        .sort({ subject:1, topicOrder: 1, _id: 1 })
+        .limit(limit + 1)
+        .lean();
+      if (currentQuestions.length == 0) {
+        hasMore = false;
+      }
+
+      let currentQuestionId = currentQuestions.map((q) => q._id);
+      let currentAllUserSolvedQuestions = await UserQuestionProgressModel.find({
+        userId: req.user._id,
+        questionId: { $in: currentQuestionId },
+        completed: true,
+      }).select("questionId");
+
+      if (status && status.toLowerCase() == "solved") {
+        currentQuestions = currentQuestions.filter((q) => {
+          return currentAllUserSolvedQuestions.some((s) =>
+            s.questionId.equals(q._id),
+          );
+        });
+        totalQuestions = await UserQuestionProgressModel.countDocuments({
+          subject: { $in: subject },
+          completed: true,
+        });
+        console.log({ status, totalQuestions });
+      }
+      if (status && status.toLowerCase() == "unsolved") {
+        currentQuestions = currentQuestions.filter((q) => {
+          return !currentAllUserSolvedQuestions.some((s) =>
+            s.questionId.equals(q._id),
+          );
+        });
+        let userSolved = await UserQuestionProgressModel.countDocuments({
+          subject: { $in: subject },
+          completed: true,
+        });
+        totalQuestions = totalQuestions - userSolved;
+      }
+
+      questions = [...questions, ...currentQuestions];
+      allQuestionsIds = [...allQuestionsIds, ...currentQuestionId];
+      allUserSolvedQuestions = [
+        ...new Map(
+          [...allUserSolvedQuestions, ...currentAllUserSolvedQuestions].map(
+            (item) => [item.questionId.toString(), item],
+          ),
+        ).values(),
+      ];
+      hasMore = currentQuestions.length > 0;
+      if (currentQuestions.length > 0) {
+        cursor = currentQuestions[currentQuestions.length - 1].topicOrder;
+        filter.topicOrder = { $gt: cursor };
+      }
+      skip = parseInt(skip) + limit;
+      page = parseInt(page) + 1;
+    }
 
     let totalPages = Math.ceil(totalQuestions / limit);
+    hasMoreRef = questions.length > limit;
+    let allQuestions = questions.slice(0, limit);
 
-    let allQuestionsIds = questions.map((q) => q._id);
+    let newCursor = allQuestions.length
+      ? allQuestions[allQuestions.length - 1].topicOrder
+      : cursor;
 
-    let allUserSolvedQuestions = await UserQuestionProgressModel.find({
-      userId: req.user._id,
-      questionId: { $in: allQuestionsIds },
-      completed: true,
-    }).select("questionId");
+    console.log({ newCursor });
 
     return res.status(200).json({
       message: "Questions fetched successfully",
       success: true,
-      questions,
+      questions: allQuestions,
       totalPages,
       totalQuestions,
+      hasMoreRef,
+      newCursor,
       allUserSolvedQuestions,
+      currentPage: page - 1,
     });
   } catch (error) {
+    console.log(error);
+
     return res
       .status(500)
       .json({ message: "Something went wrong", success: false });

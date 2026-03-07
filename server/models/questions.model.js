@@ -129,6 +129,10 @@ const questionSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+questionSchema.index({ slug: 1 }, { unique: true });
+questionSchema.index({ subject: 1, topicOrder: 1 });
+questionSchema.index({ subject: 1, difficulty: 1, topicOrder: 1 });
+
 const Question = mongoose.model("Question", questionSchema);
 
 export default Question;
