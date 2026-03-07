@@ -215,10 +215,9 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
     };
 
     let questions = [];
-    let totalQuestions;
     let allQuestionsIds = [];
     let allUserSolvedQuestions = [];
-    totalQuestions = await Question.countDocuments({
+    let totalQuestions = await Question.countDocuments({
       subject: { $in: subject },
       difficulty: { $in: difficulty },
     });
@@ -227,7 +226,7 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
     let hasMoreRef = true;
     while (questions.length < limit && hasMore) {
       let currentQuestions = await Question.find(filter)
-        .sort({ subject:1, topicOrder: 1, _id: 1 })
+        .sort({ topicOrder: 1, _id: 1 })
         .limit(limit + 1)
         .lean();
       if (currentQuestions.length == 0) {
@@ -249,6 +248,7 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
         });
         totalQuestions = await UserQuestionProgressModel.countDocuments({
           subject: { $in: subject },
+          userId: req.user._id,
           completed: true,
         });
         console.log({ status, totalQuestions });
@@ -259,11 +259,6 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
             s.questionId.equals(q._id),
           );
         });
-        let userSolved = await UserQuestionProgressModel.countDocuments({
-          subject: { $in: subject },
-          completed: true,
-        });
-        totalQuestions = totalQuestions - userSolved;
       }
 
       questions = [...questions, ...currentQuestions];
@@ -284,8 +279,29 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
       page = parseInt(page) + 1;
     }
 
+    if (status && status.toLowerCase() == "unsolved") {
+      let userSolved = await UserQuestionProgressModel.countDocuments({
+        subject: { $in: subject },
+        userId: req.user._id,
+        completed: true,
+      });
+
+      console.log(totalQuestions, userSolved);
+
+      totalQuestions = totalQuestions - userSolved;
+    }
+
+    if (status && status.toLowerCase() == "solved") {
+      totalQuestions = await UserQuestionProgressModel.countDocuments({
+        subject: { $in: subject },
+        userId: req.user._id,
+        completed: true,
+      });
+      console.log({ status, totalQuestions });
+    }
+
     let totalPages = Math.ceil(totalQuestions / limit);
-    hasMoreRef = questions.length > limit;
+
     let allQuestions = questions.slice(0, limit);
 
     let newCursor = allQuestions.length
@@ -293,6 +309,8 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
       : cursor;
 
     console.log({ newCursor });
+
+    hasMoreRef = totalQuestions > newCursor;
 
     return res.status(200).json({
       message: "Questions fetched successfully",
