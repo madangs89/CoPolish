@@ -149,19 +149,18 @@ app.post("/download", async (req, res) => {
 
 app.post("/download-docx", async (req, res) => {
   try {
-    const { data, order } = req.body;
-    if (!data) return res.status(400).json({ error: "data is required" });
+    const { html, paddingPx = 1 } = req.body;
+    if (!html) return res.status(400).json({ error: "html is required" });
 
-    const buffer = await generateDocx(data, order);
-
+    const docx = await generateDocx({ html, paddingPx });
     res.setHeader(
       "Content-Type",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     );
     res.setHeader("Content-Disposition", 'attachment; filename="resume.docx"');
-    res.send(buffer);
+    res.send(docx);
   } catch (err) {
-    console.error("DOCX generation error:", err);
+    console.error("DOCX error:", err);
     res.status(500).json({ error: "Failed to generate DOCX" });
   }
 });

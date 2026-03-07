@@ -43,6 +43,7 @@ import JobMatch from "../components/JobMatch";
 const ResumeEditor = () => {
   const dispatch = useDispatch();
 
+  const [downLoading, setDownLoading] = useState(false);
   const resumeSlice = useSelector((state) => state.resume);
   const config = useSelector((state) => state.resume.currentResumeConfig);
   const resumeData = useSelector((state) => state.resume.currentResume);
@@ -172,6 +173,46 @@ const ResumeEditor = () => {
     latestResumeRef.current = updated;
     dispatch(setCurrentResume(updated));
     setChangeCounter((prev) => prev + 1);
+  };
+
+  const triggerDownload = (blob, filename) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadPdf = async () => {
+    if (downLoading) return;
+    setDownLoading(true);
+    try {
+      await new Promise((r) => requestAnimationFrame(r));
+      await new Promise((r) => setTimeout(r, 200));
+
+      const exportEl = document.getElementById("resume-export");
+      if (!exportEl) throw new Error("Export element not found");
+
+      const res = await fetch(`http://localhost:3000/download`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          html: exportEl.innerHTML,
+          paddingPx: config.page.padding ?? 1,
+        }),
+      });
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+      triggerDownload(await res.blob(), "resume.pdf");
+    } catch (err) {
+      console.error("PDF download failed:", err);
+      alert("Failed to download PDF. Please try again.");
+    } finally {
+      setDownLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -439,10 +480,17 @@ const ResumeEditor = () => {
 
           {/* DOWNLOAD */}
           <div
-            onClick={() => setMobileModalState("download")}
+            onClick={() => {
+              setMobileModalState("download");
+              downloadPdf();
+            }}
             className="flex flex-col items-center justify-center gap-1"
           >
-            <Download className="w-6 h-6 text-gray-700" />
+            {downLoading ? (
+              <div className="w-6 h-6 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin" />
+            ) : (
+              <Download className="w-6 h-6 text-gray-700" />
+            )}
             <span className="text-[11px] text-gray-500">Download</span>
           </div>
         </div>
