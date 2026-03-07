@@ -33,7 +33,7 @@ import upload from "./config/multer.js";
 import fs from "fs";
 import { ai } from "./config/google.js";
 import progressRouter from "./routes/UserQuestionProgress.routes.js";
-import { generatePdf } from "./config/downloadhelper.js";
+import { generateDocx, generatePdf } from "./config/downloadhelper.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -144,6 +144,25 @@ app.post("/download", async (req, res) => {
   } catch (err) {
     console.error("PDF error:", err);
     res.status(500).json({ error: "PDF generation failed" });
+  }
+});
+
+app.post("/download-docx", async (req, res) => {
+  try {
+    const { data, order } = req.body;
+    if (!data) return res.status(400).json({ error: "data is required" });
+
+    const buffer = await generateDocx(data, order);
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    );
+    res.setHeader("Content-Disposition", 'attachment; filename="resume.docx"');
+    res.send(buffer);
+  } catch (err) {
+    console.error("DOCX generation error:", err);
+    res.status(500).json({ error: "Failed to generate DOCX" });
   }
 });
 // const instruction =

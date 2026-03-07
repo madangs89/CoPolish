@@ -1,17 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Maximize } from "lucide-react";
+import { Maximize, FileText, FileDown, ChevronDown } from "lucide-react";
 import { useSelector } from "react-redux";
 
 import PageRenderer from "./PageRenderer";
 import MobileResumeWrapper from "./MobileResumeWrapper";
 import { templateRegistry } from "../../config/templateRegistory";
 
+const API = "http://localhost:3000";
+
 const ResumePreview = ({ resumeData, checkedFields }) => {
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1);
   const [open, setOpen] = useState(false);
   const [pageCount, setPageCount] = useState(1);
-  const [downloading, setDownloading] = useState(false);
+  const [downloading, setDownloading] = useState(null); // "pdf" | "docx" | null
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const currentResume = useSelector((s) => s.resume.currentResume);
   const config = useSelector((s) => s.resume.currentResumeConfig);
@@ -20,7 +23,7 @@ const ResumePreview = ({ resumeData, checkedFields }) => {
     templateRegistry[currentResume.templateId] ||
     templateRegistry["ModernMinimalResume"];
 
-  /* ── FILTER DATA ── */
+  /* ── Filter data ── */
   const filteredData = useMemo(() => {
     const result = {};
     Object.keys(resumeData).forEach((key) => {
@@ -29,60 +32,88 @@ const ResumePreview = ({ resumeData, checkedFields }) => {
     return result;
   }, [resumeData, checkedFields]);
 
-  /* ── RESPONSIVE SCALE ── */
+  /* ── Responsive scale ── */
   useEffect(() => {
     const observer = new ResizeObserver(([entry]) => {
-      const containerWidth = entry.contentRect.width;
-      setScale(Math.min(containerWidth / config.page.width, 1));
+      setScale(Math.min(entry.contentRect.width / config.page.width, 1));
     });
     if (containerRef.current) observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, [config.page.width]);
 
-  /* ── DOWNLOAD PDF ──
-   * We send the EXPORT element's innerHTML (a plain continuous div, no translateY)
-   * and also pass the padding so the backend can set @page margin correctly.
-   */
-  const downloadResume = async () => {
-    if (downloading) return;
-    setDownloading(true);
+  /* ── Close dropdown on outside click ── */
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = () => setMenuOpen(false);
+    window.addEventListener("click", handler);
+    return () => window.removeEventListener("click", handler);
+  }, [menuOpen]);
 
+  /* ── Download PDF ── */
+  const downloadPdf = async () => {
+    if (downloading) return;
+    setDownloading("pdf");
+    setMenuOpen(false);
     try {
-      // Give React one frame to ensure export element is rendered
       await new Promise((r) => requestAnimationFrame(r));
       await new Promise((r) => setTimeout(r, 200));
 
       const exportEl = document.getElementById("resume-export");
       if (!exportEl) throw new Error("Export element not found");
 
-      const html = exportEl.innerHTML; // just the inner content, not the wrapper
-
-      const res = await fetch("http://localhost:3000/download", {
+      const res = await fetch(`${API}/download`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          html,
-          paddingPx: config.page.padding,
+          html: exportEl.innerHTML,
+          paddingPx: config.page.padding ?? 1,
         }),
       });
-
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "resume.pdf";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      triggerDownload(await res.blob(), "resume.pdf");
     } catch (err) {
-      console.error("Download failed:", err);
-      alert("Failed to download resume. Please try again.");
+      console.error("PDF download failed:", err);
+      alert("Failed to download PDF. Please try again.");
     } finally {
-      setDownloading(false);
+      setDownloading(null);
     }
+  };
+
+  /* ── Download DOCX ── */
+  const downloadDocx = async () => {
+    if (downloading) return;
+    setDownloading("docx");
+    setMenuOpen(false);
+    try {
+      const res = await fetch(`${API}/download-docx`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: filteredData,
+          order: config?.content?.order ?? [],
+        }),
+      });
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+      triggerDownload(await res.blob(), "resume.docx");
+    } catch (err) {
+      console.error("DOCX download failed:", err);
+      alert("Failed to download DOCX. Please try again.");
+    } finally {
+      setDownloading(null);
+    }
+  };
+
+  const triggerDownload = (blob, filename) => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -90,18 +121,58 @@ const ResumePreview = ({ resumeData, checkedFields }) => {
       ref={containerRef}
       className="w-full h-[90%] relative bg-gray-200 flex justify-center overflow-y-scroll scrollbar-minimal overflow-x-hidden p-2"
     >
-      {/* PAGE COUNT / DOWNLOAD BUTTON */}
-      <div
-        onClick={downloadResume}
-        className="absolute top-4 right-14 z-50 px-3 py-1 bg-white shadow text-xs rounded cursor-pointer select-none"
-        style={{ opacity: downloading ? 0.5 : 1 }}
-      >
-        {downloading
-          ? "Generating…"
-          : `${pageCount} Page${pageCount > 1 ? "s" : ""}`}
+      {/* ── DOWNLOAD BUTTON (split: PDF left, chevron right) ── */}
+      <div className="absolute top-4 right-14 z-50 flex items-center shadow rounded overflow-visible">
+        {/* Main action: PDF */}
+        <button
+          onClick={downloadPdf}
+          disabled={!!downloading}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 border-r border-gray-200 transition-colors"
+        >
+          <FileDown className="w-3.5 h-3.5" />
+          {downloading === "pdf" ? "Generating…" : `PDF · ${pageCount}p`}
+        </button>
+
+        {/* Dropdown toggle */}
+        <div className="relative">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen((v) => !v);
+            }}
+            disabled={!!downloading}
+            className="flex items-center px-1.5 py-1.5 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          >
+            <ChevronDown className="w-3.5 h-3.5" />
+          </button>
+
+          {menuOpen && (
+            <div
+              className="absolute right-0 top-full mt-1 w-40 bg-white rounded shadow-lg border border-gray-100 overflow-hidden z-50"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={downloadPdf}
+                disabled={!!downloading}
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                <FileDown className="w-3.5 h-3.5 text-red-500" />
+                Download PDF
+              </button>
+              <button
+                onClick={downloadDocx}
+                disabled={!!downloading}
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                <FileText className="w-3.5 h-3.5 text-blue-500" />
+                {downloading === "docx" ? "Generating…" : "Download DOCX"}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* EXPAND */}
+      {/* ── EXPAND ── */}
       {!open && (
         <Maximize
           onClick={() => setOpen(true)}
@@ -109,13 +180,11 @@ const ResumePreview = ({ resumeData, checkedFields }) => {
         />
       )}
 
-      {/* SCALED PREVIEW */}
+      {/* ── SCALED PREVIEW ── */}
       <div
         style={{
           transform: `scale(${scale})`,
           transformOrigin: "top center",
-          // Keep the container the right height so scroll works
-          height: `${(1122 * pageCount + 24 * (pageCount - 1)) * scale}px`,
         }}
       >
         <div id="resume-preview">
@@ -129,7 +198,7 @@ const ResumePreview = ({ resumeData, checkedFields }) => {
         </div>
       </div>
 
-      {/* HIDDEN EXPORT VERSION — continuous, no translateY, no scale */}
+      {/* ── HIDDEN EXPORT (used only for PDF) ── */}
       <div
         id="resume-export"
         aria-hidden="true"
@@ -151,7 +220,7 @@ const ResumePreview = ({ resumeData, checkedFields }) => {
         />
       </div>
 
-      {/* FULLSCREEN VIEW */}
+      {/* ── FULLSCREEN ── */}
       {open && (
         <div className="fixed inset-0 z-50 bg-black/60">
           <div className="flex justify-center overflow-y-auto py-6">
