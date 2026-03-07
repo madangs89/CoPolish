@@ -233,6 +233,14 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
         hasMore = false;
       }
 
+      let hasNextBatch = currentQuestions.length === limit + 1;
+
+      if (hasNextBatch) {
+        currentQuestions.pop();
+      }
+
+      hasMoreRef = hasNextBatch;
+
       let currentQuestionId = currentQuestions.map((q) => q._id);
       let currentAllUserSolvedQuestions = await UserQuestionProgressModel.find({
         userId: req.user._id,
@@ -309,8 +317,6 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
       : cursor;
 
     console.log({ newCursor });
-
-    hasMoreRef = totalQuestions > newCursor;
 
     return res.status(200).json({
       message: "Questions fetched successfully",

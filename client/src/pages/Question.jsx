@@ -131,7 +131,6 @@ const Question = () => {
       }
 
       let next = pageRef.current + 1;
-
       const QuestionRes = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/get/${allSubjects.length ? allSubjects : "all"}/${allDifficulties}/${next}/${cursorRef.current}/${selectedStatus.length ? selectedStatus : "all"}`,
         {
@@ -161,6 +160,8 @@ const Question = () => {
         console.log("after res cursor", cursorRef.current);
       }
     } catch (error) {
+      console.log(error);
+
       toast.error("Failed to fetch questions");
     } finally {
       setPageLoading(false);
