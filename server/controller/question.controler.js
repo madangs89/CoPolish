@@ -1,5 +1,6 @@
 import { pubClient } from "../config/redis.js";
 import Question from "../models/questions.model.js";
+import UserQuestionProgressModel from "../models/UserQuestionProgress.model.js";
 
 export const addQuestion = async (req, res) => {
   try {
@@ -211,10 +212,25 @@ export const getQuestionsForAllTypeOfFilters = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
+    let totalQuestions = await Question.countDocuments(filter);
+
+    let totalPages = Math.ceil(totalQuestions / limit);
+
+    let allQuestionsIds = questions.map((q) => q._id);
+
+    let allUserSolvedQuestions = await UserQuestionProgressModel.find({
+      userId: req.user._id,
+      questionId: { $in: allQuestionsIds },
+      completed: true,
+    }).select("questionId");
+
     return res.status(200).json({
       message: "Questions fetched successfully",
       success: true,
       questions,
+      totalPages,
+      totalQuestions,
+      allUserSolvedQuestions,
     });
   } catch (error) {
     return res
@@ -231,9 +247,6 @@ export const getCurrentQuestionById = async (req, res) => {
         .status(400)
         .json({ message: "Question ID is required", success: false });
     }
-
-
-    
 
     const redisCacheKey = `question_${id}`;
     const cachedQuestion = await pubClient.get(redisCacheKey);

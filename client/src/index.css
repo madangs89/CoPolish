@@ -154,10 +154,6 @@ body {
   animation: shimmer 2s infinite;
 }
 
-
-
-
-
 .score {
   position: relative;
   overflow: hidden;
@@ -199,9 +195,6 @@ body {
   animation: shimmer 2.4s infinite;
 }
 
-
-
-
 @keyframes shimmer {
   100% {
     left: 100%;
@@ -219,4 +212,17 @@ body {
 
 .animate-spin-slow {
   animation: spin-slow 1.5s linear infinite;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.25s ease-out;
 }

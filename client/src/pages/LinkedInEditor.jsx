@@ -984,7 +984,7 @@ const LinkedInEditor = () => {
         )}
 
         {currentChangesShowModal && (
-          <div className="fixed right-0 bottom-0 md:right-6 md:bottom-10 z-[99999999] w-[460px] max-h-[480px] bg-white border border-gray-200 rounded-xl shadow-2xl flex flex-col">
+          <div className="fixed hidden right-0 bottom-0 md:right-6 md:bottom-10 z-[99999999] w-[460px] max-h-[480px] bg-white border border-gray-200 rounded-xl shadow-2xl  md:flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b bg-gray-50 rounded-t-xl">
               <div>

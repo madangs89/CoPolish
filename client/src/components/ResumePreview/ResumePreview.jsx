@@ -61,7 +61,7 @@ const ResumePreview = ({ resumeData, checkedFields }) => {
 
       {/* PREVIEW */}
       <div
-      className=""
+        className=""
         style={{
           transform: `scale(${scale})`,
           transformOrigin: "top center",
