@@ -1,4 +1,4 @@
-import { Check, Heart } from "lucide-react";
+import { Check, Heart, BookOpen, List, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
@@ -17,6 +17,10 @@ const Answer = () => {
   // State to check if question is solved by user or not
   const [isQuestionSolved, setIsQuestionSolved] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+
+  // Mobile modal states
+  const [showTableModal, setShowTableModal] = useState(false);
+  const [showRelatedModal, setShowRelatedModal] = useState(false);
 
   // Loaders
   const [mainLoading, setMainLoading] = useState(true);
@@ -199,6 +203,18 @@ const Answer = () => {
     }
   }, [question]);
 
+  // Lock body scroll when a modal is open on mobile
+  useEffect(() => {
+    if (showTableModal || showRelatedModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showTableModal, showRelatedModal]);
+
   if (mainLoading) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
@@ -209,6 +225,7 @@ const Answer = () => {
 
   return (
     <div className="mt-16 flex bg-white min-h-screen">
+      {/* Left Sidebar - desktop only */}
       <div className="hidden md:block w-72 scrollbar-minimal bg-white border-r px-6 py-2 sticky top-16 h-[calc(100vh-4rem)] overflow-hidden">
         <div className="">
           <h2 className="text-lg font-semibold mb-3">Table</h2>
@@ -251,30 +268,29 @@ const Answer = () => {
           </p>
         </div>
       </div>
+
+      {/* Main Content */}
       <main
         ref={mainRef}
-        className="flex-1 md:max-w-4xl h-screen overflow-scroll [&::-webkit-scrollbar]:hidden max-w-full mx-auto px-8 py-3"
+        className="flex-1 md:max-w-4xl h-screen overflow-scroll [&::-webkit-scrollbar]:hidden max-w-full mx-auto px-4 md:px-8 py-3 pb-24 md:pb-3"
       >
         {/* Title */}
-        <h1 className="text-4xl font-bold text-gray-900 leading-tight mb-6">
+        <h1 className="text-2xl md:text-4xl font-bold text-gray-900 leading-tight mb-6">
           {question.topicOrder}. {question.question}
         </h1>
 
         {/* Meta Info */}
         <div className="text-sm text-gray-500 mb-6 border-b gap-5 pb-4">
-          {" "}
           {headerLoading ? (
             <div className="w-full h-full flex items-center justify-center">
               <BlackLoader />
             </div>
           ) : (
             <>
-              <div className="flex items-center gap-2 mb-2">
-                {" "}
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <span className="">
-                  {" "}
-                  Difficulty: <b>{question.difficulty}</b>{" "}
-                </span>{" "}
+                  Difficulty: <b>{question.difficulty}</b>
+                </span>
                 <button
                   onClick={handleLike}
                   className="flex items-center gap-2 px-3 py-1 rounded-md transition group"
@@ -288,8 +304,8 @@ const Answer = () => {
                   />
                   <span className="font-medium">{likedCount}</span>
                 </button>
-                <span>Asked in: {question.interviewCount} interviews</span>{" "}
-              </div>{" "}
+                <span>Asked in: {question.interviewCount} interviews</span>
+              </div>
               <button
                 onClick={markAsSolvedHandler}
                 className={`mt-3 px-4 py-2 rounded-md text-white transition 
@@ -368,12 +384,12 @@ const Answer = () => {
           {languages.length > 0 && (
             <div>
               {/* Tabs */}
-              <div className="flex border-b mb-6">
+              <div className="flex border-b mb-6 overflow-x-auto">
                 {languages.map((lang) => (
                   <button
                     key={lang}
                     onClick={() => setActiveTab(lang)}
-                    className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition whitespace-nowrap ${
                       activeTab === lang
                         ? "border-blue-600 text-blue-600"
                         : "border-transparent text-gray-500 hover:text-gray-900"
@@ -410,6 +426,7 @@ const Answer = () => {
         )}
       </main>
 
+      {/* Right Sidebar - desktop only */}
       <div className="hidden md:block w-72 scrollbar-minimal bg-white border-l px-6 py-2 sticky top-16 h-[calc(100vh-4rem)] overflow-hidden">
         {/* Related Questions */}
         <div className="flex flex-col">
@@ -488,6 +505,185 @@ const Answer = () => {
                 No keywords found for this question.
               </p>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Bottom FAB Buttons - visible only on mobile */}
+      <div className="fixed bottom-6 left-0 right-0 flex justify-center gap-4 md:hidden z-40">
+        <button
+          onClick={() => setShowTableModal(true)}
+          className="flex items-center gap-2 bg-black text-white px-4 py-3 rounded-full shadow-lg text-sm font-medium"
+        >
+          <List size={16} />
+          Contents
+        </button>
+        <button
+          onClick={() => setShowRelatedModal(true)}
+          className="flex items-center gap-2 bg-black text-white px-4 py-3 rounded-full shadow-lg text-sm font-medium"
+        >
+          <BookOpen size={16} />
+          Related
+        </button>
+      </div>
+
+      {/* 1 */}
+      <div
+        className={`fixed inset-0 z-[999999] md:hidden transition-opacity duration-300
+  ${showRelatedModal ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+      >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/40"
+          onClick={() => setShowRelatedModal(false)}
+        />
+
+        {/* Drawer */}
+        <div
+          className={`absolute top-0 right-0 bottom-0 w-[80vw] max-w-xs bg-white px-6 pt-6 pb-8 overflow-y-auto
+    transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
+    ${showRelatedModal ? "translate-x-0" : "translate-x-full"}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Related Questions</h2>
+            <button onClick={() => setShowRelatedModal(false)}>
+              <X size={20} className="text-gray-500" />
+            </button>
+          </div>
+
+          {/* Related Questions List */}
+          <div className="w-full flex flex-col">
+            {relatedLoading ? (
+              <div className="w-full flex items-center justify-center py-10">
+                <BlackLoader />
+              </div>
+            ) : relatedQuestions.length > 0 ? (
+              relatedQuestions.map((q) => (
+                <div
+                  key={q._id}
+                  onClick={() => {
+                    navigate(`/answer/${q.subject}/${q.slug}/${q._id}`);
+                    setShowRelatedModal(false);
+                  }}
+                  className="flex justify-between items-center cursor-pointer border-b border-gray-200 py-3 hover:bg-gray-50 transition-colors"
+                >
+                  <h3 className="text-sm text-gray-800 flex-1 pr-2">
+                    {q.topicOrder + ". " + q.question}
+                  </h3>
+
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-xs text-gray-400">
+                      {q.difficulty}
+                    </span>
+
+                    {q.solved && (
+                      <Check className="text-green-800 w-4 h-4 ml-1" />
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm text-center py-10">
+                No related questions found.
+              </p>
+            )}
+          </div>
+
+          {/* Keywords */}
+          <div className="flex w-full flex-col mt-6">
+            <h2 className="text-lg font-semibold mb-2">Question Keyword</h2>
+
+            <div className="w-full flex flex-wrap gap-2">
+              {question?.keywords?.length > 0 ? (
+                question.keywords.map((q, index) => (
+                  <div
+                    key={index}
+                    className="py-2 px-2 bg-gray-300 rounded-md text-sm text-black"
+                  >
+                    {q}
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm text-center py-10">
+                  No keywords found for this question.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2 */}
+      <div
+        className={`fixed inset-0 z-[999999] md:hidden transition-opacity duration-300
+  ${showTableModal ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+      >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/40"
+          onClick={() => setShowTableModal(false)}
+        />
+
+        {/* Drawer */}
+        <div
+          className={`absolute top-0 left-0 bottom-0 w-[80vw] max-w-xs bg-white px-6 pt-6 pb-8 overflow-y-auto
+    transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
+    ${showTableModal ? "translate-x-0" : "-translate-x-full"}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Table of Contents</h2>
+            <button onClick={() => setShowTableModal(false)}>
+              <X size={20} className="text-gray-500" />
+            </button>
+          </div>
+
+          {/* Section Links */}
+          <div className="flex flex-col">
+            {[
+              "Short Answer",
+              "Definition",
+              "Explanation",
+              "Code",
+              "Real World Example",
+            ].map((subject) => (
+              <label
+                key={subject}
+                onClick={() => {
+                  allRefData[subject]?.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                  setShowTableModal(false);
+                }}
+                className="flex items-center gap-3 mb-3 cursor-pointer group hover:bg-gray-50 px-2 py-2 rounded transition"
+              >
+                <span className="text-sm text-gray-600 group-hover:text-black">
+                  {subject}
+                </span>
+              </label>
+            ))}
+          </div>
+
+          {/* Interview Tip */}
+          <div className="flex w-full flex-col mt-6 mb-4">
+            <h2 className="text-lg font-semibold mb-2">💡 Interview Tip</h2>
+            <p className="text-gray-700 text-sm whitespace-pre-line leading-relaxed">
+              {question?.detailedAnswer?.interviewTip ||
+                "No interview tips available."}
+            </p>
+          </div>
+
+          {/* Common Mistake */}
+          <div className="flex w-full flex-col mb-4">
+            <h2 className="text-lg font-semibold mb-2">Common Mistake</h2>
+            <p className="text-gray-700 text-sm whitespace-pre-line leading-relaxed">
+              {question?.detailedAnswer?.commonMistake ||
+                "No common mistakes listed."}
+            </p>
           </div>
         </div>
       </div>
