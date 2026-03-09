@@ -154,6 +154,8 @@ const LinkedInEditor = () => {
   };
 
   const handleUpdateHeadlineStates = (tone) => {
+    console.log(tone);
+
     setHeadlineTone(tone);
     setHeadlineCurrentText(
       returnRequestedData(currentLinkedIn?.headline, tone),
@@ -475,7 +477,7 @@ const LinkedInEditor = () => {
                 </div>
               </div>
 
-              <div className="flex gap-2 mt-3">
+              <div className="flex gap-2  mt-3">
                 {currentLinkedIn?.headline.options &&
                   currentLinkedIn?.headline.options.length > 0 &&
                   [...currentLinkedIn?.headline.options]
@@ -510,12 +512,10 @@ const LinkedInEditor = () => {
             {/* ================= ABOUT OPTIMIZER ================= */}
             <div
               className={`
-          
-          bg-white rounded-xl px-6 py-4
-
-          ${linkedInSlice.globalLoader == "running" && linkedInSlice.sectionLoaders && linkedInSlice.sectionLoaders.length > 0 && linkedInSlice.sectionLoaders.find((section) => section.name == "about" && section.status == "running") ? "linkedInLoader cursor-not-allowed" : ""}
-            
-          
+          bg-white rounded-xl px-6  py-4 
+          min-h-[300px] 
+          ${linkedInSlice.globalLoader == "running" && linkedInSlice.sectionLoaders && linkedInSlice.sectionLoaders.length > 0 && linkedInSlice.sectionLoaders.find((section) => section.name == "about" && section.status == "running") ? "linkedInLoader cursor-not-allowed h-fit" : ""}
+               
           `}
             >
               <div className="flex justify-between items-center">
@@ -594,7 +594,7 @@ const LinkedInEditor = () => {
             <div
               className={`
           
-          bg-white rounded-xl px-6 py-6 shadow-sm
+          bg-white rounded-xl px-6 py-6 shadow-sm min-h-[200px]
                     ${linkedInSlice.globalLoader == "running" && linkedInSlice.sectionLoaders && linkedInSlice.sectionLoaders.length > 0 && linkedInSlice.sectionLoaders.find((section) => section.name == "experience" && section.status == "running") ? "linkedInLoader cursor-not-allowed" : ""}
             
           
@@ -762,7 +762,7 @@ const LinkedInEditor = () => {
         </div>
 
         {/* Fixed Score Section */}
-        <div className="fixed top-20 min-h-screen gap-3 flex flex-col  w-[260px] left-5 z-50">
+        <div className="fixed md:flex hidden top-20 min-h-screen gap-3  flex-col  w-[260px] left-5 z-50">
           <div className="bg-transparent rounded-xl  p-4 w-full md:flex hidden bg-white flex-col gap-4">
             {/* Main Score */}
             <div className="flex  items-center  gap-4">
@@ -1065,6 +1065,68 @@ const LinkedInEditor = () => {
               ) : (
                 <p className="text-gray-500 text-sm">No changes found.</p>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* For small screens */}
+        {currentChangesShowModal && (
+          <div className="md:hidden z-[99999999] fixed inset-0 bg-black/60">
+            <div className="bg-white w-full h-full flex flex-col">
+              <div className="flex items-center justify-between px-5 py-4 border-b bg-gray-50 rounded-t-xl">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    Changes Applied
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1 capitalize">
+                    Section: {currentChangesShowModal}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setCurrentChangesShowModal("")}
+                  className="text-gray-400 hover:text-gray-700 transition"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="overflow-y-auto px-5 py-4 space-y-6 text-sm">
+                {currentLinkedIn?.changes?.[currentChangesShowModal]?.length >
+                0 ? (
+                  currentLinkedIn.changes[currentChangesShowModal].map(
+                    (change, index) => (
+                      <div key={index} className="space-y-3">
+                        {/* Diff Block */}
+                        <div className="border rounded-lg overflow-hidden">
+                          <DiffViewer
+                            oldValue={change.before || ""}
+                            newValue={change.after || ""}
+                            splitView={false}
+                            showDiffOnly
+                            hideLineNumbers
+                          />
+                        </div>
+
+                        {/* Reason Block */}
+                        {change.reason && (
+                          <div className="bg-gray-50 border border-gray-100 rounded-md p-3">
+                            <p className="text-xs text-gray-500 mb-1">
+                              Why this change?
+                            </p>
+                            <p className="text-gray-700 text-sm leading-relaxed">
+                              {change.reason}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ),
+                  )
+                ) : (
+                  <p className="text-gray-500 text-sm">No changes found.</p>
+                )}
+              </div>
             </div>
           </div>
         )}
