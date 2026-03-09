@@ -1155,7 +1155,7 @@ const LinkedInEditor = () => {
         >
           {/* backdrop */}
           <div
-            className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+            className={` inset-0 bg-black/40 transition-opacity duration-300 ${
               showScoreModal ? "opacity-100" : "opacity-0"
             }`}
             onClick={() => setShowScoreModal(false)}
@@ -1163,7 +1163,7 @@ const LinkedInEditor = () => {
 
           {/* drawer */}
           <div
-            className={`absolute top-0 left-0 bottom-0 w-[85vw] max-w-sm bg-white p-4 shadow-xl
+            className={` top-0 left-0 bottom-0 w-[85vw] max-w-sm bg-white p-4 shadow-xl
     transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
     ${showScoreModal ? "translate-x-0" : "-translate-x-full"}`}
           >
@@ -1218,6 +1218,36 @@ const LinkedInEditor = () => {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="w-full bg-white border rounded-xl p-5 flex flex-col gap-3 h-full justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {connected ? "LinkedIn Connected" : "LinkedIn not connected"}
+              </h2>
+
+              <p className="text-sm text-gray-500 mt-2">
+                {connected
+                  ? "You can now post directly to LinkedIn from this platform."
+                  : "Connect your LinkedIn account to start posting directly from this platform."}
+              </p>
+            </div>
+
+            {connected ? (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                <p className="text-sm text-gray-700 font-medium">
+                  Account connected
+                </p>
+              </div>
+            ) : (
+              <button
+                onClick={handleLinkedInAuth}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition"
+              >
+                Connect LinkedIn
+              </button>
+            )}
           </div>
         </div>
 
@@ -1294,15 +1324,30 @@ const LinkedInEditor = () => {
                         </a>
                       )}
 
-                      <div className="mt-3">
+                      <div className="mt-3 flex items-center justify-between">
                         {isPosted ? (
-                          <span className="text-xs text-green-600">Posted</span>
+                          <span className="text-xs text-green-600 font-medium">
+                            Posted
+                          </span>
                         ) : (
-                          <button
-                            onClick={() => handlePostToLinkedIn(post._id)}
-                            className="px-3 py-1 text-xs bg-blue-600 text-white rounded"
-                          >
-                            Post to LinkedIn
+                          <button className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
+                            {!currentLinkedIn?.isLinkedInConnected ? (
+                              <span
+                                onClick={handleLinkedInAuth}
+                                className="text-sm  font-medium"
+                              >
+                                Connect LinkedIn
+                              </span>
+                            ) : currentPostToLinkedInLoader === post._id ? (
+                              <ButtonLoader />
+                            ) : (
+                              <h1
+                                onClick={() => handlePostToLinkedIn(post._id)}
+                                className="text-sm text-white font-medium"
+                              >
+                                Post to LinkedIn
+                              </h1>
+                            )}
                           </button>
                         )}
                       </div>
