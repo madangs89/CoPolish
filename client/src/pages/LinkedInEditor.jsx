@@ -15,7 +15,7 @@ import ButtonLoader from "../components/Loaders/ButtonLoader";
 import StatusBadge from "../components/StatusShower/StatusBadge";
 import { setCredits } from "../redux/slice/authSlice";
 import DiffViewer from "react-diff-viewer";
-import { Maximize2 } from "lucide-react";
+import { BarChart2, BookOpen, Maximize2 } from "lucide-react";
 
 const returnProperData = (data) => {
   const { currentTone, options } = data || {};
@@ -112,6 +112,9 @@ const LinkedInEditor = () => {
   const [connected, setConnected] = useState(
     currentLinkedIn?.isLinkedInConnected || false,
   );
+
+  const [showScoreModal, setShowScoreModal] = useState(false);
+  const [showPostsModal, setShowPostsModal] = useState(false);
 
   const handleOptimize = async (section, tone) => {
     console.log(
@@ -955,6 +958,29 @@ const LinkedInEditor = () => {
           </div>
         </div>
 
+        {/* for mobile only */}
+        <div className="fixed md:hidden gap-3  z-[99999999] bottom-9 flex w-full items-center justify-center">
+          <button
+            onClick={() => {
+              console.log("clicked");
+
+              setShowScoreModal(true);
+            }}
+            className="flex items-center cursor-pointer gap-2 bg-black text-white px-4 py-3 rounded-full"
+          >
+            <BarChart2 size={16} />
+            Score
+          </button>
+
+          <button
+            onClick={() => setShowPostsModal(true)}
+            className="flex items-center cursor-pointer gap-2 bg-black text-white px-4 py-3 rounded-full"
+          >
+            <BookOpen size={16} />
+            Posts
+          </button>
+        </div>
+
         {updateDataLoader && (
           <div className="fixed inset-0 z-[99999999] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
             <div className="flex items-center gap-4 px-6 py-4 bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-2xl">
@@ -984,7 +1010,7 @@ const LinkedInEditor = () => {
         )}
 
         {currentChangesShowModal && (
-          <div className="fixed hidden right-0 bottom-0 md:right-6 md:bottom-10 z-[99999999] w-[460px] max-h-[480px] bg-white border border-gray-200 rounded-xl shadow-2xl  md:flex flex-col">
+          <div className="fixed hidden  right-0 bottom-0 md:right-6 md:bottom-10 z-[99999999] w-[460px] max-h-[480px] bg-white border border-gray-200 rounded-xl shadow-2xl  md:flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b bg-gray-50 rounded-t-xl">
               <div>
@@ -1119,6 +1145,178 @@ const LinkedInEditor = () => {
             </div>
           </div>
         )}
+
+        {/* mobile modal */}
+        {/* SCORE MODAL */}
+        <div
+          className={`fixed inset-0 z-[999999] md:hidden ${
+            showScoreModal ? "visible" : "invisible"
+          }`}
+        >
+          {/* backdrop */}
+          <div
+            className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+              showScoreModal ? "opacity-100" : "opacity-0"
+            }`}
+            onClick={() => setShowScoreModal(false)}
+          />
+
+          {/* drawer */}
+          <div
+            className={`absolute top-0 left-0 bottom-0 w-[85vw] max-w-sm bg-white p-4 shadow-xl
+    transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
+    ${showScoreModal ? "translate-x-0" : "-translate-x-full"}`}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Profile Score</h2>
+              <button onClick={() => setShowScoreModal(false)}>✕</button>
+            </div>
+
+            {/* Score */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="relative w-24 h-24 overflow-hidden">
+                <div className="absolute inset-0 rounded-full bg-gray-200"></div>
+                <div className="absolute inset-0 rounded-full bg-blue-600"></div>
+
+                <div className="absolute inset-0 flex items-center justify-center text-white font-bold">
+                  {currentLinkedIn?.score?.currentScore}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-500">Overall</p>
+                <p className="text-sm font-medium">
+                  {returnLevelOnScore(currentLinkedIn?.score?.currentScore)}
+                </p>
+              </div>
+            </div>
+
+            {/* Breakdown */}
+            <div className="flex flex-col gap-3">
+              {[
+                {
+                  label: "Searchability",
+                  value: currentLinkedIn?.score?.searchability || 0,
+                },
+                {
+                  label: "Clarity",
+                  value: currentLinkedIn?.score?.clarity || 0,
+                },
+                { label: "Impact", value: currentLinkedIn?.score?.impact || 0 },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center gap-2">
+                  <span className="text-xs w-24">{item.label}</span>
+
+                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-600"
+                      style={{ width: `${item.value}%` }}
+                    />
+                  </div>
+
+                  <span className="text-xs">{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* POST MODAL */}
+        <div
+          className={`fixed inset-0 z-[999999] md:hidden ${
+            showPostsModal ? "visible" : "invisible"
+          }`}
+        >
+          {/* backdrop */}
+          <div
+            className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+              showPostsModal ? "opacity-100" : "opacity-0"
+            }`}
+            onClick={() => setShowPostsModal(false)}
+          />
+
+          {/* drawer */}
+          <div
+            className={`absolute top-0 right-0 bottom-0 w-[90vw] max-w-md bg-white p-4 overflow-y-auto shadow-xl
+    transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
+    ${showPostsModal ? "translate-x-0" : "translate-x-full"}`}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Post Suggestions</h2>
+
+              <button onClick={() => setShowPostsModal(false)}>✕</button>
+            </div>
+
+            {/* Optimize */}
+            <button
+              className="text-blue-600 text-sm font-medium mb-4"
+              onClick={() => handleOptimize("posts", "ALL")}
+            >
+              Get New Posts ✨
+            </button>
+
+            {/* Posts */}
+            <div className="flex flex-col gap-3">
+              {postData && postData.length > 0 ? (
+                postData.map((post) => {
+                  const isPosted = post.posting.status === "POSTED";
+
+                  return (
+                    <div
+                      key={post.postId}
+                      className="border rounded-lg p-4 bg-white shadow-sm"
+                    >
+                      <h3 className="text-sm font-medium mb-2">
+                        {post?.aiMeta?.topic.split("|")[0]}
+                      </h3>
+
+                      <p className="text-sm text-gray-700">
+                        {post.content.text.slice(0, 200)}...
+                      </p>
+
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {post.content.hashtags.map((tag, i) => (
+                          <span key={i} className="text-blue-600 text-xs">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+
+                      {post.content.link && (
+                        <a
+                          href={post.content.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-green-600 block mt-1"
+                        >
+                          {post.content.link}
+                        </a>
+                      )}
+
+                      <div className="mt-3">
+                        {isPosted ? (
+                          <span className="text-xs text-green-600">Posted</span>
+                        ) : (
+                          <button
+                            onClick={() => handlePostToLinkedIn(post._id)}
+                            className="px-3 py-1 text-xs bg-blue-600 text-white rounded"
+                          >
+                            Post to LinkedIn
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-sm text-gray-500">
+                  No post suggestions available.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
