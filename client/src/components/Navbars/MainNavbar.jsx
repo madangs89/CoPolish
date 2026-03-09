@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { toast } from "react-hot-toast";
+
 import { useDispatch, useSelector } from "react-redux";
-import { setCredits } from "../../redux/slice/authSlice";
+
+import { setIsPaymentModelOpen } from "../../redux/slice/paymentSlice";
 
 const MainNavbar = () => {
   const location = useLocation();
@@ -15,77 +15,6 @@ const MainNavbar = () => {
   const totalCredits = useSelector(
     (state) => state.auth.user?.totalCredits || 0,
   );
-  const handlePayment = async () => {
-    try {
-      // 2️⃣ Create order from backend
-      const { data: order } = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/payment/v1/create-payment`,
-        { credits: 10 },
-        { withCredentials: true },
-      );
-
-      // 3️⃣ Razorpay options
-      const options = {
-        key: order.key || RAZORPAY_KEY_ID, // prefer backend key
-        amount: order.amount,
-        currency: order.currency,
-        name: "CoPolish",
-        description: "Credit purchase",
-        order_id: order.orderId,
-
-        handler: async function (response) {
-          try {
-            console.log(response);
-
-            const paymentDetails = await axios.post(
-              `${
-                import.meta.env.VITE_BACKEND_URL
-              }/api/payment/v1/verify-payment`,
-              {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                // amount:
-              },
-              { withCredentials: true },
-            );
-
-            if (paymentDetails?.data) {
-              toast.success("Payment successful");
-              dispatch(
-                setCredits(totalCredits + (paymentDetails?.data?.credits || 0)),
-              );
-            }
-          } catch (err) {
-            console.log(err);
-            alert("Verification failed");
-          }
-        },
-
-        modal: {
-          ondismiss: () => {
-            toast.error("Payment popup closed");
-          },
-        },
-
-        prefill: {
-          name: "John Doe",
-          email: "john@example.com",
-        },
-
-        theme: {
-          color: "#111827",
-        },
-      };
-
-      // 4️⃣ Open Razorpay checkout
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (err) {
-      console.log(err);
-      alert(err.message || "Payment failed");
-    }
-  };
 
   useEffect(() => {
     gsap.fromTo(
@@ -132,7 +61,7 @@ const MainNavbar = () => {
 
         <div className="flex gap-2">
           <button
-            onClick={handlePayment}
+            onClick={() => dispatch(setIsPaymentModelOpen(true))}
             className="flex items-center gap-2 px-4 py-2 rounded-full text-[14px] 
               bg-zinc-100 text-zinc-900 hover:bg-zinc-200 transition"
           >

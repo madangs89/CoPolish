@@ -28,7 +28,7 @@ export const createPayment = async (req, res) => {
         message: "User not found",
       });
     }
-    const amount = credits * 30 * 100;
+    const amount = credits * (process.env.CREDIT_PRICE || 15) * 100;
 
     const order = await razorpay.orders.create({
       amount,
@@ -51,6 +51,9 @@ export const createPayment = async (req, res) => {
       key: process.env.RAZORPAY_KEY_ID,
     });
   } catch (error) {
+
+    console.log(error);
+    
     return res
       .status(500)
       .json({ success: false, message: "Failed to create payment" });

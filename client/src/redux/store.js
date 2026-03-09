@@ -4,6 +4,7 @@ import socketReducer from "./slice/socketSlice";
 import resumeReducer from "./slice/resumeSlice";
 import jobReducer from "./slice/jobSlice";
 import linkedInReducer from "./slice/linkedInSlice";
+import paymentReducer from "./slice/paymentSlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     resume: resumeReducer,
     job: jobReducer,
     linkedin: linkedInReducer,
+    payment: paymentReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

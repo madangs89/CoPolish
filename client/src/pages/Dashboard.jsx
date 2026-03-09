@@ -35,6 +35,7 @@ const Dashboard = () => {
   const userDetails = useSelector((state) => state.auth.user);
   const resumeSlice = useSelector((state) => state.resume);
   const linkedInSlice = useSelector((state) => state.linkedin);
+
   const location = useLocation();
 
   const [status, setstatus] = useState([]);

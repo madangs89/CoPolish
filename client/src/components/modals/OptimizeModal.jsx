@@ -11,6 +11,7 @@ import BlackLoader from "../Loaders/BlackLoader";
 import ButtonLoader from "../Loaders/ButtonLoader";
 import toast from "react-hot-toast";
 import { setCredits } from "../../redux/slice/authSlice";
+import { setIsPaymentModelOpen } from "../../redux/slice/paymentSlice";
 
 const CREDIT_COST = {
   ALL: 10,
@@ -237,7 +238,10 @@ export default function OptimizeModal({
         <div className="mt-4">
           {selected && !hasEnoughCredits ? (
             <>
-              <button className="w-full h-10 rounded-md bg-gray-900 text-white text-sm font-medium">
+              <button
+                onClick={() => dispatch(setIsPaymentModelOpen(true))}
+                className="w-full h-10 rounded-md bg-gray-900 text-white text-sm font-medium"
+              >
                 Add {missingCredits} credits
               </button>
               <p className="text-center text-xs text-gray-500 mt-2">
