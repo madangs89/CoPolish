@@ -1149,30 +1149,31 @@ const LinkedInEditor = () => {
         {/* mobile modal */}
         {/* SCORE MODAL */}
         <div
-          className={`fixed inset-0 z-[999999] md:hidden ${
+          className={`fixed inset-0 z-[999999] md:hidden transition-all duration-300 ${
             showScoreModal ? "visible" : "invisible"
           }`}
         >
           {/* backdrop */}
           <div
-            className={` inset-0 bg-black/40 transition-opacity duration-300 ${
+            className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
               showScoreModal ? "opacity-100" : "opacity-0"
             }`}
             onClick={() => setShowScoreModal(false)}
           />
 
-          {/* drawer */}
+          {/* SLIDER PARENT */}
           <div
-            className={` top-0 left-0 bottom-0 w-[85vw] max-w-sm bg-white p-4 shadow-xl
+            className={`fixed top-0 left-0 h-full w-[85vw] max-w-sm bg-white p-4 shadow-xl overflow-y-auto
     transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
     ${showScoreModal ? "translate-x-0" : "-translate-x-full"}`}
           >
+            {/* Header */}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Profile Score</h2>
               <button onClick={() => setShowScoreModal(false)}>✕</button>
             </div>
 
-            {/* Score */}
+            {/* SCORE SECTION */}
             <div className="flex items-center gap-4 mb-6">
               <div className="relative w-24 h-24 overflow-hidden">
                 <div className="absolute inset-0 rounded-full bg-gray-200"></div>
@@ -1191,8 +1192,8 @@ const LinkedInEditor = () => {
               </div>
             </div>
 
-            {/* Breakdown */}
-            <div className="flex flex-col gap-3">
+            {/* BREAKDOWN */}
+            <div className="flex flex-col gap-3 mb-6">
               {[
                 {
                   label: "Searchability",
@@ -1202,7 +1203,10 @@ const LinkedInEditor = () => {
                   label: "Clarity",
                   value: currentLinkedIn?.score?.clarity || 0,
                 },
-                { label: "Impact", value: currentLinkedIn?.score?.impact || 0 },
+                {
+                  label: "Impact",
+                  value: currentLinkedIn?.score?.impact || 0,
+                },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-2">
                   <span className="text-xs w-24">{item.label}</span>
@@ -1218,36 +1222,37 @@ const LinkedInEditor = () => {
                 </div>
               ))}
             </div>
-          </div>
 
-          <div className="w-full bg-white border rounded-xl p-5 flex flex-col gap-3 h-full justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">
-                {connected ? "LinkedIn Connected" : "LinkedIn not connected"}
-              </h2>
+            {/* LINKEDIN CONNECT CARD */}
+            <div className="w-full bg-white border rounded-xl p-5 flex flex-col gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {connected ? "LinkedIn Connected" : "LinkedIn not connected"}
+                </h2>
 
-              <p className="text-sm text-gray-500 mt-2">
-                {connected
-                  ? "You can now post directly to LinkedIn from this platform."
-                  : "Connect your LinkedIn account to start posting directly from this platform."}
-              </p>
-            </div>
-
-            {connected ? (
-              <div className="flex items-center gap-2 mt-2">
-                <span className="w-3 h-3 rounded-full bg-green-500"></span>
-                <p className="text-sm text-gray-700 font-medium">
-                  Account connected
+                <p className="text-sm text-gray-500 mt-2">
+                  {connected
+                    ? "You can now post directly to LinkedIn from this platform."
+                    : "Connect your LinkedIn account to start posting directly from this platform."}
                 </p>
               </div>
-            ) : (
-              <button
-                onClick={handleLinkedInAuth}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition"
-              >
-                Connect LinkedIn
-              </button>
-            )}
+
+              {connected ? (
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                  <p className="text-sm text-gray-700 font-medium">
+                    Account connected
+                  </p>
+                </div>
+              ) : (
+                <button
+                  onClick={handleLinkedInAuth}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition"
+                >
+                  Connect LinkedIn
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
