@@ -1070,7 +1070,7 @@ const LinkedInEditor = () => {
         )}
 
         {postShowModal.show && postShowModal.post && (
-          <div className="fixed inset-0 z-[9999999999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-[999999999999999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
             {/* Modal Container */}
             <div className="bg-white w-full max-w-3xl max-h-[90vh] rounded-xl shadow-xl flex flex-col">
               {/* Header */}
@@ -1149,7 +1149,7 @@ const LinkedInEditor = () => {
         {/* mobile modal */}
         {/* SCORE MODAL */}
         <div
-          className={`fixed inset-0 z-[999999] md:hidden transition-all duration-300 ${
+          className={`fixed inset-0 z-[999999999] md:hidden transition-all duration-300 ${
             showScoreModal ? "visible" : "invisible"
           }`}
         >
@@ -1258,7 +1258,7 @@ const LinkedInEditor = () => {
 
         {/* POST MODAL */}
         <div
-          className={`fixed inset-0 z-[999999] md:hidden ${
+          className={`fixed inset-0 z-[999999999] md:hidden ${
             showPostsModal ? "visible" : "invisible"
           }`}
         >
@@ -1272,27 +1272,39 @@ const LinkedInEditor = () => {
 
           {/* drawer */}
           <div
-            className={`absolute top-0 right-0 bottom-0 w-[90vw] max-w-md bg-white p-4 overflow-y-auto shadow-xl
+            className={`fixed top-0 right-0 h-full w-[90vw] max-w-md bg-white p-4 shadow-xl overflow-y-auto
     transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
     ${showPostsModal ? "translate-x-0" : "translate-x-full"}`}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Post Suggestions</h2>
+            <div className="flex flex-col w-full gap-2">
+              {/* Header */}
+              <div className="flex flex-col w-full items-start gap-2 bg-white sticky top-0 pb-2">
+                <div className="w-full flex items-center justify-between ">
+                  <h1 className="text-lg font-medium">Post Suggestions</h1>
+                  <button onClick={() => setShowPostsModal(false)}>✕</button>
+                </div>
 
-              <button onClick={() => setShowPostsModal(false)}>✕</button>
-            </div>
+                <button
+                  className="text-blue-600 text-sm flex items-center justify-center font-medium"
+                  onClick={() => handleOptimize("posts", "ALL")}
+                >
+                  {linkedInSlice.globalLoader === "running" &&
+                  linkedInSlice.sectionLoaders?.find(
+                    (section) =>
+                      section.name === "posts" && section.status === "running",
+                  ) ? (
+                    <span className="ml-2">
+                      <BlackLoader />
+                    </span>
+                  ) : (
+                    <p className="px-2 py-1 bg-zinc-100 border rounded-md">
+                      Get New Posts ✨
+                    </p>
+                  )}
+                </button>
+              </div>
 
-            {/* Optimize */}
-            <button
-              className="text-blue-600 text-sm font-medium mb-4"
-              onClick={() => handleOptimize("posts", "ALL")}
-            >
-              Get New Posts ✨
-            </button>
-
-            {/* Posts */}
-            <div className="flex flex-col gap-3">
+              {/* Posts */}
               {postData && postData.length > 0 ? (
                 postData.map((post) => {
                   const isPosted = post.posting.status === "POSTED";
@@ -1300,17 +1312,29 @@ const LinkedInEditor = () => {
                   return (
                     <div
                       key={post.postId}
-                      className="border rounded-lg p-4 bg-white shadow-sm"
+                      className="w-full bg-white rounded-lg shadow p-4 border"
                     >
-                      <h3 className="text-sm font-medium mb-2">
-                        {post?.aiMeta?.topic.split("|")[0]}
-                      </h3>
+                      {/* Title */}
+                      <div className="flex items-center mb-3 w-full justify-between">
+                        <h1 className="text-[13px] w-[70%] font-medium">
+                          {post?.aiMeta?.topic.split("|")[0]}
+                        </h1>
 
-                      <p className="text-sm text-gray-700">
+                        <button
+                          onClick={() => setPostShowModal({ show: true, post })}
+                          className="p-1 hover:bg-gray-100 rounded-full"
+                        >
+                          <Maximize2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Text */}
+                      <p className="text-sm text-gray-800">
                         {post.content.text.slice(0, 200)}...
                       </p>
 
-                      <div className="flex flex-wrap gap-1 mt-2">
+                      {/* Hashtags */}
+                      <div className="flex flex-wrap gap-2 mt-2">
                         {post.content.hashtags.map((tag, i) => (
                           <span key={i} className="text-blue-600 text-xs">
                             {tag}
@@ -1318,17 +1342,19 @@ const LinkedInEditor = () => {
                         ))}
                       </div>
 
+                      {/* Link */}
                       {post.content.link && (
                         <a
                           href={post.content.link}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-xs text-green-600 block mt-1"
+                          className="text-xs text-green-600 mt-2 block"
                         >
                           {post.content.link}
                         </a>
                       )}
 
+                      {/* Action */}
                       <div className="mt-3 flex items-center justify-between">
                         {isPosted ? (
                           <span className="text-xs text-green-600 font-medium">
@@ -1339,19 +1365,19 @@ const LinkedInEditor = () => {
                             {!currentLinkedIn?.isLinkedInConnected ? (
                               <span
                                 onClick={handleLinkedInAuth}
-                                className="text-sm  font-medium"
+                                className="text-sm font-medium"
                               >
                                 Connect LinkedIn
                               </span>
                             ) : currentPostToLinkedInLoader === post._id ? (
                               <ButtonLoader />
                             ) : (
-                              <h1
+                              <span
                                 onClick={() => handlePostToLinkedIn(post._id)}
-                                className="text-sm text-white font-medium"
+                                className="text-sm font-medium"
                               >
                                 Post to LinkedIn
-                              </h1>
+                              </span>
                             )}
                           </button>
                         )}
@@ -1360,7 +1386,7 @@ const LinkedInEditor = () => {
                   );
                 })
               ) : (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 mt-2">
                   No post suggestions available.
                 </p>
               )}
