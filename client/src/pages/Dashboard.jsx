@@ -367,9 +367,9 @@ const Dashboard = () => {
                 </p>
 
                 <div className="flex gap-3 mt-6">
-                  <button className="px-5 py-2 rounded-full border text-sm font-medium hover:bg-gray-50">
+                  {/* <button className="px-5 py-2 rounded-full border text-sm font-medium hover:bg-gray-50">
                     View Suggestions
-                  </button>
+                  </button> */}
                   <button
                     onClick={() =>
                       navigate(

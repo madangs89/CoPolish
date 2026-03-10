@@ -10,6 +10,7 @@ import LinkedInRedirect from "./components/authRedirectors/LinkedInRedirect";
 import Question from "./pages/Question";
 import Answer from "./pages/Answer";
 import RenderResumeForPreview from "./components/Renderer/RenderResumeForPreview";
+import Profile from "./pages/Profile";
 
 const Hero = lazy(() => import("./pages/Hero"));
 const Cursor = lazy(() => import("./components/Cursor"));
@@ -124,6 +125,7 @@ const App = () => {
               path="/render/resume/:id"
               element={<RenderResumeForPreview />}
             />
+            <Route path="/profile/user/:userId" element={<Profile />} />
           </Route>
         </Routes>
       </Suspense>
