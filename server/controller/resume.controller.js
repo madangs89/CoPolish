@@ -633,7 +633,7 @@ export const getAllUserResumes = async (req, res) => {
       .sort({
         createdAt: -1,
       })
-      .select("_id title createdAt updatedAt");
+      .select("_id title createdAt updatedAt version resumeGroupId");
     return res.status(200).json({
       success: true,
       message: "Resumes fetched successfully",
@@ -647,6 +647,36 @@ export const getAllUserResumes = async (req, res) => {
     });
   }
 };
+
+// export const getAllUserResumesForProfile = async (req, res) => {
+//   try {
+//     const userId = req.user._id;
+
+//     console.log("fetching all resumes for user profile:", userId);
+//     if (!userId) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "User ID is required",
+//       });
+//     }
+//     const resumes = await ResumeTemplate.find({ userId })
+//       .sort({
+//         createdAt: -1,
+//       })
+//       .select("_id title createdAt updatedAt version resumeGroupId ");
+//     return res.status(200).json({
+//       success: true,
+//       message: "Resumes fetched successfully",
+//       resumes,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch resumes",
+//     });
+//   }
+// };
 
 export const jobMatcher = async (req, res) => {
   try {

@@ -1,7 +1,12 @@
 import React from "react";
+import { useEffect } from "react";
 import { LineChart, Line, XAxis, Tooltip, ResponsiveContainer } from "recharts";
+import axios from "axios";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
+  const navigate = useNavigate();
   const user = {
     name: "Madan G S",
     credits: 352,
@@ -19,11 +24,7 @@ const Profile = () => {
     { title: "TCP Handshake", subject: "CN", difficulty: "Hard" },
   ];
 
-  const resumes = [
-    { title: "Backend Resume", version: "v3", updated: "Mar 10" },
-    { title: "Intern Resume", version: "v2", updated: "Jan 24" },
-    { title: "Full Stack Resume", version: "v1", updated: "Dec 12" },
-  ];
+  const [resumes, setResumes] = useState([]);
 
   const payments = [
     { amount: 200, status: "success", date: "Mar 1" },
@@ -46,6 +47,25 @@ const Profile = () => {
   const heatmap = Array.from({ length: 72 }, () =>
     Math.floor(Math.random() * 4),
   );
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const allResume = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/all/versions`,
+          {
+            withCredentials: true,
+          },
+        );
+
+        if (allResume.data.success) {
+          setResumes(allResume.data.resumes);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  }, []);
 
   return (
     <div className="w-full min-h-screen h-screen overflow-y-scroll bg-gray-50 flex justify-center pt-20 pb-24">
@@ -139,7 +159,10 @@ const Profile = () => {
                       {r.version} • {r.updated}
                     </p>
 
-                    <button className="text-blue-600 text-sm mt-3">
+                    <button
+                      onClick={() => navigate(`/editor/resume/${r._id}`)}
+                      className="text-blue-600 cursor-pointer text-sm mt-3"
+                    >
                       Open →
                     </button>
                   </div>
