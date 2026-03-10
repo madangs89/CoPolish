@@ -40,6 +40,7 @@ import OptimizationPanel from "../components/modals/OptimizationPanel";
 import DraggableOptimizerFab from "../components/modals/DraggableOptimizerFab";
 import BlackLoader from "../components/Loaders/BlackLoader";
 import JobMatch from "../components/JobMatch";
+import { useParams } from "react-router-dom";
 const ResumeEditor = () => {
   const dispatch = useDispatch();
 
@@ -50,6 +51,8 @@ const ResumeEditor = () => {
   const resumeConfig = useSelector((state) => state.resume.currentResumeConfig);
   const userSlice = useSelector((state) => state.auth.user);
   const isFirstRender = useRef(true);
+
+  const params = useParams();
 
   const checkedFields = useSelector(
     (state) => state.resume.currentResume.checkedFields,
@@ -273,7 +276,7 @@ const ResumeEditor = () => {
     console.log("Fetching resume data for ID:", resumeSlice.currentResume._id);
     (async () => {
       const { data } = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/${resumeSlice.currentResume._id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/${params.id || resumeSlice.currentResume._id}`,
         {
           withCredentials: true,
         },
@@ -310,7 +313,7 @@ const ResumeEditor = () => {
         );
       }
     })();
-  }, []);
+  }, [params.id]);
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
