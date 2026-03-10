@@ -41,7 +41,7 @@ const MainNavbar = () => {
           CoPolish
         </h1>
 
-        {!location.pathname.includes("onboarding") &&
+        {/* {!location.pathname.includes("onboarding") &&
           !location.pathname.includes("approve") && (
             <div className="hidden md:flex gap-7 items-center">
               <span className="text-[14px] hover:underline cursor-pointer">
@@ -57,7 +57,7 @@ const MainNavbar = () => {
                 ATS Match
               </span>
             </div>
-          )}
+          )} */}
 
         <div className="flex gap-2">
           <button

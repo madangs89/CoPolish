@@ -1272,7 +1272,10 @@ CONTENT QUALITY RULES
 • Convert bullet experience into narrative.
 
 Minimum length: 1200 characters.
-Maximum length: 2000 characters.
+Maximum length: 1500 characters.
+
+IMPORTANT-RULE
+MAXIMUM CHARACTER LIMIT MUST BE STRICTLY FOLLOWED. If the content exceeds 1500 characters → you MUST edit it down while preserving core message and technical depth.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 HASHTAGS
