@@ -16,6 +16,8 @@ const MainNavbar = () => {
     (state) => state.auth.user?.totalCredits || 0,
   );
 
+  const userDetails = useSelector((state) => state.auth.user);
+
   useEffect(() => {
     gsap.fromTo(
       ".sc",
@@ -71,7 +73,10 @@ const MainNavbar = () => {
             </span>
           </button>
 
-          <button className="bg-black text-white text-[14px] px-5 py-2 rounded-full">
+          <button
+            onClick={() => navigate(`/profile/user/${userDetails?._id}`)}
+            className="bg-black cursor-pointer text-white text-[14px] px-5 py-2 rounded-full"
+          >
             Profile
           </button>
         </div>
