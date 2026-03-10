@@ -349,12 +349,12 @@ const Question = () => {
                 </p>
               </div>
 
-              <select className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              {/* <select className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="newest">Newest</option>
                 <option value="views">Most Viewed</option>
                 <option value="likes">Most Liked</option>
                 <option value="interview">Most Asked</option>
-              </select>
+              </select> */}
             </div>
           </div>
 
