@@ -297,15 +297,12 @@ const Dashboard = () => {
           ✓
         </div>
         <p className="text-sm md:text-base">
-          <span
-            onClick={() => navigate("/question/sub")}
-            className="font-medium"
-          >
-            Nice progress,{" "}
-            {userDetails?.userName && userDetails?.userName.split(" ")[0]} 👋
+          Keep going{" "}
+          <span className="font-bold">
+            {" "}
+            {userDetails?.userName?.split(" ")[0]}
           </span>{" "}
-          Your resume improved by{" "}
-          <span className="font-semibold">+6 points</span>
+          👋 Every question you solve brings you closer to your next interview.
         </p>
       </div>
 
