@@ -37,7 +37,6 @@ export default function ResumeTopBar() {
         { resumeData: latestResumeData },
         { withCredentials: true },
       );
-
       console.log("Auto saved to db", response.data);
     } catch (error) {
       console.error(error);

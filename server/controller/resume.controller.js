@@ -317,6 +317,9 @@ export const updateResume = async (req, res) => {
     const userId = req.user._id;
     const { resumeData } = req.body;
 
+
+    
+
     if (!resumeId || !resumeData) {
       return res.status(400).json({
         success: false,

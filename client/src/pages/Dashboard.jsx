@@ -314,8 +314,12 @@ const Dashboard = () => {
           <SkeletonLoader />
         ) : (
           <div className="bg-white rounded-3xl p-6 shadow-sm">
-            <p className="text-sm text-gray-500 mb-2">Resume</p>
+            <p className="text-sm font-medium mb-2">Resume</p>
 
+            <div className="flex flex-col text-sm text-gray-500  leading-tight mb-1">
+              <p> {resumeSlice?.currentResume?.personal.name || ""}</p>
+              <p>{resumeSlice?.currentResume?.title || "Untitled Resume"}</p>
+            </div>
             <div className="flex items-end gap-1">
               <span className="text-5xl font-semibold">
                 {resumeSlice?.currentResume?.scoreAfter
@@ -340,13 +344,13 @@ const Dashboard = () => {
                 onClick={() =>
                   navigate(`/editor/resume/${resumeSlice?.currentResume?._id}`)
                 }
-                className="px-5 py-2 rounded-full border text-sm font-medium hover:bg-gray-50"
+                className="px-5 py-2 rounded-full bg-black text-white text-sm font-medium hover:opacity-90"
               >
                 View Resume
               </button>
-              <button className="px-5 py-2 rounded-full bg-black text-white text-sm font-medium hover:opacity-90">
+              {/* <button className="px-5 py-2 rounded-full bg-black text-white text-sm font-medium hover:opacity-90">
                 Review Resume
-              </button>
+              </button> */}
             </div>
           </div>
         )}

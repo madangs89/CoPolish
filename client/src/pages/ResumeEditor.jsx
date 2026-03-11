@@ -468,7 +468,9 @@ const ResumeEditor = () => {
             <Sparkles className="w-5 h-5" />
             <div className="flex flex-col leading-tight">
               <span className="text-sm font-semibold">Optimize</span>
-              <span className="text-[10px] opacity-80">9 credits left</span>
+              <span className="text-[10px] opacity-80">
+                {userSlice.totalCredits} credits left
+              </span>
             </div>
           </div>
 
