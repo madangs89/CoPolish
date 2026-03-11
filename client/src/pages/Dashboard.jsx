@@ -83,18 +83,26 @@ const Dashboard = () => {
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedBackLoading, setFeedBackLoading] = useState(false);
 
   const handleFeedbackSubmit = async () => {
     try {
-      await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/feedback/v1/submit`,
-        { rating: feedbackRating, message: feedbackText },
+      setFeedBackLoading(true);
+      const feedBackRes = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/feedback/v1/create/feedback`,
+        { rating: feedbackRating, feedBack: feedbackText },
         { withCredentials: true },
       );
+
+      if (feedBackRes.data.success) {
+        toast.success("Thanks For Your FeedBack!");
+        setFeedbackSubmitted(true);
+      }
     } catch (e) {
+      toast.error("FeedBack Not Submited");
       console.error(e);
     } finally {
-      setFeedbackSubmitted(true);
+      setFeedBackLoading(false);
     }
   };
 
@@ -570,7 +578,7 @@ const Dashboard = () => {
               disabled={!feedbackRating}
               className="w-full mt-4 px-6 py-3 rounded-full bg-black text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              Submit Feedback →
+              {feedBackLoading ? "Submitting..." : "Submit Feedback"}
             </button>
           )}
         </div>

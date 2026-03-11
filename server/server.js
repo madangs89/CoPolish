@@ -34,6 +34,7 @@ import fs from "fs";
 import { ai } from "./config/google.js";
 import progressRouter from "./routes/UserQuestionProgress.routes.js";
 import { generateDocx, generatePdf } from "./config/downloadhelper.js";
+import feedBackRouter from "./routes/feedback.routes.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -128,6 +129,7 @@ app.use("/api/linkedin/v1", linkedInRouter);
 app.use("/api/payment/v1", paymentRouter);
 app.use("/api/question/v1", questionRouter);
 app.use("/api/progress/v1", progressRouter);
+app.use("/api/feedback/v1", feedBackRouter);
 
 app.post("/download", async (req, res) => {
   try {
@@ -155,7 +157,7 @@ app.post("/download-docx", async (req, res) => {
     const docx = await generateDocx({ html, paddingPx });
     res.setHeader(
       "Content-Type",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     );
     res.setHeader("Content-Disposition", 'attachment; filename="resume.docx"');
     res.send(docx);
