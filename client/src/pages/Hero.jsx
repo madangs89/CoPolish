@@ -167,6 +167,7 @@ const Hero = () => {
 
             <button className="bg-black hero-btn flex items-center gap-1 rounded-full px-4 py-2.5 text-white text-[16px]">
               <p
+                onClick={() => dispatch(setAuthOpen(true))}
                 onMouseEnter={() =>
                   gsap.to("#cursor", { scale: 2.5, duration: 0.3 })
                 }

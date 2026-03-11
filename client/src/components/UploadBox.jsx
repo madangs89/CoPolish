@@ -11,22 +11,27 @@ const UploadBox = ({
   setstatus,
   errorStates,
   setErrorStates,
-  operation
+  operation,
 }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const navigate = useNavigate();
 
   const handleSelectFile = (e) => {
-    console.log(e.target.files);
-
     const file = e.target.files[0];
+
+    if (!file) return;
 
     const { size } = file;
     if (size > 5 * 1024 * 1024) {
       toast.error("File size exceeds 5MB limit");
+      e.target.value = null; // reset input
       return;
     }
+
     setSelectedFile(file);
+
+    // reset input so selecting same file triggers change again
+    e.target.value = null;
   };
 
   const handleOnClick = async () => {
@@ -42,7 +47,7 @@ const UploadBox = ({
         formdata,
         {
           withCredentials: true,
-        }
+        },
       );
       console.log(uploadData);
 
@@ -67,7 +72,7 @@ const UploadBox = ({
       console.log("Error while uploading file:", error);
       toast.error(
         error?.response?.data?.message ||
-          "Something went wrong while uploading file"
+          "Something went wrong while uploading file",
       );
       return;
     }

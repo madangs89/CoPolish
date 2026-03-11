@@ -30,7 +30,7 @@ const OnboardingSource = () => {
   };
 
   return (
-    <div className="min-h-screen relative w-full bg-[#f8f9fb] flex items-center justify-center">
+    <div className="min-h-screen relative w-full  bg-[#f8f9fb] flex items-center justify-center">
       <div className="max-w-5xl w-full px-6">
         {/* BACK BUTTON */}
         {view !== "choose" && (
@@ -55,7 +55,7 @@ const OnboardingSource = () => {
               </p>
             </div>
 
-            <div className="flex items-center justify-center gap-6">
+            <div className="flex items-center  justify-center gap-6">
               {/* Resume */}
               <Card
                 icon={<FileText className="text-[#4f46e5]" />}

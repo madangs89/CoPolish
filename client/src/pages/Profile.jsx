@@ -206,7 +206,6 @@ const Profile = () => {
             value={resumes.length}
             loading={loadingResumes}
           />
-          <StatCard title="AI Jobs" value={12} loading={false} />
         </div>
 
         {/* Main grid */}

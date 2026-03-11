@@ -67,7 +67,7 @@ const ResumeConfigEditor = ({ config, setConfig }) => {
   return (
     <div className="space-y-10 p-6 rounded-xl border bg-white">
       {/* ================= SECTION ORDER ================= */}
-      <section>
+      {/* <section>
         <h3 className="text-sm font-semibold mb-2">Section Order</h3>
         <p className="text-xs text-gray-500 mb-3">
           Controls the vertical order of sections in the resume.
@@ -90,7 +90,7 @@ const ResumeConfigEditor = ({ config, setConfig }) => {
             </select>
           </div>
         ))}
-      </section>
+      </section> */}
 
       {/* ================= PAGE ================= */}
       <section>

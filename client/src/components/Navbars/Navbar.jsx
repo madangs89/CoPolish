@@ -29,7 +29,7 @@ const Navbar = () => {
         CoPolish
       </h1>
 
-      <div className="gap-7 lg:flex hidden items-center justify-center">
+      {/* <div className="gap-7 lg:flex hidden items-center justify-center">
         <h1
           onMouseEnter={() => gsap.to("#cursor", { scale: 2.5, duration: 0.3 })}
           onMouseLeave={() => gsap.to("#cursor", { scale: 1, duration: 0.3 })}
@@ -58,7 +58,7 @@ const Navbar = () => {
         >
           FAQ
         </h1>
-      </div>
+      </div> */}
 
       <button
         onMouseEnter={() => {

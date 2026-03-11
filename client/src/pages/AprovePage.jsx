@@ -53,7 +53,7 @@ const ApprovePage = () => {
   const sectionRef = useRef(null);
   const navigate = useNavigate();
   const [resumeData, setResumeData] = useState(
-    useSelector((state) => state.resume.currentResume)
+    useSelector((state) => state.resume.currentResume),
   );
 
   const resumeSliceData = useSelector((state) => state.resume);
@@ -84,19 +84,18 @@ const ApprovePage = () => {
             import.meta.env.VITE_BACKEND_URL
           }/api/resume/v1/mark-approved-create-new`,
           { resumeData: d },
-          { withCredentials: true }
+          { withCredentials: true },
         );
         if (response.data.success) {
           navigate("/dashboard");
           toast.success("Resume approved. Redirecting to dashboard");
         }
       } else {
-
         console.log("Updating and approving resume with id:", resumeData);
         const response = await axios.put(
           `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/mark-approved`,
           { resumeId: params.id, resumeData },
-          { withCredentials: true }
+          { withCredentials: true },
         );
         if (response.data.success) {
           navigate("/dashboard", {
@@ -130,7 +129,7 @@ const ApprovePage = () => {
 
         const resumeInfo = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/api/resume/v1/${params.id}`,
-          { withCredentials: true }
+          { withCredentials: true },
         );
 
         if (!mounted) return;
@@ -175,7 +174,10 @@ const ApprovePage = () => {
   }, [resumeData, dispatch]);
 
   return (
-    <div ref={sectionRef} className="h-screen header overflow-y-scroll  bg-[#f8f9fb] mt-8 py-12">
+    <div
+      ref={sectionRef}
+      className="h-screen header overflow-y-scroll mt-16  bg-[#f8f9fb]  py-20"
+    >
       <div className="max-w-5xl mx-auto px-6">
         {/* HEADER */}
         <div className="mb-10 flex justify-between items-start">
@@ -212,10 +214,10 @@ const ApprovePage = () => {
             }}
             className=" inline-flex items-center gap-2 rounded-full
                  bg-black text-white
-                 px-6 py-2 text-sm font-medium
+                 md:px-6 md:py-2 px-2 py-2 text-sm font-medium
                  transition"
           >
-            <CheckCircle size={16} />
+            <CheckCircle size={16} className="hidden md:block" />
             Skip & Go to Preview
           </button>
         </div>
