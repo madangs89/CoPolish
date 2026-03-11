@@ -3,6 +3,7 @@ import express from "express";
 import {
   getUserProgressForQuestion,
   getUserSolvedQuestionCountForAllSubjects,
+  getUserSolvedQuestions,
   getUserSolvedQuestionsOnTheBasisOfDifficulty,
   markLikeForQuestion,
   markQuestionAsCompleted,
@@ -27,6 +28,7 @@ progressRouter.get(
   getUserSolvedQuestionsOnTheBasisOfDifficulty,
 );
 
+progressRouter.get("/solved/questions/:page/:limit", authMiddelware, getUserSolvedQuestions);
 progressRouter.post("/mark-completed", authMiddelware, markQuestionAsCompleted);
 progressRouter.post("/mark-liked", authMiddelware, markLikeForQuestion);
 

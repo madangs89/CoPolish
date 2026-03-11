@@ -288,3 +288,46 @@ export const getUserSolvedQuestionsOnTheBasisOfDifficulty = async (
     });
   }
 };
+
+export const getUserSolvedQuestions = async (req, res) => {
+  try {
+    let { page = 1, limit = 10 } = req.params;
+    const userId = req.user._id;
+    limit = parseInt(limit);
+    page = parseInt(page);
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized Access",
+        success: false,
+      });
+    }
+    const skip = (page - 1) * limit;
+    const solvedQuestions = await UserQuestionProgressModel.find({
+      userId,
+      completed: true,
+    })
+      .populate("questionId", "title subject difficulty _id createdAt")
+      .sort({ completedAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalSolved = await UserQuestionProgressModel.countDocuments({
+      userId,
+      completed: true,
+    });
+    return res.status(200).json({
+      message: "Solved questions retrieved successfully",
+      success: true,
+      questions: solvedQuestions,
+      totalSolved,
+      totalPages: Math.ceil(totalSolved / limit),
+    });
+  } catch (error) {
+    console.error("Error in getUserSolvedQuestions:", error);
+    return res.status(500).json({
+      message: "Something went wrong",
+      success: false,
+    });
+  }
+};
