@@ -4,19 +4,19 @@ import { LineChart, Line, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const user = {
-    name: "Madan G S",
-    credits: 352,
-  };
 
-  const problemStats = {
-    Easy: { solved: 45, total: 100 },
-    Medium: { solved: 25, total: 60 },
-    Hard: { solved: 10, total: 30 },
-  };
+  const user = useSelector((state) => state.auth.user);
+
+  const [problemStats, setProblemStats] = useState({
+    Basic: { solved: 0, total: 0 },
+    Easy: { solved: 0, total: 0 },
+    Medium: { solved: 0, total: 0 },
+    Hard: { solved: 0, total: 0 },
+  });
 
   const recentProblems = [
     { title: "What is OOP?", subject: "OOPS", difficulty: "Easy" },
@@ -37,12 +37,7 @@ const Profile = () => {
     { operation: "ATS Score", status: "failed", credits: 3 },
   ];
 
-  const creditData = [
-    { month: "Jan", credits: 120 },
-    { month: "Feb", credits: 90 },
-    { month: "Mar", credits: 150 },
-    { month: "Apr", credits: 80 },
-  ];
+  const [creditData, setCreditData] = useState([]);
 
   const heatmap = Array.from({ length: 72 }, () =>
     Math.floor(Math.random() * 4),
@@ -67,6 +62,71 @@ const Profile = () => {
     })();
   }, []);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const allQuestionsCount = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/question/v1/get/questions/difficulty`,
+          {
+            withCredentials: true,
+          },
+        );
+        console.log(allQuestionsCount.data);
+
+        if (allQuestionsCount.data.success) {
+          const data = allQuestionsCount.data.questions;
+
+          setProblemStats((prev) => {
+            Object.keys(prev).forEach((key) => {
+              prev[key].total = data[key] || 0;
+            });
+            return { ...prev };
+          });
+        }
+
+        const allUserSolvedCount = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/progress/v1/get/questions/difficulty`,
+          {
+            withCredentials: true,
+          },
+        );
+        console.log(allUserSolvedCount.data);
+
+        if (allUserSolvedCount.data.success) {
+          const data = allUserSolvedCount.data.solvedQuestions;
+
+          setProblemStats((prev) => {
+            Object.keys(prev).forEach((key) => {
+              prev[key].solved = data[key] || 0;
+            });
+            return { ...prev };
+          });
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const creditStats = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/payment/v1/payment/monthly/stats`,
+          {
+            withCredentials: true,
+          },
+        );
+
+        if (creditStats.data.success) {
+          setCreditData(creditStats.data.data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  }, []);
+
   return (
     <div className="w-full min-h-screen h-screen overflow-y-scroll bg-gray-50 flex justify-center pt-20 pb-24">
       <div className="w-full max-w-7xl p-6 space-y-8">
@@ -77,11 +137,22 @@ const Profile = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
           <StatCard
             title="Credits"
-            value={user.credits}
+            value={user.totalCredits}
             color="bg-indigo-100"
           />
-          <StatCard title="Problems Solved" value="80" color="bg-green-100" />
-          <StatCard title="Resumes" value="3" color="bg-blue-100" />
+          <StatCard
+            title="Problems Solved"
+            value={Object.entries(problemStats).reduce(
+              (a, b) => a + b[1].solved,
+              0,
+            )}
+            color="bg-green-100"
+          />
+          <StatCard
+            title="Resumes"
+            value={resumes.length}
+            color="bg-blue-100"
+          />
           <StatCard title="AI Jobs" value="12" color="bg-yellow-100" />
         </div>
 
@@ -110,7 +181,9 @@ const Profile = () => {
                             ? "bg-green-500"
                             : key === "Medium"
                               ? "bg-yellow-500"
-                              : "bg-red-500"
+                              : key === "Hard"
+                                ? "bg-red-500"
+                                : "bg-blue-500"
                         }`}
                         style={{ width: `${percent}%` }}
                       />

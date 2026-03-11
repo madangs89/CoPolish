@@ -232,3 +232,59 @@ export const markLikeForQuestion = async (req, res) => {
       .json({ message: "Something went wrong", success: false });
   }
 };
+
+export const getUserSolvedQuestionsOnTheBasisOfDifficulty = async (
+  req,
+  res,
+) => {
+  try {
+    const userId = req.user._id;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized Access",
+        success: false,
+      });
+    }
+    const basicSolvedQuestions = await UserQuestionProgressModel.countDocuments(
+      {
+        userId,
+        difficulty: "Basic",
+        completed: true,
+      },
+    );
+    const easySolvedQuestions = await UserQuestionProgressModel.countDocuments({
+      userId,
+      difficulty: "Easy",
+      completed: true,
+    });
+    const mediumSolvedQuestions =
+      await UserQuestionProgressModel.countDocuments({
+        userId,
+        difficulty: "Medium",
+        completed: true,
+      });
+    const hardSolvedQuestions = await UserQuestionProgressModel.countDocuments({
+      userId,
+      difficulty: "Hard",
+      completed: true,
+    });
+
+    const solvedQuestions = {
+      Basic: basicSolvedQuestions || 0,
+      Easy: easySolvedQuestions || 0,
+      Medium: mediumSolvedQuestions || 0,
+      Hard: hardSolvedQuestions || 0,
+    };
+    return res.status(200).json({
+      message: "Solved questions retrieved successfully",
+      success: true,
+      solvedQuestions,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Something went wrong",
+      success: false,
+    });
+  }
+};

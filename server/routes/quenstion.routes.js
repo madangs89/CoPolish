@@ -3,6 +3,7 @@ import {
   addQuestion,
   getAllSubjectQuestionCount,
   getCurrentQuestionById,
+  getQuestionOnTheBasisOfDifficulty,
   getQuestionsForAllTypeOfFilters,
   getRelatedQuestions,
   getSubjectQuestionCount,
@@ -28,6 +29,12 @@ questionRouter.get(
   "/count/subjects/:subject",
   authMiddelware,
   getSubjectQuestionCount,
+);
+
+questionRouter.get(
+  "/get/questions/difficulty",
+  authMiddelware,
+  getQuestionOnTheBasisOfDifficulty,
 );
 
 questionRouter.post("/add", adminMiddleware, addQuestion);

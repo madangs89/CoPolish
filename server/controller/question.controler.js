@@ -432,3 +432,31 @@ export const getRelatedQuestions = async (req, res) => {
     });
   }
 };
+
+export const getQuestionOnTheBasisOfDifficulty = async (req, res) => {
+  try {
+    let questions = {};
+    const easyQuestions = await Question.countDocuments({ difficulty: "Easy" });
+    const mediumQuestions = await Question.countDocuments({
+      difficulty: "Medium",
+    });
+    const hardQuestions = await Question.countDocuments({ difficulty: "Hard" });
+    const Basic = await Question.countDocuments({ difficulty: "Basic" });
+
+    questions["Easy"] = easyQuestions || 0;
+    questions["Medium"] = mediumQuestions || 0;
+    questions["Hard"] = hardQuestions || 0;
+    questions["Basic"] = Basic || 0;
+
+    return res.status(200).json({
+      message: "Questions fetched successfully",
+      success: true,
+      questions,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Something went wrong", success: false });
+  }
+};

@@ -5,6 +5,7 @@ import User from "../models/user.model.js";
 import { Payment } from "../models/payments.model.js";
 import { pubClient } from "../config/redis.js";
 import CreditLedger from "../models/creditLedger.model.js";
+import mongoose from "mongoose";
 
 export const createPayment = async (req, res) => {
   try {
@@ -51,9 +52,8 @@ export const createPayment = async (req, res) => {
       key: process.env.RAZORPAY_KEY_ID,
     });
   } catch (error) {
-
     console.log(error);
-    
+
     return res
       .status(500)
       .json({ success: false, message: "Failed to create payment" });
@@ -151,5 +151,61 @@ export const verifyPayment = async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: "Failed to verify payment" });
+  }
+};
+
+export const getPaymentMonthlyStats = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const result = await Payment.aggregate([
+      {
+        $match: {
+          status: "success",
+          userId: new mongoose.Types.ObjectId(userId),
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$createdAt" },
+          credits: { $sum: "$amount" },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    const monthNames = [
+      "",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    const creditData = result.map((item) => ({
+      month: monthNames[item._id],
+      credits: item.credits / 100 / Number(process.env.CREDIT_PRICE || 15),
+    }));
+
+    return res.json({
+      success: true,
+      message: "Monthly payment stats retrieved successfully",
+      data: creditData,
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to get stats" });
   }
 };
