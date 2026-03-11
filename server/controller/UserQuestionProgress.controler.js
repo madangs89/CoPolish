@@ -307,7 +307,7 @@ export const getUserSolvedQuestions = async (req, res) => {
       userId,
       completed: true,
     })
-      .populate("questionId", "title subject difficulty _id createdAt")
+      .populate("questionId")
       .sort({ completedAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -316,11 +316,14 @@ export const getUserSolvedQuestions = async (req, res) => {
       userId,
       completed: true,
     });
+    console.log(totalSolved , page);
+
     return res.status(200).json({
       message: "Solved questions retrieved successfully",
       success: true,
       questions: solvedQuestions,
       totalSolved,
+      page,
       totalPages: Math.ceil(totalSolved / limit),
     });
   } catch (error) {

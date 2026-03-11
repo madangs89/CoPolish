@@ -80,6 +80,23 @@ const Dashboard = () => {
   });
 
   const [progressLoading, setProgressLoading] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
+  const handleFeedbackSubmit = async () => {
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/feedback/v1/submit`,
+        { rating: feedbackRating, message: feedbackText },
+        { withCredentials: true },
+      );
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setFeedbackSubmitted(true);
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -413,7 +430,7 @@ const Dashboard = () => {
         )}
 
         {/* ================= PORTFOLIO CARD ================= */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm">
+        {/* <div className="bg-white rounded-3xl p-6 shadow-sm">
           <p className="text-sm font-medium mb-3">Portfolio</p>
 
           <div className="flex items-center gap-2 mb-4">
@@ -429,6 +446,47 @@ const Dashboard = () => {
 
           <button className="w-full px-5 py-3 rounded-full bg-black text-white text-sm font-medium hover:opacity-90">
             View Portfolio
+          </button>
+        </div> */}
+
+        <div className="bg-white rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm font-medium">Portfolio</p>
+              <span className="text-xs font-bold uppercase tracking-widest text-orange-500 bg-orange-50 px-2.5 py-1 rounded-full">
+                Beta
+              </span>
+            </div>
+
+            <p className="text-sm text-gray-500 leading-relaxed">
+              Auto-generate a live portfolio site from your resume. Share a
+              custom link with recruiters instantly.
+            </p>
+
+            <div className="mt-4 flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                Custom URL —{" "}
+                <span className="text-gray-500 font-medium">
+                  yourname.copolish.in
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                Auto-synced with your resume
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                Projects, Skills & Contact page
+              </div>
+            </div>
+          </div>
+
+          <button
+            disabled
+            className="w-full mt-6 px-5 py-3 rounded-full bg-gray-100 text-gray-400 text-sm font-medium cursor-not-allowed"
+          >
+            Coming in Beta
           </button>
         </div>
       </div>
@@ -458,15 +516,63 @@ const Dashboard = () => {
         {/* ================= CTA ================= */}
         <div className="bg-[#fff7e6] rounded-3xl p-6 shadow-sm flex flex-col justify-between">
           <div>
-            <p className="text-sm mb-3">
-              Your LinkedIn profile still needs optimization to match recruiter
-              searches.
+            <p className="text-xs font-semibold text-orange-400 uppercase tracking-widest mb-3">
+              Feedback
             </p>
+            <p className="text-sm font-semibold text-gray-800 mb-1">
+              How's your experience? 👋
+            </p>
+            <p className="text-sm text-gray-500 mb-5">
+              We're constantly improving CoPolish. Your feedback helps us build
+              what matters most to you.
+            </p>
+
+            {!feedbackSubmitted ? (
+              <>
+                {/* Rating */}
+                <div className="flex gap-2 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => setFeedbackRating(star)}
+                      className={`text-xl transition-transform hover:scale-110 ${
+                        feedbackRating >= star ? "opacity-100" : "opacity-30"
+                      }`}
+                    >
+                      ⭐
+                    </button>
+                  ))}
+                </div>
+
+                {/* Text */}
+                <textarea
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  placeholder="Tell us what you think..."
+                  rows={3}
+                  className="w-full text-sm bg-white border border-orange-100 rounded-2xl px-4 py-3 text-gray-700 placeholder-gray-300 resize-none focus:outline-none focus:ring-2 focus:ring-orange-200"
+                />
+              </>
+            ) : (
+              <div className="flex flex-col items-center py-4 gap-2">
+                <span className="text-3xl">🙏</span>
+                <p className="text-sm font-semibold text-gray-800">
+                  Thanks for your feedback!
+                </p>
+                <p className="text-xs text-gray-400">It means a lot to us.</p>
+              </div>
+            )}
           </div>
 
-          <button className="w-full mt-6 px-6 py-3 rounded-full bg-blue-600 text-white text-sm font-medium hover:opacity-90">
-            Optimize LinkedIn →
-          </button>
+          {!feedbackSubmitted && (
+            <button
+              onClick={handleFeedbackSubmit}
+              disabled={!feedbackRating}
+              className="w-full mt-4 px-6 py-3 rounded-full bg-black text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              Submit Feedback →
+            </button>
+          )}
         </div>
       </div>
 

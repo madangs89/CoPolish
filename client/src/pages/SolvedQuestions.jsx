@@ -1,221 +1,334 @@
-import { useEffect, useState, useCallback } from "react";
-
-// Mock data for demonstration
-const mockQuestions = Array.from({ length: 47 }, (_, i) => ({
-  questionId: { title: ["What is polymorphism?", "Explain ACID properties", "What is a deadlock?", "Difference between TCP and UDP", "What is Big O notation?", "Explain inheritance in OOP", "What is normalization?", "Explain process scheduling", "What is DNS?", "What is a linked list?"][i % 10] },
-  subject: ["OOPS", "DBMS", "OS", "CN", "DSA"][i % 5],
-  difficulty: ["Easy", "Medium", "Hard", "Basic"][i % 4],
-  solvedAt: new Date(Date.now() - i * 86400000 * 2).toISOString(),
-}));
-
-const LIMIT = 10;
-
-const subjectColors = {
-  OOPS: { bg: "#e0f2fe", text: "#0369a1", dot: "#0ea5e9" },
-  DBMS: { bg: "#fef3c7", text: "#92400e", dot: "#f59e0b" },
-  OS:   { bg: "#ede9fe", text: "#5b21b6", dot: "#8b5cf6" },
-  CN:   { bg: "#dcfce7", text: "#166534", dot: "#22c55e" },
-  DSA:  { bg: "#fce7f3", text: "#9d174d", dot: "#ec4899" },
-};
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import axios from "axios";
 
 const difficultyConfig = {
-  Basic:  { color: "#6366f1", bg: "#eef2ff", label: "Basic" },
-  Easy:   { color: "#16a34a", bg: "#dcfce7", label: "Easy" },
-  Medium: { color: "#d97706", bg: "#fef3c7", label: "Medium" },
-  Hard:   { color: "#dc2626", bg: "#fee2e2", label: "Hard" },
+  Basic: {
+    label: "Basic",
+    pill: "bg-gray-100 text-gray-500",
+    bar: "bg-gray-300",
+    dot: "bg-gray-400",
+  },
+  Easy: {
+    label: "Easy",
+    pill: "bg-black text-white",
+    bar: "bg-black",
+    dot: "bg-black",
+  },
+  Medium: {
+    label: "Medium",
+    pill: "bg-gray-800 text-white",
+    bar: "bg-gray-700",
+    dot: "bg-gray-700",
+  },
+  Hard: {
+    label: "Hard",
+    pill: "bg-gray-900 text-white",
+    bar: "bg-gray-900",
+    dot: "bg-gray-900",
+  },
 };
 
+const subjectPill = "bg-gray-100 text-gray-600";
+
 const SkeletonRow = () => (
-  <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "18px 0", borderBottom: "1px solid #f3f4f6" }}>
-    <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: "#f3f4f6", animation: "pulse 1.5s ease-in-out infinite" }} />
-    <div style={{ flex: 1 }}>
-      <div style={{ height: "14px", width: "60%", borderRadius: "6px", background: "#f3f4f6", animation: "pulse 1.5s ease-in-out infinite", marginBottom: "8px" }} />
-      <div style={{ height: "11px", width: "30%", borderRadius: "6px", background: "#f3f4f6", animation: "pulse 1.5s ease-in-out infinite" }} />
-    </div>
-    <div style={{ width: "60px", height: "22px", borderRadius: "20px", background: "#f3f4f6", animation: "pulse 1.5s ease-in-out infinite" }} />
-    <div style={{ width: "50px", height: "22px", borderRadius: "20px", background: "#f3f4f6", animation: "pulse 1.5s ease-in-out infinite" }} />
-    <div style={{ width: "80px", height: "14px", borderRadius: "6px", background: "#f3f4f6", animation: "pulse 1.5s ease-in-out infinite" }} />
+  <div className="flex items-center gap-6 px-8 py-5 animate-pulse border-b border-gray-50">
+    <div className="h-3 bg-gray-100 rounded-full w-5 flex-shrink-0" />
+    <div className="h-3 bg-gray-100 rounded-full flex-1" />
+    <div className="h-6 bg-gray-100 rounded-full w-16 flex-shrink-0" />
+    <div className="h-6 bg-gray-100 rounded-full w-16 flex-shrink-0" />
+    <div className="h-3 bg-gray-100 rounded-full w-20 flex-shrink-0" />
   </div>
 );
 
-export default function SolvedQuestions() {
+const StatCard = ({ label, count, config, loading, percentage }) => (
+  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-5 flex flex-col gap-4">
+    <div className="flex items-center justify-between">
+      <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+        {label}
+      </span>
+      {loading ? (
+        <div className="h-8 w-10 bg-gray-100 rounded-lg animate-pulse" />
+      ) : (
+        <span className="text-3xl font-bold text-gray-900 tabular-nums leading-none">
+          {count}
+        </span>
+      )}
+    </div>
+    <div className="h-1 w-full rounded-full bg-gray-100 overflow-hidden">
+      {!loading && (
+        <div
+          className={`h-full rounded-full transition-all duration-700 ease-out ${config.bar}`}
+          style={{ width: `${percentage}%` }}
+        />
+      )}
+    </div>
+  </div>
+);
+
+const SolvedQuestions = () => {
   const [questions, setQuestions] = useState([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("All");
-  const [hoveredRow, setHoveredRow] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const [diffStats, setDiffStats] = useState({
+    Basic: 0,
+    Easy: 0,
+    Medium: 0,
+    Hard: 0,
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [totalSolved, setTotalSolved] = useState(0);
 
-  const subjects = ["All", "OOPS", "DBMS", "OS", "CN", "DSA"];
+  const pageRef = useRef(0);
+  const totalPagesRef = useRef(1);
+  const scrollRef = useRef(null);
+  const fetchingRef = useRef(false);
 
-  const getPageWiseData = useCallback(async (pageNum, subjectFilter) => {
+  const fetchDifficultyStats = useCallback(async () => {
+    setStatsLoading(true);
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/progress/v1/get/questions/difficulty`,
+        { withCredentials: true },
+      );
+      if (res.data.success) {
+        setDiffStats(res.data.solvedQuestions);
+        setTotalSolved(
+          Object.values(res.data.solvedQuestions).reduce((a, b) => a + b, 0),
+        );
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setStatsLoading(false);
+    }
+  }, []);
+
+  const getPageWiseData = useCallback(async () => {
+    if (fetchingRef.current || pageRef.current >= totalPagesRef.current) return;
+    fetchingRef.current = true;
     setLoading(true);
     try {
-      // Simulating API call
-      await new Promise(r => setTimeout(r, 700));
-      const filtered = subjectFilter === "All"
-        ? mockQuestions
-        : mockQuestions.filter(q => q.subject === subjectFilter);
-      const start = (pageNum - 1) * LIMIT;
-      setQuestions(filtered.slice(start, start + LIMIT));
-      setTotalPages(Math.ceil(filtered.length / LIMIT));
-    } catch (err) {
-      console.error(err);
+      const res = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/progress/v1/solved/questions/${pageRef.current + 1}/10`,
+        { withCredentials: true },
+      );
+      if (res.data.success) {
+        setQuestions((prev) => [...prev, ...res.data.questions]);
+        pageRef.current = res.data.page;
+        totalPagesRef.current = res.data.totalPages;
+        setHasMore(res.data.page < res.data.totalPages);
+      }
+    } catch (e) {
+      console.error(e);
     } finally {
+      fetchingRef.current = false;
       setLoading(false);
+      setInitialLoad(false);
     }
   }, []);
 
   useEffect(() => {
-    getPageWiseData(page, filter);
-  }, [page, filter, getPageWiseData]);
+    fetchDifficultyStats();
+    getPageWiseData();
+  }, [fetchDifficultyStats, getPageWiseData]);
 
-  const handleFilter = (subject) => {
-    setFilter(subject);
-    setPage(1);
-  };
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 80)
+        getPageWiseData();
+    };
+    el.addEventListener("scroll", onScroll);
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [getPageWiseData]);
 
-  const stats = {
-    total: mockQuestions.length,
-    easy: mockQuestions.filter(q => q.difficulty === "Easy").length,
-    medium: mockQuestions.filter(q => q.difficulty === "Medium").length,
-    hard: mockQuestions.filter(q => q.difficulty === "Hard").length,
-  };
+  const maxCount = Math.max(...Object.values(diffStats), 1);
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
-        .row-item { transition: background 0.15s ease, transform 0.15s ease; }
-        .row-item:hover { background: #fafafa; transform: translateX(3px); }
-        .page-btn { transition: all 0.15s ease; }
-        .page-btn:hover:not(:disabled) { transform: scale(1.08); }
-        .filter-chip { transition: all 0.2s ease; cursor: pointer; }
-        .filter-chip:hover { transform: translateY(-1px); }
-        .stat-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
-      `}</style>
-
-      <div style={{ minHeight: "100vh", background: "linear-gradient(145deg, #f8faff 0%, #f0f4ff 50%, #faf8ff 100%)", fontFamily: "'DM Sans', sans-serif", padding: "40px 20px 80px" }}>
-        <div style={{ maxWidth: "860px", margin: "0 auto", animation: "fadeUp 0.5s ease both" }}>
-
-          {/* Header */}
-          <div style={{ marginBottom: "32px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px" }}>
-              <div style={{ width: "38px", height: "38px", borderRadius: "12px", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>✓</div>
-              <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: "28px", fontWeight: "800", color: "#0f0f1a", margin: 0, letterSpacing: "-0.5px" }}>Solved Questions</h1>
-            </div>
-            <p style={{ color: "#6b7280", fontSize: "14px", margin: "0 0 0 50px" }}>Track your interview preparation progress</p>
+    <div className="min-h-screen mt-12 bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-24">
+        {/* Header */}
+        <div className="mb-8 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Interview Preparation
+            </h1>
+            <p className="text-sm text-gray-400 mt-0.5">
+              Track your solved questions across all subjects
+            </p>
           </div>
-
-          {/* Stats Row */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "28px" }}>
-            {[
-              { label: "Total Solved", value: stats.total, color: "#6366f1", bg: "#eef2ff" },
-              { label: "Easy", value: stats.easy, color: "#16a34a", bg: "#dcfce7" },
-              { label: "Medium", value: stats.medium, color: "#d97706", bg: "#fef3c7" },
-              { label: "Hard", value: stats.hard, color: "#dc2626", bg: "#fee2e2" },
-            ].map((s) => (
-              <div key={s.label} className="stat-card" style={{ background: "white", borderRadius: "14px", padding: "16px", border: "1px solid #f0f0f0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
-                <div style={{ fontSize: "24px", fontFamily: "'Syne', sans-serif", fontWeight: "800", color: s.color }}>{s.value}</div>
-                <div style={{ fontSize: "12px", color: "#9ca3af", fontWeight: "500", marginTop: "2px" }}>{s.label}</div>
-                <div style={{ height: "3px", borderRadius: "4px", background: s.bg, marginTop: "10px" }}>
-                  <div style={{ height: "100%", width: `${(s.value / stats.total) * 100}%`, borderRadius: "4px", background: s.color, transition: "width 0.6s ease" }} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Main Card */}
-          <div style={{ background: "white", borderRadius: "20px", border: "1px solid #eef0f6", boxShadow: "0 4px 24px rgba(99,102,241,0.06)", overflow: "hidden" }}>
-
-            {/* Filter Bar */}
-            <div style={{ padding: "18px 24px", borderBottom: "1px solid #f3f4f6", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-              <span style={{ fontSize: "12px", color: "#9ca3af", fontWeight: "500", marginRight: "4px" }}>Filter:</span>
-              {subjects.map((s) => (
-                <button key={s} className="filter-chip" onClick={() => handleFilter(s)} style={{
-                  padding: "5px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: "600", border: "none", cursor: "pointer",
-                  background: filter === s ? (s === "All" ? "#0f0f1a" : subjectColors[s]?.bg || "#eef2ff") : "#f9fafb",
-                  color: filter === s ? (s === "All" ? "white" : subjectColors[s]?.text || "#4f46e5") : "#6b7280",
-                  boxShadow: filter === s ? "0 2px 8px rgba(0,0,0,0.12)" : "none",
-                }}>
-                  {s === "All" ? "All" : s}
-                </button>
-              ))}
-              <span style={{ marginLeft: "auto", fontSize: "12px", color: "#9ca3af" }}>
-                Page <strong style={{ color: "#374151" }}>{page}</strong> of <strong style={{ color: "#374151" }}>{totalPages}</strong>
+          {!statsLoading && (
+            <div className="bg-white border border-gray-100 shadow-sm rounded-xl px-5 py-2.5 flex items-center gap-2.5">
+              <div className="w-2 h-2 rounded-full bg-black" />
+              <span className="text-sm font-semibold text-gray-800">
+                {totalSolved} solved
               </span>
             </div>
+          )}
+        </div>
 
-            {/* Table Header */}
-            <div style={{ display: "grid", gridTemplateColumns: "28px 1fr 90px 70px 100px", gap: "16px", padding: "10px 24px", background: "#fafafa", borderBottom: "1px solid #f0f0f0" }}>
-              {["#", "Question", "Subject", "Level", "Solved On"].map((h) => (
-                <span key={h} style={{ fontSize: "11px", fontWeight: "700", color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.6px" }}>{h}</span>
-              ))}
-            </div>
+        {/* Stat cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          {Object.entries(difficultyConfig).map(([label, config]) => (
+            <StatCard
+              key={label}
+              label={label}
+              count={diffStats[label] ?? 0}
+              config={config}
+              loading={statsLoading}
+              percentage={Math.round(
+                ((diffStats[label] ?? 0) / maxCount) * 100,
+              )}
+            />
+          ))}
+        </div>
 
-            {/* Rows */}
-            <div style={{ padding: "0 24px" }}>
-              {loading
-                ? Array.from({ length: LIMIT }).map((_, i) => <SkeletonRow key={i} />)
-                : questions.length === 0
-                  ? (
-                    <div style={{ textAlign: "center", padding: "60px 0", color: "#9ca3af" }}>
-                      <div style={{ fontSize: "40px", marginBottom: "12px" }}>🎯</div>
-                      <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: "700", fontSize: "16px", color: "#374151", margin: "0 0 6px" }}>No questions solved yet</p>
-                      <p style={{ fontSize: "13px", margin: 0 }}>Start solving to track your progress!</p>
-                    </div>
-                  )
-                  : questions.map((q, i) => {
-                    const diff = difficultyConfig[q.difficulty] || difficultyConfig.Basic;
-                    const subj = subjectColors[q.subject] || subjectColors.DSA;
-                    const idx = (page - 1) * LIMIT + i + 1;
-                    return (
-                      <div key={i} className="row-item" onMouseEnter={() => setHoveredRow(i)} onMouseLeave={() => setHoveredRow(null)}
-                        style={{ display: "grid", gridTemplateColumns: "28px 1fr 90px 70px 100px", gap: "16px", alignItems: "center", padding: "16px 0", borderBottom: "1px solid #f9fafb", animation: `fadeUp 0.3s ease ${i * 40}ms both`, cursor: "pointer", borderRadius: "8px", margin: "0 -8px", padding: "16px 8px" }}>
-                        <span style={{ fontSize: "13px", fontWeight: "700", color: "#d1d5db", fontFamily: "'Syne', sans-serif" }}>{String(idx).padStart(2, "0")}</span>
-                        <span style={{ fontSize: "14px", fontWeight: "500", color: "#111827", lineHeight: "1.4" }}>{q.questionId.title}</span>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontWeight: "600", color: subj.text, background: subj.bg, padding: "3px 10px", borderRadius: "20px", width: "fit-content" }}>
-                          <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: subj.dot, flexShrink: 0 }} />
-                          {q.subject}
-                        </span>
-                        <span style={{ fontSize: "12px", fontWeight: "600", color: diff.color, background: diff.bg, padding: "3px 10px", borderRadius: "20px", width: "fit-content" }}>{diff.label}</span>
-                        <span style={{ fontSize: "12px", color: "#9ca3af" }}>{new Date(q.solvedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</span>
-                      </div>
-                    );
+        {/* Table */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-8 py-4 border-b border-gray-50 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-gray-700">
+              Solved Questions
+            </h2>
+            {!initialLoad && (
+              <span className="text-xs text-gray-400">
+                {questions.length} of {totalSolved}
+              </span>
+            )}
+          </div>
+
+          {/* Column headers — desktop */}
+          <div
+            className="hidden sm:grid px-8 py-3 bg-gray-50 border-b border-gray-100"
+            style={{ gridTemplateColumns: "2.5rem 1fr 7rem 8rem 8rem" }}
+          >
+            {["#", "Question", "Subject", "Difficulty", "Solved On"].map(
+              (h, i) => (
+                <span
+                  key={h}
+                  className={`text-xs font-semibold text-gray-400 uppercase tracking-wider
+                  ${i === 2 || i === 3 ? "text-center" : ""}
+                  ${i === 4 ? "text-right" : ""}`}
+                >
+                  {h}
+                </span>
+              ),
+            )}
+          </div>
+
+          {/* List */}
+          <div
+            ref={scrollRef}
+            className="overflow-y-auto divide-y divide-gray-50"
+            style={{ maxHeight: "calc(100vh - 420px)", minHeight: "180px" }}
+          >
+            {initialLoad &&
+              Array.from({ length: 7 }).map((_, i) => <SkeletonRow key={i} />)}
+
+            {questions.map((q, i) => {
+              const diff = q.questionId?.difficulty || "Easy";
+              const dc = difficultyConfig[diff] || difficultyConfig.Easy;
+              const date = q.completedAt
+                ? new Date(q.completedAt).toLocaleDateString("en-IN", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
                   })
-              }
-            </div>
+                : "—";
 
-            {/* Pagination */}
-            {!loading && totalPages > 1 && (
-              <div style={{ padding: "18px 24px", borderTop: "1px solid #f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                <button className="page-btn" onClick={() => setPage(1)} disabled={page === 1} style={{ width: "34px", height: "34px", borderRadius: "10px", border: "1px solid #e5e7eb", background: "white", cursor: page === 1 ? "not-allowed" : "pointer", opacity: page === 1 ? 0.4 : 1, fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center" }}>«</button>
-                <button className="page-btn" onClick={() => setPage(p => p - 1)} disabled={page === 1} style={{ width: "34px", height: "34px", borderRadius: "10px", border: "1px solid #e5e7eb", background: "white", cursor: page === 1 ? "not-allowed" : "pointer", opacity: page === 1 ? 0.4 : 1, fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
+              return (
+                <div
+                  key={q._id || i}
+                  className="group hover:bg-gray-50 transition-colors duration-100"
+                >
+                  {/* Desktop */}
+                  <div
+                    className="hidden sm:grid items-center gap-6 px-8 py-4"
+                    style={{ gridTemplateColumns: "2.5rem 1fr 7rem 8rem 8rem" }}
+                  >
+                    <span className="text-sm text-gray-300 font-semibold tabular-nums group-hover:text-gray-400 transition-colors">
+                      {i + 1}
+                    </span>
+                    <span className="text-sm font-medium text-gray-800 truncate">
+                      {q.questionId?.title || "Untitled"}
+                    </span>
+                    <div className="flex justify-center">
+                      <span
+                        className={`text-xs font-semibold px-3 py-1 rounded-full ${subjectPill}`}
+                      >
+                        {q.subject}
+                      </span>
+                    </div>
+                    <div className="flex justify-center">
+                      <span
+                        className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${dc.pill}`}
+                      >
+                        {diff}
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-400 text-right tabular-nums">
+                      {date}
+                    </span>
+                  </div>
 
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
-                  .reduce((acc, p, idx, arr) => {
-                    if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
-                    acc.push(p);
-                    return acc;
-                  }, [])
-                  .map((p, i) => p === "..." ? (
-                    <span key={`dot-${i}`} style={{ padding: "0 4px", color: "#9ca3af", fontSize: "13px" }}>…</span>
-                  ) : (
-                    <button key={p} className="page-btn" onClick={() => setPage(p)} style={{ width: "34px", height: "34px", borderRadius: "10px", border: page === p ? "none" : "1px solid #e5e7eb", background: page === p ? "linear-gradient(135deg, #6366f1, #8b5cf6)" : "white", color: page === p ? "white" : "#374151", fontWeight: page === p ? "700" : "400", fontSize: "13px", cursor: "pointer", boxShadow: page === p ? "0 4px 12px rgba(99,102,241,0.35)" : "none", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Syne', sans-serif" }}>{p}</button>
-                  ))}
+                  {/* Mobile */}
+                  <div className="sm:hidden px-5 py-4 flex flex-col gap-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="text-sm font-semibold text-gray-800 leading-snug flex-1">
+                        {q.questionId?.title || "Untitled"}
+                      </span>
+                      <span
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${dc.pill}`}
+                      >
+                        {diff}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${subjectPill}`}
+                      >
+                        {q.subject}
+                      </span>
+                      <span className="text-xs text-gray-400">{date}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
 
-                <button className="page-btn" onClick={() => setPage(p => p + 1)} disabled={page === totalPages} style={{ width: "34px", height: "34px", borderRadius: "10px", border: "1px solid #e5e7eb", background: "white", cursor: page === totalPages ? "not-allowed" : "pointer", opacity: page === totalPages ? 0.4 : 1, fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
-                <button className="page-btn" onClick={() => setPage(totalPages)} disabled={page === totalPages} style={{ width: "34px", height: "34px", borderRadius: "10px", border: "1px solid #e5e7eb", background: "white", cursor: page === totalPages ? "not-allowed" : "pointer", opacity: page === totalPages ? 0.4 : 1, fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center" }}>»</button>
+            {loading && !initialLoad && (
+              <>
+                <SkeletonRow />
+                <SkeletonRow />
+                <SkeletonRow />
+              </>
+            )}
+
+            {!loading && !hasMore && questions.length > 0 && (
+              <div className="text-center py-8 text-xs text-gray-300 font-semibold tracking-widest uppercase">
+                You've reached the end
+              </div>
+            )}
+
+            {!initialLoad && !loading && questions.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20 gap-3">
+                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-2xl">
+                  📭
+                </div>
+                <p className="text-sm font-semibold text-gray-500">
+                  No solved questions yet
+                </p>
+                <p className="text-xs text-gray-300">
+                  Start solving to track your progress
+                </p>
               </div>
             )}
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
-}
+};
+
+export default SolvedQuestions;
