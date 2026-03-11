@@ -11,6 +11,8 @@ import Question from "./pages/Question";
 import Answer from "./pages/Answer";
 import RenderResumeForPreview from "./components/Renderer/RenderResumeForPreview";
 import Profile from "./pages/Profile";
+import PaymentHistory from "./pages/PaymentHistory";
+import SolvedQuestions from "./pages/SolvedQuestions";
 
 const Hero = lazy(() => import("./pages/Hero"));
 const Cursor = lazy(() => import("./components/Cursor"));
@@ -126,6 +128,8 @@ const App = () => {
               element={<RenderResumeForPreview />}
             />
             <Route path="/profile/user/:userId" element={<Profile />} />
+            <Route path="/profile/payments" element={<PaymentHistory />} />
+            <Route path="/profile/solved" element={<SolvedQuestions />} />
           </Route>
         </Routes>
       </Suspense>

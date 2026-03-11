@@ -216,6 +216,12 @@ const Profile = () => {
                   </div>
                 ))}
               </div>
+              <p
+                onClick={() => navigate("/profile/solved")}
+                className="text-blue-600 cursor-pointer text-sm mt-3"
+              >
+                See All
+              </p>
             </Card>
 
             {/* RESUME LIBRARY */}
