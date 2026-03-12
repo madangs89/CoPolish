@@ -301,12 +301,12 @@ const AuthOverlay = ({ open, onClose }) => {
             )}
           </button>
 
-          <button
+          {/* <button
             onClick={() => console.log("GitHub Auth")}
             className="w-full rounded-full border py-3 text-sm font-medium hover:bg-[#f5f5f5] transition"
           >
             Continue with GitHub
-          </button>
+          </button> */}
         </div>
 
         {/* Switch */}
