@@ -3,8 +3,10 @@ import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { FileText } from "lucide-react";
+import toast from "react-hot-toast";
+import { setAuthFalse, setUser } from "../redux/slice/authSlice";
 
 const Skeleton = ({ className = "" }) => (
   <div className={`animate-pulse bg-gray-100 rounded-lg ${className}`} />
@@ -57,6 +59,7 @@ const diffPill = (key) =>
 const Profile = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
 
   const [problemStats, setProblemStats] = useState({
     Basic: { solved: 0, total: 0 },
@@ -72,11 +75,30 @@ const Profile = () => {
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [loadingResumes, setLoadingResumes] = useState(true);
   const [loadingCredits, setLoadingCredits] = useState(true);
+  const [logoutLoading, setLogoutLoading] = useState(false);
 
-  const payments = [
-    { amount: 200, status: "success", date: "Mar 1" },
-    { amount: 100, status: "success", date: "Feb 14" },
-  ];
+
+  const handleLogout = async () => {
+    try {
+      setLogoutLoading(true);
+      const res = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/v1/logout`,
+        {},
+        { withCredentials: true },
+      );
+
+      if (res.data.success) {
+        toast.success("Logged out successfully!");
+        dispatch(setAuthFalse());
+        dispatch(setUser({ isAuth: false, user: null }));
+        navigate("/");
+      }
+    } catch (error) {
+      toast.error("Logout failed. Please try again.");
+    } finally {
+      setLogoutLoading(false);
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -188,6 +210,12 @@ const Profile = () => {
             )}
           </p>
         </div>
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 ml-2 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition-colors duration-200"
+        >
+          {logoutLoading ? "Logging out..." : "Logout"}
+        </button>
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
