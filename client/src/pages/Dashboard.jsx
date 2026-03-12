@@ -16,6 +16,7 @@ import UploadBox from "../components/UploadBox";
 import ResumeProgress from "../components/StatusShower/ResumeProgress";
 import toast from "react-hot-toast";
 import { setCurrentLinkedInData } from "../redux/slice/linkedInSlice";
+import ButtonLoader from "../components/Loaders/ButtonLoader";
 
 let nowTime = new Date();
 
@@ -47,6 +48,8 @@ const Dashboard = () => {
   const [linkedInLoader, setLinkedInLoader] = useState(false);
 
   const [linkedInUploadModalShow, setLinkedInUploadModalShow] = useState(false);
+
+  const [resumeExtractLoader, setResumeExtractLoader] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -84,6 +87,7 @@ const Dashboard = () => {
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [feedBackLoading, setFeedBackLoading] = useState(false);
+  const socket = useSelector((s) => s.socket.socket);
 
   const handleFeedbackSubmit = async () => {
     try {
@@ -150,6 +154,29 @@ const Dashboard = () => {
   const updateModalState = useEffectEvent(() => {
     setLinkedInUploadModalShow(false);
   });
+
+  const handleResumeExtract = async () => {
+    try {
+      setResumeExtractLoader(true);
+
+      const resumeExtracterData = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/linkedin/v1/extract/linkedin/resume`,
+        {
+          resumeId:
+            resumeSlice.currentResumeId || resumeSlice.currentResume?._id,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+      console.log(resumeExtracterData.data);
+    } catch (error) {
+      console.log(error);
+      setResumeExtractLoader(false);
+
+      toast.error("Failed to extract LinkedIn data. Please try again.");
+    }
+  };
 
   useEffect(() => {
     if (isStatusTrue) {
@@ -289,6 +316,8 @@ const Dashboard = () => {
     })();
   }, [userDetails?.currentLinkedInId]);
 
+
+
   return (
     <div className="h-screen mt-12 bg-[#f7f7f7] relative px-6 overflow-y-scroll md:px-14 py-10">
       {/* ================= TOP MESSAGE ================= */}
@@ -420,9 +449,16 @@ const Dashboard = () => {
 
                 {/* Actions */}
                 <div className="flex flex-col gap-2">
-                  <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
-                    Import from Resume
-                  </button>
+                  {/* <button
+                    onClick={handleResumeExtract}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+                  >
+                    {resumeExtractLoader ? (
+                      <ButtonLoader color="white" />
+                    ) : (
+                      <p>Import from Resume</p>
+                    )}
+                  </button> */}
 
                   <button
                     onClick={() => {

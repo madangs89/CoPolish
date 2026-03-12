@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  extractLinkedInDataFromResume,
   getLinkedInDataFromId,
   optimizeLinkedIn,
   postToLinkedIn,
@@ -14,6 +15,11 @@ linkedInRouter.get(
   getLinkedInDataFromId,
 );
 linkedInRouter.post("/optimize-linkedin", authMiddelware, optimizeLinkedIn);
+linkedInRouter.post(
+  "/extract/linkedin/resume",
+  authMiddelware,
+  extractLinkedInDataFromResume,
+);
 linkedInRouter.post("/publish-linkedin-post", authMiddelware, postToLinkedIn);
 
 export default linkedInRouter;

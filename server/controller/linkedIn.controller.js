@@ -1,4 +1,7 @@
-import { aiOptimizationLinkedInQueue } from "../bull/jobs/bullJobs.js";
+import {
+  aiOptimizationLinkedInQueue,
+  resumeParseAIQueue,
+} from "../bull/jobs/bullJobs.js";
 import { pubClient } from "../config/redis.js";
 import CreditLedger from "../models/creditLedger.model.js";
 import LinkedInProfile from "../models/linkedin.model.js";
@@ -6,6 +9,7 @@ import LinkedinJob from "../models/linkedinJobs.model.js";
 import User from "../models/user.model.js";
 import { decrypt } from "../utils/encryption.js";
 import axios from "axios";
+import { v4 as uuidv4 } from "uuid";
 
 const CREDIT_COST = {
   headline: 1,
@@ -359,6 +363,44 @@ export const postToLinkedIn = async (req, res) => {
       });
     }
 
+    return res.status(500).json({
+      message: error.message || "Server error",
+      success: false,
+    });
+  }
+};
+
+export const extractLinkedInDataFromResume = async (req, res) => {
+  try {
+    const userId = req?.user?._id;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+        success: false,
+      });
+    }
+
+    let jobKey = uuidv4();
+    await resumeParseAIQueue.add(
+      "resume-parse-ai",
+      {
+        parsedText: "",
+        userId,
+        jobKey,
+        operation: "linkedin",
+      },
+      {
+        jobId: jobKey,
+      },
+    );
+    return res.status(200).json({
+      message: "LinkedIn data extraction started",
+      success: true,
+      jobKey,
+    });
+  } catch (error) {
+    console.log(error);
     return res.status(500).json({
       message: error.message || "Server error",
       success: false,

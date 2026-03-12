@@ -312,8 +312,7 @@ const resumeParseAIWorker = new Worker(
 
       const res = await aiLinkedInParser(parsedText, userId);
 
-      console.log(res);
-
+      console.log("parsing completed", res);
       const { text, usage, error, isError } = res;
 
       if (isError) {
@@ -334,6 +333,8 @@ const resumeParseAIWorker = new Worker(
       }
 
       const posts = await linkedInPostGenerator(text, userId, 1);
+
+      console.log("post generation completed", posts);
 
       let newPost = [];
       const {
@@ -400,6 +401,8 @@ const resumeParseAIWorker = new Worker(
             : [],
       };
 
+      console.log({ payload });
+
       let newLinkedIn = await LinkedInProfile.create(payload);
 
       let userDetails = await User.findById(userId);
@@ -457,6 +460,8 @@ resumeParseAIWorker.on("completed", async (job) => {
 
 resumeParseAIWorker.on("failed", async (job, err) => {
   console.error(`Job ${job.id} failed`);
+
+  console.error(err);
 
   const { userId, jobKey } = job.data || {};
 
