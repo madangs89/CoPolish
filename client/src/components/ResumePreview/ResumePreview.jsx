@@ -6,7 +6,7 @@ import PageRenderer from "./PageRenderer";
 import MobileResumeWrapper from "./MobileResumeWrapper";
 import { templateRegistry } from "../../config/templateRegistory";
 
-const API = "http://localhost:3000";
+const API = import.meta.env.VITE_BACKEND_URL;
 
 const ResumePreview = ({ resumeData, checkedFields }) => {
   const containerRef = useRef(null);
