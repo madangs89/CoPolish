@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config({ path: "../../.env" });
+dotenv.config();
 import IORedis from "ioredis";
 
 export const pubClient = new IORedis(process.env.REDIS_URL, {
