@@ -106,19 +106,21 @@ export const getResumeById = async (req, res) => {
     }
 
     const key = `resume:${resumeId}:${userId}`;
+    try {
+      const exists = await pubClient.exists(key);
 
-    const exists = await pubClient.exists(key);
+      if (exists) {
+        const resumeData = await pubClient.hget(key, "data");
 
-    if (exists) {
-      const resumeData = await pubClient.hget(key, "data");
-
-      return res.status(200).json({
-        success: true,
-        message: "Resume fetched from cache",
-        resume: JSON.parse(resumeData),
-      });
+        return res.status(200).json({
+          success: true,
+          message: "Resume fetched from cache",
+          resume: JSON.parse(resumeData),
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching from cache:", err);
     }
-
     const resume = await ResumeTemplate.findOne({
       _id: resumeId,
       userId,
@@ -131,14 +133,18 @@ export const getResumeById = async (req, res) => {
       });
     }
 
-    await pubClient.hset(key, {
-      data: JSON.stringify(resume.toObject()),
-      isDirty: 0, // not edited yet
-      firstEditAt: "", // editing not started
-      lastEditAt: "", // editing not started
-    });
+    try {
+      await pubClient.hset(key, {
+        data: JSON.stringify(resume.toObject()),
+        isDirty: 0, // not edited yet
+        firstEditAt: "", // editing not started
+        lastEditAt: "", // editing not started
+      });
 
-    await pubClient.expire(key, 60 * 30);
+      await pubClient.expire(key, 60 * 30);
+    } catch (error) {
+      console.error("Error setting cache:", error);
+    }
 
     return res.status(200).json({
       success: true,
@@ -316,9 +322,6 @@ export const updateResume = async (req, res) => {
     const resumeId = req.params.id;
     const userId = req.user._id;
     const { resumeData } = req.body;
-
-
-    
 
     if (!resumeId || !resumeData) {
       return res.status(400).json({

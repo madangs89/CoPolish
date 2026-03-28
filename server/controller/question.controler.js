@@ -74,7 +74,11 @@ export const addQuestion = async (req, res) => {
     const count = await Question.countDocuments({
       subject: subject.toUpperCase(),
     });
-    await pubClient.set(`question_count_${subject.toUpperCase()}`, count);
+    try {
+      await pubClient.set(`question_count_${subject.toUpperCase()}`, count);
+    } catch (error) {
+      console.log("Failed to update question count in Redis", error);
+    }
 
     return res.status(201).json({
       message: "Question added successfully",
@@ -93,31 +97,41 @@ export const getSubjectQuestionCount = async (req, res) => {
   try {
     const subject = req.params.subject;
 
-    const cachedCount = await pubClient.get(
-      `question_count_${subject.toUpperCase()}`,
-    );
-
-    if (cachedCount) {
-      console.log("got from cache");
-
-      return res.status(200).json({
-        message: "Total questions count fetched successfully (from cache)",
-        success: true,
-        totalQuestions: parseInt(cachedCount),
-      });
-    }
     if (!subject) {
       return res
         .status(400)
         .json({ message: "Subject is required", success: false });
     }
+
+    try {
+      const cachedCount = await pubClient.get(
+        `question_count_${subject.toUpperCase()}`,
+      );
+
+      if (cachedCount) {
+        console.log("got from cache");
+
+        return res.status(200).json({
+          message: "Total questions count fetched successfully (from cache)",
+          success: true,
+          totalQuestions: parseInt(cachedCount),
+        });
+      }
+    } catch (error) {
+      console.log("Failed to fetch question count from Redis", error);
+    }
+
     let totalQuestions = await Question.countDocuments({
       subject: subject.toUpperCase(),
     });
-    await pubClient.set(
-      `question_count_${subject.toUpperCase()}`,
-      totalQuestions,
-    );
+    try {
+      await pubClient.set(
+        `question_count_${subject.toUpperCase()}`,
+        totalQuestions,
+      );
+    } catch (error) {
+      console.log("Failed to set question count in Redis", error);
+    }
 
     return res.status(200).json({
       message: "Total questions count fetched successfully",
@@ -138,9 +152,17 @@ export const getAllSubjectQuestionCount = async (req, res) => {
     const counts = {};
 
     for (const subject of subjects) {
-      const cachedCount = await pubClient.get(
-        `question_count_${subject.toUpperCase()}`,
-      );
+      let cachedCount = 0;
+      try {
+        cachedCount = await pubClient.get(
+          `question_count_${subject.toUpperCase()}`,
+        );
+      } catch (error) {
+        console.log(
+          `Failed to fetch question count for ${subject} from Redis`,
+          error,
+        );
+      }
 
       if (cachedCount) {
         counts[subject] = parseInt(cachedCount);
@@ -149,7 +171,14 @@ export const getAllSubjectQuestionCount = async (req, res) => {
           subject: subject.toUpperCase(),
         });
         counts[subject] = count;
-        await pubClient.set(`question_count_${subject.toUpperCase()}`, count);
+        try {
+          await pubClient.set(`question_count_${subject.toUpperCase()}`, count);
+        } catch (error) {
+          console.log(
+            `Failed to set question count for ${subject} in Redis`,
+            error,
+          );
+        }
       }
     }
 
@@ -348,16 +377,20 @@ export const getCurrentQuestionById = async (req, res) => {
     }
 
     const redisCacheKey = `question_${id}`;
-    const cachedQuestion = await pubClient.get(redisCacheKey);
+    try {
+      const cachedQuestion = await pubClient.get(redisCacheKey);
 
-    if (cachedQuestion) {
-      console.log("question fetched from redis");
+      if (cachedQuestion) {
+        console.log("question fetched from redis");
 
-      return res.status(200).json({
-        message: "Question fetched successfully (from cache)",
-        success: true,
-        question: JSON.parse(cachedQuestion),
-      });
+        return res.status(200).json({
+          message: "Question fetched successfully (from cache)",
+          success: true,
+          question: JSON.parse(cachedQuestion),
+        });
+      }
+    } catch (error) {
+      console.log("Failed to fetch question from Redis", error);
     }
     const question = await Question.findById(id);
     if (!question) {
@@ -365,7 +398,11 @@ export const getCurrentQuestionById = async (req, res) => {
         .status(404)
         .json({ message: "Question not found", success: false });
     }
-    await pubClient.set(redisCacheKey, JSON.stringify(question));
+    try {
+      await pubClient.set(redisCacheKey, JSON.stringify(question));
+    } catch (error) {
+      console.log("Failed to set question in Redis", error);
+    }
     return res.status(200).json({
       message: "Question fetched successfully",
       success: true,
